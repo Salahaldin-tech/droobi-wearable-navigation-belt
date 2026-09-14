@@ -24,6 +24,10 @@ dependencies:
   firebase_auth: ^4.20.0
   cloud_firestore: ^4.17.5
 
+  # Destination search (Places API (New) Text Search).
+  # Kept isolated behind lib/services/search/destination_search_service.dart.
+  http: ^1.2.1
+
   cupertino_icons: ^1.0.6
 
 dev_dependencies:
