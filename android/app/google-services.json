@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "286313133920",
+    "project_id": "droobi-daeb8",
+    "storage_bucket": "droobi-daeb8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:286313133920:android:e7c3935218d88ff1435005",
+        "android_client_info": {
+          "package_name": "com.example.droobi"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCZBwspbhwv_yZNDn7Q5eSnMD6tP1OeJEk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

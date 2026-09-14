@@ -1,0 +1,35 @@
+name: droobi
+description: Droobi - Wearable navigation app for visually impaired users.
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # BLE communication with the DroobiBelt ESP32.
+  # Kept isolated behind lib/services/ble/belt_connection_service.dart
+  # so it can be swapped later without touching the rest of the app.
+  flutter_blue_plus: ^1.32.12
+
+  # State management, per Stage 2 architecture decision.
+  flutter_riverpod: ^2.5.1
+
+  # Firebase Authentication + minimal users/{uid} Firestore document.
+  # Kept isolated behind lib/services/firebase/auth_service.dart.
+  firebase_core: ^2.32.0
+  firebase_auth: ^4.20.0
+  cloud_firestore: ^4.17.5
+
+  cupertino_icons: ^1.0.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
