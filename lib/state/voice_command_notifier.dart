@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/enums/voice_command_state.dart';
@@ -12,21 +14,12 @@ final feedbackServiceProvider = Provider<FeedbackService>((ref) {
   return FlutterTtsFeedbackService();
 });
 
-/// Local Whisper (whisper.cpp via whisper_flutter_new), replacing the
-/// earlier speech_to_text-backed implementation. See
-/// lib/services/voice/whisper_voice_service.dart for the important
-/// note on the one-time model download.
 final voiceInputServiceProvider = Provider<VoiceInputService>((ref) {
   return WhisperVoiceService();
 });
 
-/// Orchestrates: tap mic -> record -> transcribe (Whisper) ->
-/// recognize -> confirm -> search.
-///
-/// This is the Home Screen mic's entry point into the existing Stage 7
-/// destination search pipeline - recognized text is not acted on
-/// blindly, it's surfaced for confirmation first (per Stage 5's
-/// confirm-then-act design), then handed to destinationSearchProvider.
+const Duration _confirmationWindow = Duration(milliseconds: 2500);
+
 class VoiceCommandNotifier extends StateNotifier<VoiceCommandState> {
   VoiceCommandNotifier(this._ref, this._voiceInput, this._feedback)
       : super(const VoiceCommandState());
@@ -35,65 +28,204 @@ class VoiceCommandNotifier extends StateNotifier<VoiceCommandState> {
   final VoiceInputService _voiceInput;
   final FeedbackService _feedback;
 
-  Future<void> startListening() async {
+  Timer? _confirmationTimer;
+
+  // Used to invalidate old recording/transcription operations.
+  int _requestId = 0;
+
+  /// Called when the user PRESSES the microphone.
+  ///
+  /// Recording starts and continues until onMicRelease() is called.
+  Future<void> onMicPress() async {
+    // If already recording or processing, do nothing.
+    if (state.phase == VoiceCommandPhase.listening ||
+        state.phase == VoiceCommandPhase.processing) {
+      return;
+    }
+
+    // If a previous result was waiting for auto-search, cancel it.
+    _cancelConfirmationTimer();
+    _requestId++;
+
+    final requestId = _requestId;
+
+    // Stop any TTS before opening the microphone.
+    // This prevents the app's own voice from being recorded.
+    await _feedback.stop();
+
+    if (!mounted || requestId != _requestId) {
+      return;
+    }
+
     state = state.copyWith(
       phase: VoiceCommandPhase.listening,
       clearRecognizedText: true,
       clearError: true,
     );
-    await _feedback.announce(
-      'Listening',
-      priority: AnnouncementPriority.normal,
-    );
 
     final language = _ref.read(voiceLanguageProvider);
 
-    final text = await _voiceInput.listenForDestination(
-      language: language,
-      onRecordingComplete: () {
-        // Whisper's record-then-transcribe flow means there's a real
-        // gap here (local inference) worth reflecting in the UI/audio
-        // state, unlike the old streaming speech_to_text flow where
-        // recognition was effectively instantaneous.
-        state = state.copyWith(phase: VoiceCommandPhase.processing);
-      },
-    );
+    try {
+      final text = await _voiceInput.listenForDestination(
+        language: language,
+        onRecordingComplete: () {
+          if (!mounted || requestId != _requestId) {
+            return;
+          }
 
-    if (text == null || text.trim().isEmpty) {
-      state = state.copyWith(
-        phase: VoiceCommandPhase.error,
-        errorMessage: "Sorry, I didn't catch that. Please try again.",
+          state = state.copyWith(
+            phase: VoiceCommandPhase.processing,
+          );
+        },
       );
+
+      // Ignore an old request if another recording has already started.
+      if (!mounted || requestId != _requestId) {
+        return;
+      }
+
+      if (text == null || text.trim().isEmpty) {
+        state = state.copyWith(
+          phase: VoiceCommandPhase.error,
+          errorMessage: "Sorry, I didn't catch that. Please try again.",
+        );
+
+        await _feedback.announce(
+          "Sorry, I didn't catch that. Please try again.",
+          priority: AnnouncementPriority.normal,
+        );
+
+        return;
+      }
+
+      final recognizedText = text.trim();
+
+      state = state.copyWith(
+        phase: VoiceCommandPhase.recognized,
+        recognizedText: recognizedText,
+      );
+
+      // Speak the result only AFTER recording has completely stopped.
       await _feedback.announce(
-        "Sorry, I didn't catch that. Please try again.",
+        'Did you mean $recognizedText?',
         priority: AnnouncementPriority.normal,
       );
+
+      if (!mounted || requestId != _requestId) {
+        return;
+      }
+
+      _startConfirmationTimer(
+        recognizedText,
+        requestId,
+      );
+    } catch (_) {
+      if (!mounted || requestId != _requestId) {
+        return;
+      }
+
+      state = state.copyWith(
+        phase: VoiceCommandPhase.error,
+        errorMessage: 'Voice recognition failed. Please try again.',
+      );
+    }
+  }
+
+  /// Called when the user RELEASES the microphone.
+  ///
+  /// This stops the current recording immediately.
+  Future<void> onMicRelease() async {
+    if (state.phase != VoiceCommandPhase.listening) {
+      return;
+    }
+
+    await _voiceInput.stopListening();
+  }
+
+  void _startConfirmationTimer(
+    String text,
+    int requestId,
+  ) {
+    _cancelConfirmationTimer();
+
+    _confirmationTimer = Timer(
+      _confirmationWindow,
+      () {
+        if (!mounted || requestId != _requestId) {
+          return;
+        }
+
+        if (state.phase != VoiceCommandPhase.recognized) {
+          return;
+        }
+
+        _proceedToSearch(text, requestId);
+      },
+    );
+  }
+
+  void _cancelConfirmationTimer() {
+    _confirmationTimer?.cancel();
+    _confirmationTimer = null;
+  }
+
+  Future<void> _proceedToSearch(
+    String text,
+    int requestId,
+  ) async {
+    if (!mounted || requestId != _requestId) {
+      return;
+    }
+
+    _cancelConfirmationTimer();
+
+    state = state.copyWith(
+      phase: VoiceCommandPhase.processing,
+    );
+
+    await _ref
+        .read(destinationSearchProvider.notifier)
+        .search(text);
+
+    if (!mounted || requestId != _requestId) {
       return;
     }
 
     state = state.copyWith(
-      phase: VoiceCommandPhase.recognized,
-      recognizedText: text,
-    );
-    await _feedback.announce(
-      'Did you mean $text?',
-      priority: AnnouncementPriority.normal,
+      phase: VoiceCommandPhase.idle,
+      clearRecognizedText: true,
     );
   }
 
-  /// User confirmed the recognized text - hand off to destination
-  /// search (Stage 7's existing service/provider).
+  /// Optional explicit confirmation.
   Future<void> confirmAndSearch() async {
     final text = state.recognizedText;
-    if (text == null) return;
 
-    state = state.copyWith(phase: VoiceCommandPhase.processing);
-    await _ref.read(destinationSearchProvider.notifier).search(text);
-    state = state.copyWith(phase: VoiceCommandPhase.idle, clearRecognizedText: true);
+    if (text == null || text.trim().isEmpty) {
+      return;
+    }
+
+    _requestId++;
+    final requestId = _requestId;
+
+    await _proceedToSearch(
+      text.trim(),
+      requestId,
+    );
   }
 
   void reset() {
+    _cancelConfirmationTimer();
+    _requestId++;
+
     state = const VoiceCommandState();
+  }
+
+  @override
+  void dispose() {
+    _cancelConfirmationTimer();
+    _voiceInput.stopListening();
+    super.dispose();
   }
 }
 
@@ -101,5 +233,10 @@ final voiceCommandProvider =
     StateNotifierProvider<VoiceCommandNotifier, VoiceCommandState>((ref) {
   final voiceInput = ref.watch(voiceInputServiceProvider);
   final feedback = ref.watch(feedbackServiceProvider);
-  return VoiceCommandNotifier(ref, voiceInput, feedback);
+
+  return VoiceCommandNotifier(
+    ref,
+    voiceInput,
+    feedback,
+  );
 });

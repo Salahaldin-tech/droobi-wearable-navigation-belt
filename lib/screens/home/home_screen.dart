@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -14,132 +12,73 @@ import '../favorites/favorites_screen.dart';
 import '../settings/settings_screen.dart';
 import '../university/university_locations_screen.dart';
 
-class HomeScreen extends ConsumerStatefulWidget {
+/// Droobi Home Screen.
+///
+/// Preserves the original Home Screen visual design while using
+/// the new press-and-hold voice interaction:
+///
+/// Press and hold microphone
+///       ↓
+/// Start recording
+///       ↓
+/// Release microphone
+///       ↓
+/// Stop recording
+///       ↓
+/// Local Whisper transcription
+///       ↓
+/// 2.5 second confirmation window
+///       ↓
+/// Automatic destination search
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
-  @override
-  ConsumerState<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends ConsumerState<HomeScreen> {
-  Timer? _searchTimer;
-
-  @override
-  void dispose() {
-    _searchTimer?.cancel();
-    super.dispose();
+  void _handleMicPress(WidgetRef ref) {
+    ref.read(voiceCommandProvider.notifier).onMicPress();
   }
 
-  Future<void> _handleMicTap(
-    BuildContext context,
-    WidgetRef ref,
-  ) async {
-    final voiceState = ref.read(voiceCommandProvider);
-    final notifier = ref.read(voiceCommandProvider.notifier);
-
-    switch (voiceState.phase) {
-      case VoiceCommandPhase.idle:
-      case VoiceCommandPhase.error:
-        _searchTimer?.cancel();
-
-        await notifier.startListening();
-
-        // The recognition result is handled below by the
-        // provider listener in build().
-        break;
-
-      case VoiceCommandPhase.recognized:
-        // The user pressed the microphone during the
-        // 2.5-second confirmation window.
-        //
-        // Cancel automatic search and listen again.
-        _searchTimer?.cancel();
-
-        await notifier.startListening();
-        break;
-
-      case VoiceCommandPhase.listening:
-      case VoiceCommandPhase.processing:
-        // Do nothing while the system is already listening
-        // or processing.
-        break;
-    }
-  }
-
-  void _startAutomaticSearch() {
-    _searchTimer?.cancel();
-
-    _searchTimer = Timer(
-      const Duration(milliseconds: 2500),
-      () async {
-        if (!mounted) {
-          return;
-        }
-
-        final voiceState = ref.read(voiceCommandProvider);
-
-        // Search only if the user is still in the recognized
-        // state. If they pressed the mic, this state will
-        // have changed and the timer will do nothing.
-        if (voiceState.phase != VoiceCommandPhase.recognized) {
-          return;
-        }
-
-        final notifier =
-            ref.read(voiceCommandProvider.notifier);
-
-        await notifier.confirmAndSearch();
-
-        if (!mounted) {
-          return;
-        }
-
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) =>
-                const DestinationSearchScreen(),
-          ),
-        );
-      },
-    );
+  void _handleMicRelease(WidgetRef ref) {
+    ref.read(voiceCommandProvider.notifier).onMicRelease();
   }
 
   @override
-  Widget build(
-    BuildContext context,
-  ) {
-    ref.listen<VoiceCommandState>(
-      voiceCommandProvider,
-      (previous, next) {
-        // Start the 2.5-second automatic search timer
-        // when speech recognition finishes successfully.
-        if (next.phase == VoiceCommandPhase.recognized &&
-            previous?.phase !=
-                VoiceCommandPhase.recognized) {
-          _startAutomaticSearch();
-        }
-
-        // Cancel the timer if the state changes for any
-        // other reason.
-        if (next.phase != VoiceCommandPhase.recognized &&
-            previous?.phase ==
-                VoiceCommandPhase.recognized) {
-          _searchTimer?.cancel();
-        }
-      },
-    );
-
-    final connectionAsync =
-        ref.watch(beltConnectionStateProvider);
-
-    final beltService =
-        ref.watch(beltConnectionServiceProvider);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final connectionAsync = ref.watch(beltConnectionStateProvider);
+    final beltService = ref.watch(beltConnectionServiceProvider);
 
     final beltState =
         connectionAsync.value ?? beltService.currentState;
 
-    final voiceState =
-        ref.watch(voiceCommandProvider);
+    final voiceState = ref.watch(voiceCommandProvider);
+
+    // ------------------------------------------------------------------
+    // VOICE RESULT -> DESTINATION SEARCH SCREEN
+    //
+    // The notifier runs the search when the 2.5 second confirmation
+    // window ends (phase: recognized -> processing). At that moment the
+    // Destination Search screen is opened so the user sees the same
+    // query and results as if they had typed the text themselves.
+    // ------------------------------------------------------------------
+    ref.listen<VoiceCommandState>(voiceCommandProvider, (previous, next) {
+      final searchStarted =
+          previous?.phase == VoiceCommandPhase.recognized &&
+              next.phase == VoiceCommandPhase.processing;
+
+      if (!searchStarted) {
+        return;
+      }
+
+      // Do nothing if another screen is already on top of Home.
+      if (ModalRoute.of(context)?.isCurrent != true) {
+        return;
+      }
+
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => const DestinationSearchScreen(),
+        ),
+      );
+    });
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -258,8 +197,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   child: Semantics(
                     button: true,
                     label: 'Search destination',
-                    hint:
-                        'Open destination search',
+                    hint: 'Open destination search',
                     child: Material(
                       color: Colors.transparent,
                       child: InkWell(
@@ -279,8 +217,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               const EdgeInsets.symmetric(
                             horizontal: 16,
                           ),
-                          decoration:
-                              BoxDecoration(
+                          decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius:
                                 BorderRadius.circular(12),
@@ -288,8 +225,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               BoxShadow(
                                 blurRadius: 12,
                                 offset: Offset(0, 4),
-                                color:
-                                    Color(0x18000000),
+                                color: Color(0x18000000),
                               ),
                             ],
                           ),
@@ -298,16 +234,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               Icon(
                                 Icons.search,
                                 size: 22,
-                                color:
-                                    Color(0xFF999999),
+                                color: Color(0xFF999999),
                               ),
                               SizedBox(width: 12),
                               Text(
                                 'Search destination...',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color:
-                                      Color(0xFF777777),
+                                  color: Color(0xFF777777),
                                 ),
                               ),
                             ],
@@ -342,8 +276,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         BoxShadow(
                           blurRadius: 12,
                           offset: Offset(0, 4),
-                          color:
-                              Color(0x18000000),
+                          color: Color(0x18000000),
                         ),
                       ],
                     ),
@@ -372,11 +305,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
                       VoiceCommandButton(
                         state: voiceState,
-                        onTap: () =>
-                            _handleMicTap(
-                          context,
-                          ref,
-                        ),
+                        onPressStart: () {
+                          _handleMicPress(ref);
+                        },
+                        onPressEnd: () {
+                          _handleMicRelease(ref);
+                        },
                       ),
 
                       const SizedBox(height: 16),
@@ -389,14 +323,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           VoiceCommandPhase.recognized)
                         Padding(
                           padding:
-                              const EdgeInsets
-                                  .symmetric(
+                              const EdgeInsets.symmetric(
                             horizontal: 24,
                           ),
                           child: Text(
                             'Heard: "${voiceState.recognizedText}"',
-                            textAlign:
-                                TextAlign.center,
+                            textAlign: TextAlign.center,
                             style:
                                 Theme.of(context)
                                     .textTheme
@@ -412,16 +344,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           VoiceCommandPhase.error)
                         Padding(
                           padding:
-                              const EdgeInsets
-                                  .symmetric(
+                              const EdgeInsets.symmetric(
                             horizontal: 24,
                           ),
                           child: Text(
-                            voiceState
-                                    .errorMessage ??
-                                '',
-                            textAlign:
-                                TextAlign.center,
+                            voiceState.errorMessage ?? '',
+                            textAlign: TextAlign.center,
                             style:
                                 const TextStyle(
                               color: Colors.red,
