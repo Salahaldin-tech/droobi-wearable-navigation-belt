@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'ble_test_screen.dart';
 import 'destination_search_test_screen.dart';
+import 'routing_test_screen.dart';
 
 /// TEMPORARY dev-only menu. Routes between the per-stage test
 /// screens used to validate individual service layers (BLE, search,
@@ -30,6 +31,13 @@ class DevTestMenu extends StatelessWidget {
               MaterialPageRoute(
                 builder: (_) => const DestinationSearchTestScreen(),
               ),
+            ),
+          ),
+          ListTile(
+            title: const Text('Routing Test Screen (Phase 2 Step 1)'),
+            subtitle: const Text('Verify OSRM foot routing near campus'),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const RoutingTestScreen()),
             ),
           ),
         ],

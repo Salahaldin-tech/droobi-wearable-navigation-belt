@@ -3,19 +3,25 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/enums/voice_command_state.dart';
 import '../services/accessibility/feedback_service.dart';
 import '../services/accessibility/flutter_tts_feedback_service.dart';
-import '../services/voice/speech_to_text_voice_service.dart';
 import '../services/voice/voice_input_service.dart';
+import '../services/voice/whisper_voice_service.dart';
 import 'destination_search_notifier.dart';
+import 'voice_language_notifier.dart';
 
 final feedbackServiceProvider = Provider<FeedbackService>((ref) {
   return FlutterTtsFeedbackService();
 });
 
+/// Local Whisper (whisper.cpp via whisper_flutter_new), replacing the
+/// earlier speech_to_text-backed implementation. See
+/// lib/services/voice/whisper_voice_service.dart for the important
+/// note on the one-time model download.
 final voiceInputServiceProvider = Provider<VoiceInputService>((ref) {
-  return SpeechToTextVoiceService();
+  return WhisperVoiceService();
 });
 
-/// Orchestrates: tap mic -> listen -> recognize -> confirm -> search.
+/// Orchestrates: tap mic -> record -> transcribe (Whisper) ->
+/// recognize -> confirm -> search.
 ///
 /// This is the Home Screen mic's entry point into the existing Stage 7
 /// destination search pipeline - recognized text is not acted on
@@ -40,7 +46,18 @@ class VoiceCommandNotifier extends StateNotifier<VoiceCommandState> {
       priority: AnnouncementPriority.normal,
     );
 
-    final text = await _voiceInput.listenForDestination();
+    final language = _ref.read(voiceLanguageProvider);
+
+    final text = await _voiceInput.listenForDestination(
+      language: language,
+      onRecordingComplete: () {
+        // Whisper's record-then-transcribe flow means there's a real
+        // gap here (local inference) worth reflecting in the UI/audio
+        // state, unlike the old streaming speech_to_text flow where
+        // recognition was effectively instantaneous.
+        state = state.copyWith(phase: VoiceCommandPhase.processing);
+      },
+    );
 
     if (text == null || text.trim().isEmpty) {
       state = state.copyWith(

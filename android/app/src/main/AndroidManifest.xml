@@ -21,6 +21,14 @@
     <uses-permission
         android:name="android.permission.RECORD_AUDIO" />
 
+    <!-- Internet permission - required for the one-time Whisper model
+         download on first use (whisper_flutter_new). Also covers
+         Firebase/Firestore, Nominatim, and OSRM network calls, which
+         were previously relying on this being merged in implicitly
+         from another plugin's manifest. -->
+    <uses-permission
+        android:name="android.permission.INTERNET" />
+
     <!-- BLE hardware support -->
     <uses-feature
         android:name="android.hardware.bluetooth_le"

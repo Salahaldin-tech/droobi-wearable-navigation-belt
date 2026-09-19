@@ -3,9 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/favorite_location.dart';
 import '../../state/favorites_notifier.dart';
-import '../home/home_screen.dart';
-import '../settings/settings_screen.dart';
-import '../university/university_locations_screen.dart';
+import '../../widgets/droobi_bottom_nav.dart';
 
 class FavoritesScreen extends ConsumerWidget {
   const FavoritesScreen({super.key});
@@ -17,7 +15,10 @@ class FavoritesScreen extends ConsumerWidget {
   static const Color _heartColor = Color(0xFFEB5757);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(
+    BuildContext context,
+    WidgetRef ref,
+  ) {
     final favoritesAsync = ref.watch(favoritesProvider);
 
     return Scaffold(
@@ -25,15 +26,26 @@ class FavoritesScreen extends ConsumerWidget {
       body: SafeArea(
         child: Column(
           children: [
+            // ==============================================================
+            // MAIN CONTENT
+            // ==============================================================
+
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+                padding: const EdgeInsets.fromLTRB(
+                  24,
+                  24,
+                  24,
+                  8,
+                ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start,
                   children: [
-                    // --------------------------------------------------
-                    // Header
-                    // --------------------------------------------------
+                    // ========================================================
+                    // HEADER
+                    // ========================================================
+
                     const Text(
                       'Favorites',
                       style: TextStyle(
@@ -42,7 +54,9 @@ class FavoritesScreen extends ConsumerWidget {
                         color: _textColor,
                       ),
                     ),
+
                     const SizedBox(height: 4),
+
                     const Text(
                       'المفضلة',
                       style: TextStyle(
@@ -53,18 +67,41 @@ class FavoritesScreen extends ConsumerWidget {
 
                     const SizedBox(height: 24),
 
-                    // --------------------------------------------------
-                    // Favorites
-                    // --------------------------------------------------
+                    // ========================================================
+                    // FAVORITES LIST
+                    // ========================================================
+
                     Expanded(
                       child: favoritesAsync.when(
-                        loading: () => const Center(
-                          child: CircularProgressIndicator(
-                            color: _primaryBlue,
-                          ),
-                        ),
-                        error: (error, _) => _buildErrorState(error),
+                        // ----------------------------------------------------
+                        // LOADING
+                        // ----------------------------------------------------
+
+                        loading: () {
+                          return const Center(
+                            child: CircularProgressIndicator(
+                              color: _primaryBlue,
+                            ),
+                          );
+                        },
+
+                        // ----------------------------------------------------
+                        // ERROR
+                        // ----------------------------------------------------
+
+                        error: (error, _) {
+                          return _buildErrorState(error);
+                        },
+
+                        // ----------------------------------------------------
+                        // DATA
+                        // ----------------------------------------------------
+
                         data: (favorites) {
+                          // IMPORTANT:
+                          // No hardcoded/demo favorites.
+                          // The list comes only from Firestore.
+
                           if (favorites.isEmpty) {
                             return _buildEmptyState();
                           }
@@ -75,10 +112,17 @@ class FavoritesScreen extends ConsumerWidget {
                               bottom: 16,
                             ),
                             itemCount: favorites.length,
-                            separatorBuilder: (_, __) =>
-                                const SizedBox(height: 12),
-                            itemBuilder: (context, index) {
-                              final favorite = favorites[index];
+                            separatorBuilder: (_, __) {
+                              return const SizedBox(
+                                height: 12,
+                              );
+                            },
+                            itemBuilder: (
+                              context,
+                              index,
+                            ) {
+                              final favorite =
+                                  favorites[index];
 
                               return _buildFavoriteCard(
                                 context,
@@ -95,19 +139,23 @@ class FavoritesScreen extends ConsumerWidget {
               ),
             ),
 
-            // ----------------------------------------------------------
-            // Bottom Navigation
-            // ----------------------------------------------------------
-            _buildBottomNavigation(context),
+            // ==============================================================
+            // SHARED BOTTOM NAVIGATION
+            // ==============================================================
+
+            const DroobiBottomNav(
+              currentItem:
+                  DroobiNavItem.favorites,
+            ),
           ],
         ),
       ),
     );
   }
 
-  // ===========================================================================
+  // =========================================================================
   // FAVORITE CARD
-  // ===========================================================================
+  // =========================================================================
 
   Widget _buildFavoriteCard(
     BuildContext context,
@@ -116,14 +164,24 @@ class FavoritesScreen extends ConsumerWidget {
   ) {
     return Semantics(
       container: true,
-      label: 'Favorite location: ${favorite.label}',
+      label:
+          'Favorite location: ${favorite.label}',
       child: Material(
         color: _cardColor,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius:
+            BorderRadius.circular(12),
         child: InkWell(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius:
+              BorderRadius.circular(12),
+
+          // ---------------------------------------------------------------
+          // SELECT FAVORITE
+          // ---------------------------------------------------------------
+
           onTap: () {
-            // Navigation will be connected to GPS/routing later.
+            // GPS + routing will be connected
+            // in the navigation stage.
+
             ScaffoldMessenger.of(context)
               ..hideCurrentSnackBar()
               ..showSnackBar(
@@ -134,21 +192,27 @@ class FavoritesScreen extends ConsumerWidget {
                 ),
               );
           },
+
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding:
+                const EdgeInsets.all(16),
+
             child: Row(
               children: [
-                // --------------------------------------------------------
-                // Location icon
-                // --------------------------------------------------------
+                // ---------------------------------------------------------
+                // LOCATION ICON
+                // ---------------------------------------------------------
+
                 Container(
                   width: 48,
                   height: 48,
-                  decoration: const BoxDecoration(
+                  decoration:
+                      const BoxDecoration(
                     color: _primaryBlue,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child:
+                      const Icon(
                     Icons.location_on_outlined,
                     color: Colors.white,
                     size: 24,
@@ -157,29 +221,38 @@ class FavoritesScreen extends ConsumerWidget {
 
                 const SizedBox(width: 16),
 
-                // --------------------------------------------------------
-                // Name
-                // --------------------------------------------------------
+                // ---------------------------------------------------------
+                // FAVORITE NAME
+                // ---------------------------------------------------------
+
                 Expanded(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment:
+                        CrossAxisAlignment.start,
                     children: [
                       Text(
                         favorite.label,
                         maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        overflow:
+                            TextOverflow.ellipsis,
+                        style:
+                            const TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: _textColor,
+                          fontWeight:
+                              FontWeight.w500,
+                          color:
+                              _textColor,
                         ),
                       ),
+
                       const SizedBox(height: 4),
+
                       const Text(
                         'موقع مفضل',
                         style: TextStyle(
                           fontSize: 14,
-                          color: _secondaryText,
+                          color:
+                              _secondaryText,
                         ),
                       ),
                     ],
@@ -188,35 +261,52 @@ class FavoritesScreen extends ConsumerWidget {
 
                 const SizedBox(width: 8),
 
-                // --------------------------------------------------------
-                // Heart / Remove
-                // --------------------------------------------------------
+                // ---------------------------------------------------------
+                // HEART / REMOVE
+                // ---------------------------------------------------------
+
                 Semantics(
                   button: true,
                   label:
                       'Remove ${favorite.label} from Favorites',
-                  hint: 'Double tap to remove this favorite',
+                  hint:
+                      'Double tap to remove this favorite',
                   child: IconButton(
-                    tooltip: 'Remove from Favorites',
-                    constraints: const BoxConstraints(
+                    tooltip:
+                        'Remove from Favorites',
+
+                    constraints:
+                        const BoxConstraints(
                       minWidth: 48,
                       minHeight: 48,
                     ),
-                    padding: EdgeInsets.zero,
+
+                    padding:
+                        EdgeInsets.zero,
+
                     icon: const Icon(
                       Icons.favorite,
                       size: 22,
                       color: _heartColor,
                     ),
+
                     onPressed: () async {
                       try {
                         await ref
-                            .read(favoritesActionsProvider)
-                            .removeFavorite(favorite.id);
+                            .read(
+                              favoritesActionsProvider,
+                            )
+                            .removeFavorite(
+                              favorite.id,
+                            );
                       } catch (_) {
-                        if (!context.mounted) return;
+                        if (!context.mounted) {
+                          return;
+                        }
 
-                        ScaffoldMessenger.of(context)
+                        ScaffoldMessenger.of(
+                          context,
+                        )
                           ..hideCurrentSnackBar()
                           ..showSnackBar(
                             const SnackBar(
@@ -237,9 +327,9 @@ class FavoritesScreen extends ConsumerWidget {
     );
   }
 
-  // ===========================================================================
+  // =========================================================================
   // EMPTY STATE
-  // ===========================================================================
+  // =========================================================================
 
   Widget _buildEmptyState() {
     return Center(
@@ -248,29 +338,39 @@ class FavoritesScreen extends ConsumerWidget {
         label:
             'No favorites yet. لا توجد مفضلات حتى الآن.',
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisSize:
+              MainAxisSize.min,
           children: [
             Icon(
               Icons.star_outline,
               size: 64,
-              color: Colors.grey.shade300,
+              color:
+                  Colors.grey.shade300,
             ),
+
             const SizedBox(height: 16),
+
             const Text(
               'No favorites yet',
-              textAlign: TextAlign.center,
+              textAlign:
+                  TextAlign.center,
               style: TextStyle(
                 fontSize: 16,
-                color: _secondaryText,
+                color:
+                    _secondaryText,
               ),
             ),
+
             const SizedBox(height: 4),
+
             const Text(
               'لا توجد مفضلات حتى الآن',
-              textAlign: TextAlign.center,
+              textAlign:
+                  TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
-                color: Color(0xFF9CA3AF),
+                color:
+                    Color(0xFF9CA3AF),
               ),
             ),
           ],
@@ -279,159 +379,56 @@ class FavoritesScreen extends ConsumerWidget {
     );
   }
 
-  // ===========================================================================
+  // =========================================================================
   // ERROR STATE
-  // ===========================================================================
+  // =========================================================================
 
-  Widget _buildErrorState(Object error) {
+  Widget _buildErrorState(
+    Object error,
+  ) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding:
+            const EdgeInsets.all(24),
         child: Semantics(
           liveRegion: true,
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisSize:
+                MainAxisSize.min,
             children: [
               Icon(
                 Icons.error_outline,
                 size: 48,
-                color: Colors.grey.shade400,
+                color:
+                    Colors.grey.shade400,
               ),
+
               const SizedBox(height: 16),
+
               const Text(
                 'Could not load favorites.',
-                textAlign: TextAlign.center,
+                textAlign:
+                    TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: _textColor,
+                  fontWeight:
+                      FontWeight.w500,
+                  color:
+                      _textColor,
                 ),
               ),
+
               const SizedBox(height: 8),
+
               Text(
                 error.toString(),
-                textAlign: TextAlign.center,
-                style: const TextStyle(
+                textAlign:
+                    TextAlign.center,
+                style:
+                    const TextStyle(
                   fontSize: 12,
-                  color: _secondaryText,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ===========================================================================
-  // BOTTOM NAVIGATION
-  // ===========================================================================
-
-  Widget _buildBottomNavigation(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 8,
-          vertical: 12,
-        ),
-        decoration: BoxDecoration(
-          color: _cardColor,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildNavItem(
-              icon: Icons.home_outlined,
-              label: 'Home',
-              selected: false,
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const HomeScreen(),
-                  ),
-                );
-              },
-            ),
-
-            _buildNavItem(
-              icon: Icons.star,
-              label: 'Favorites',
-              selected: true,
-              onTap: () {},
-            ),
-
-            _buildNavItem(
-              icon: Icons.school_outlined,
-              label: 'University',
-              selected: false,
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        const UniversityLocationsScreen(),
-                  ),
-                );
-              },
-            ),
-
-            _buildNavItem(
-              icon: Icons.settings_outlined,
-              label: 'Settings',
-              selected: false,
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const SettingsScreen(),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ===========================================================================
-  // NAVIGATION ITEM
-  // ===========================================================================
-
-  Widget _buildNavItem({
-    required IconData icon,
-    required String label,
-    required bool selected,
-    required VoidCallback onTap,
-  }) {
-    final color = selected
-        ? _primaryBlue
-        : _secondaryText;
-
-    return Semantics(
-      button: true,
-      selected: selected,
-      label: label,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: SizedBox(
-          width: 64,
-          height: 52,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                size: 24,
-                color: color,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: color,
+                  color:
+                      _secondaryText,
                 ),
               ),
             ],

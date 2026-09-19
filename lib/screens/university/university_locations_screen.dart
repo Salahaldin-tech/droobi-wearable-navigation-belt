@@ -3,9 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/university_location.dart';
 import '../../state/university_locations_notifier.dart';
-import '../favorites/favorites_screen.dart';
-import '../home/home_screen.dart';
-import '../settings/settings_screen.dart';
+import '../../widgets/droobi_bottom_nav.dart';
 
 class UniversityLocationsScreen extends ConsumerWidget {
   const UniversityLocationsScreen({super.key});
@@ -134,12 +132,18 @@ class UniversityLocationsScreen extends ConsumerWidget {
     _UniversityItem(
       name: 'Gate 1',
       nameAr: 'البوابة ١',
-      aliases: ['Gate 1', 'G1'],
+      aliases: [
+        'Gate 1',
+        'G1',
+      ],
     ),
     _UniversityItem(
       name: 'Gate 2',
       nameAr: 'البوابة ٢',
-      aliases: ['Gate 2', 'G2'],
+      aliases: [
+        'Gate 2',
+        'G2',
+      ],
     ),
     _UniversityItem(
       name: 'Gate 3',
@@ -153,12 +157,18 @@ class UniversityLocationsScreen extends ConsumerWidget {
     _UniversityItem(
       name: 'Gate 4',
       nameAr: 'البوابة ٤',
-      aliases: ['Gate 4', 'G4'],
+      aliases: [
+        'Gate 4',
+        'G4',
+      ],
     ),
     _UniversityItem(
       name: 'Gate 5',
       nameAr: 'البوابة ٥',
-      aliases: ['Gate 5', 'G5'],
+      aliases: [
+        'Gate 5',
+        'G5',
+      ],
     ),
   ];
 
@@ -197,8 +207,12 @@ class UniversityLocationsScreen extends ConsumerWidget {
   // ===========================================================================
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final locationsAsync = ref.watch(universityLocationsProvider);
+  Widget build(
+    BuildContext context,
+    WidgetRef ref,
+  ) {
+    final locationsAsync =
+        ref.watch(universityLocationsProvider);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -219,7 +233,11 @@ class UniversityLocationsScreen extends ConsumerWidget {
                     locations,
                   ),
                 ),
-                _buildBottomNavigation(context),
+
+                // Shared animated bottom navigation
+                const DroobiBottomNav(
+                  currentItem: DroobiNavItem.university,
+                ),
               ],
             );
           },
@@ -244,7 +262,10 @@ class UniversityLocationsScreen extends ConsumerWidget {
         16,
       ),
       children: [
+        // -----------------------------------------------------------------------
         // Header
+        // -----------------------------------------------------------------------
+
         const Text(
           'Arab American University',
           style: TextStyle(
@@ -253,7 +274,9 @@ class UniversityLocationsScreen extends ConsumerWidget {
             color: _textColor,
           ),
         ),
+
         const SizedBox(height: 4),
+
         const Text(
           'الجامعة العربية الأمريكية',
           style: TextStyle(
@@ -264,18 +287,22 @@ class UniversityLocationsScreen extends ConsumerWidget {
 
         const SizedBox(height: 28),
 
-        // --------------------------------------------------------
+        // -----------------------------------------------------------------------
         // Colleges
-        // --------------------------------------------------------
+        // -----------------------------------------------------------------------
+
         _buildSectionHeader(
           icon: Icons.school_outlined,
           title: 'COLLEGES',
         ),
+
         const SizedBox(height: 12),
 
         ..._colleges.map(
           (item) => Padding(
-            padding: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.only(
+              bottom: 8,
+            ),
             child: _buildLocationCard(
               context: context,
               item: item,
@@ -286,18 +313,21 @@ class UniversityLocationsScreen extends ConsumerWidget {
 
         const SizedBox(height: 16),
 
-        // --------------------------------------------------------
+        // -----------------------------------------------------------------------
         // Gates
-        // --------------------------------------------------------
+        // -----------------------------------------------------------------------
+
         _buildSectionHeader(
           icon: Icons.business_outlined,
           title: 'GATES',
         ),
+
         const SizedBox(height: 12),
 
         GridView.builder(
           shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
+          physics:
+              const NeverScrollableScrollPhysics(),
           itemCount: _gates.length,
           gridDelegate:
               const SliverGridDelegateWithFixedCrossAxisCount(
@@ -306,7 +336,10 @@ class UniversityLocationsScreen extends ConsumerWidget {
             mainAxisSpacing: 8,
             childAspectRatio: 2.8,
           ),
-          itemBuilder: (context, index) {
+          itemBuilder: (
+            context,
+            index,
+          ) {
             return _buildLocationCard(
               context: context,
               item: _gates[index],
@@ -318,18 +351,22 @@ class UniversityLocationsScreen extends ConsumerWidget {
 
         const SizedBox(height: 28),
 
-        // --------------------------------------------------------
+        // -----------------------------------------------------------------------
         // Facilities
-        // --------------------------------------------------------
+        // -----------------------------------------------------------------------
+
         _buildSectionHeader(
           icon: Icons.local_cafe_outlined,
           title: 'FACILITIES',
         ),
+
         const SizedBox(height: 12),
 
         ..._facilities.map(
           (item) => Padding(
-            padding: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.only(
+              bottom: 8,
+            ),
             child: _buildLocationCard(
               context: context,
               item: item,
@@ -396,19 +433,25 @@ class UniversityLocationsScreen extends ConsumerWidget {
           : 'This location is not available yet.',
       child: Material(
         color: _cardColor,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius:
+            BorderRadius.circular(10),
         child: InkWell(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius:
+              BorderRadius.circular(10),
           onTap: isAvailable
-              ? () => _handleLocationSelect(
+              ? () {
+                  _handleLocationSelect(
                     context,
                     item,
-                    location,
-                  )
-              : () => _showUnavailableMessage(
+                    location!,
+                  );
+                }
+              : () {
+                  _showUnavailableMessage(
                     context,
                     item,
-                  ),
+                  );
+                },
           child: Padding(
             padding: EdgeInsets.symmetric(
               horizontal: 12,
@@ -423,22 +466,31 @@ class UniversityLocationsScreen extends ConsumerWidget {
                 Text(
                   item.name,
                   maxLines: compact ? 1 : 2,
-                  overflow: TextOverflow.ellipsis,
+                  overflow:
+                      TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: compact ? 13 : 14,
-                    fontWeight: FontWeight.w500,
+                    fontSize:
+                        compact ? 13 : 14,
+                    fontWeight:
+                        FontWeight.w500,
                     color: isAvailable
                         ? _textColor
-                        : _textColor.withValues(alpha: 0.55),
+                        : _textColor.withValues(
+                            alpha: 0.55,
+                          ),
                   ),
                 ),
+
                 const SizedBox(height: 2),
+
                 Text(
                   item.nameAr,
                   maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  overflow:
+                      TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: compact ? 11 : 12,
+                    fontSize:
+                        compact ? 11 : 12,
                     color: isAvailable
                         ? _secondaryText
                         : _secondaryText.withValues(
@@ -463,14 +515,20 @@ class UniversityLocationsScreen extends ConsumerWidget {
     List<UniversityLocation> locations,
   ) {
     for (final location in locations) {
-      final locationName = _normalize(location.name);
+      final locationName =
+          _normalize(location.name);
 
       for (final alias in item.aliases) {
-        final normalizedAlias = _normalize(alias);
+        final normalizedAlias =
+            _normalize(alias);
 
         if (locationName == normalizedAlias ||
-            locationName.contains(normalizedAlias) ||
-            normalizedAlias.contains(locationName)) {
+            locationName.contains(
+              normalizedAlias,
+            ) ||
+            normalizedAlias.contains(
+              locationName,
+            )) {
           return location;
         }
       }
@@ -483,8 +541,14 @@ class UniversityLocationsScreen extends ConsumerWidget {
     return value
         .trim()
         .toLowerCase()
-        .replaceAll(RegExp(r'[-_]+'), ' ')
-        .replaceAll(RegExp(r'\s+'), ' ');
+        .replaceAll(
+          RegExp(r'[-_]+'),
+          ' ',
+        )
+        .replaceAll(
+          RegExp(r'\s+'),
+          ' ',
+        );
   }
 
   // ===========================================================================
@@ -506,11 +570,17 @@ class UniversityLocationsScreen extends ConsumerWidget {
         ),
       );
 
-    // GPS + routing will be connected later.
-    // The selected coordinates are already available:
+    // GPS + routing will be connected
+    // in the GPS/routing stage.
+    //
+    // The selected coordinates are available:
     // location.latitude
     // location.longitude
   }
+
+  // ===========================================================================
+  // UNAVAILABLE LOCATION
+  // ===========================================================================
 
   void _showUnavailableMessage(
     BuildContext context,
@@ -528,162 +598,49 @@ class UniversityLocationsScreen extends ConsumerWidget {
   }
 
   // ===========================================================================
-  // BOTTOM NAVIGATION
-  // ===========================================================================
-
-  Widget _buildBottomNavigation(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        24,
-        8,
-        24,
-        24,
-      ),
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 8,
-          vertical: 12,
-        ),
-        decoration: BoxDecoration(
-          color: _cardColor,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          mainAxisAlignment:
-              MainAxisAlignment.spaceAround,
-          children: [
-            _buildNavItem(
-              icon: Icons.home_outlined,
-              label: 'Home',
-              selected: false,
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const HomeScreen(),
-                  ),
-                );
-              },
-            ),
-
-            _buildNavItem(
-              icon: Icons.star_outline,
-              label: 'Favorites',
-              selected: false,
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        const FavoritesScreen(),
-                  ),
-                );
-              },
-            ),
-
-            _buildNavItem(
-              icon: Icons.school,
-              label: 'University',
-              selected: true,
-              onTap: () {},
-            ),
-
-            _buildNavItem(
-              icon: Icons.settings_outlined,
-              label: 'Settings',
-              selected: false,
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const SettingsScreen(),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ===========================================================================
-  // NAVIGATION ITEM
-  // ===========================================================================
-
-  Widget _buildNavItem({
-    required IconData icon,
-    required String label,
-    required bool selected,
-    required VoidCallback onTap,
-  }) {
-    final color = selected
-        ? _primaryBlue
-        : _secondaryText;
-
-    return Semantics(
-      button: true,
-      selected: selected,
-      label: label,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: SizedBox(
-          width: 64,
-          height: 52,
-          child: Column(
-            mainAxisAlignment:
-                MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                size: 24,
-                color: color,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: color,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ===========================================================================
   // ERROR STATE
   // ===========================================================================
 
-  Widget _buildErrorState(Object error) {
+  Widget _buildErrorState(
+    Object error,
+  ) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding:
+            const EdgeInsets.all(24),
         child: Semantics(
           liveRegion: true,
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisSize:
+                MainAxisSize.min,
             children: [
               Icon(
                 Icons.error_outline,
                 size: 48,
-                color: Colors.grey.shade400,
+                color:
+                    Colors.grey.shade400,
               ),
+
               const SizedBox(height: 16),
+
               const Text(
                 'Could not load university locations.',
-                textAlign: TextAlign.center,
+                textAlign:
+                    TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
-                  fontWeight: FontWeight.w500,
+                  fontWeight:
+                      FontWeight.w500,
                   color: _textColor,
                 ),
               ),
+
               const SizedBox(height: 8),
+
               Text(
                 error.toString(),
-                textAlign: TextAlign.center,
+                textAlign:
+                    TextAlign.center,
                 style: const TextStyle(
                   fontSize: 12,
                   color: _secondaryText,

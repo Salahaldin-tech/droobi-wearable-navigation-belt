@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -5,14 +7,28 @@ import '../../core/enums/voice_command_state.dart';
 import '../../state/belt_connection_notifier.dart';
 import '../../state/voice_command_notifier.dart';
 import '../../widgets/connection_status_indicator.dart';
+import '../../widgets/droobi_bottom_nav.dart';
 import '../../widgets/voice_command_button.dart';
 import '../destination/destination_search_screen.dart';
 import '../favorites/favorites_screen.dart';
 import '../settings/settings_screen.dart';
 import '../university/university_locations_screen.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  Timer? _searchTimer;
+
+  @override
+  void dispose() {
+    _searchTimer?.cancel();
+    super.dispose();
+  }
 
   Future<void> _handleMicTap(
     BuildContext context,
@@ -24,36 +40,106 @@ class HomeScreen extends ConsumerWidget {
     switch (voiceState.phase) {
       case VoiceCommandPhase.idle:
       case VoiceCommandPhase.error:
+        _searchTimer?.cancel();
+
         await notifier.startListening();
+
+        // The recognition result is handled below by the
+        // provider listener in build().
         break;
 
       case VoiceCommandPhase.recognized:
-        await notifier.confirmAndSearch();
+        // The user pressed the microphone during the
+        // 2.5-second confirmation window.
+        //
+        // Cancel automatic search and listen again.
+        _searchTimer?.cancel();
 
-        if (context.mounted) {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => const DestinationSearchScreen(),
-            ),
-          );
-        }
+        await notifier.startListening();
         break;
 
       case VoiceCommandPhase.listening:
       case VoiceCommandPhase.processing:
+        // Do nothing while the system is already listening
+        // or processing.
         break;
     }
   }
 
+  void _startAutomaticSearch() {
+    _searchTimer?.cancel();
+
+    _searchTimer = Timer(
+      const Duration(milliseconds: 2500),
+      () async {
+        if (!mounted) {
+          return;
+        }
+
+        final voiceState = ref.read(voiceCommandProvider);
+
+        // Search only if the user is still in the recognized
+        // state. If they pressed the mic, this state will
+        // have changed and the timer will do nothing.
+        if (voiceState.phase != VoiceCommandPhase.recognized) {
+          return;
+        }
+
+        final notifier =
+            ref.read(voiceCommandProvider.notifier);
+
+        await notifier.confirmAndSearch();
+
+        if (!mounted) {
+          return;
+        }
+
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) =>
+                const DestinationSearchScreen(),
+          ),
+        );
+      },
+    );
+  }
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final connectionAsync = ref.watch(beltConnectionStateProvider);
-    final beltService = ref.watch(beltConnectionServiceProvider);
+  Widget build(
+    BuildContext context,
+  ) {
+    ref.listen<VoiceCommandState>(
+      voiceCommandProvider,
+      (previous, next) {
+        // Start the 2.5-second automatic search timer
+        // when speech recognition finishes successfully.
+        if (next.phase == VoiceCommandPhase.recognized &&
+            previous?.phase !=
+                VoiceCommandPhase.recognized) {
+          _startAutomaticSearch();
+        }
+
+        // Cancel the timer if the state changes for any
+        // other reason.
+        if (next.phase != VoiceCommandPhase.recognized &&
+            previous?.phase ==
+                VoiceCommandPhase.recognized) {
+          _searchTimer?.cancel();
+        }
+      },
+    );
+
+    final connectionAsync =
+        ref.watch(beltConnectionStateProvider);
+
+    final beltService =
+        ref.watch(beltConnectionServiceProvider);
 
     final beltState =
         connectionAsync.value ?? beltService.currentState;
 
-    final voiceState = ref.watch(voiceCommandProvider);
+    final voiceState =
+        ref.watch(voiceCommandProvider);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -63,33 +149,36 @@ class HomeScreen extends ConsumerWidget {
           // MAP BACKGROUND
           // ================================================================
 
-          // ================================================================
-// MAP BACKGROUND
-// ================================================================
-
-Positioned.fill(
-  child: Image.asset(
-    'assets/images/home_bg.png',
-    fit: BoxFit.cover,
-    excludeFromSemantics: true,
-    errorBuilder: (context, error, stackTrace) {
-      return const SizedBox.shrink();
-    },
-  ),
-),
-
-// ================================================================
-// LIGHT WHITE OVERLAY
-// ================================================================
-
-Positioned.fill(
-  child: Container(
-    color: Colors.white.withValues(alpha: 0.35),
-  ),
-),
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/home_bg.png',
+              fit: BoxFit.cover,
+              excludeFromSemantics: true,
+              errorBuilder: (
+                context,
+                error,
+                stackTrace,
+              ) {
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
 
           // ================================================================
-          // EXISTING HOME UI
+          // WHITE OVERLAY
+          // Keeps the map visible but subtle.
+          // ================================================================
+
+          Positioned.fill(
+            child: Container(
+              color: Colors.white.withValues(
+                alpha: 0.35,
+              ),
+            ),
+          ),
+
+          // ================================================================
+          // HOME UI
           // ================================================================
 
           SafeArea(
@@ -110,7 +199,10 @@ Positioned.fill(
                     mainAxisAlignment:
                         MainAxisAlignment.spaceBetween,
                     children: [
-                      // App name
+                      // ----------------------------------------------------
+                      // APP NAME
+                      // ----------------------------------------------------
+
                       const Text(
                         'Droobi',
                         style: TextStyle(
@@ -120,7 +212,10 @@ Positioned.fill(
                         ),
                       ),
 
-                      // Menu button
+                      // ----------------------------------------------------
+                      // MENU BUTTON
+                      // ----------------------------------------------------
+
                       Semantics(
                         button: true,
                         label: 'Open menu',
@@ -157,11 +252,14 @@ Positioned.fill(
 
                 Padding(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 24),
+                      const EdgeInsets.symmetric(
+                    horizontal: 24,
+                  ),
                   child: Semantics(
                     button: true,
                     label: 'Search destination',
-                    hint: 'Open destination search',
+                    hint:
+                        'Open destination search',
                     child: Material(
                       color: Colors.transparent,
                       child: InkWell(
@@ -181,7 +279,8 @@ Positioned.fill(
                               const EdgeInsets.symmetric(
                             horizontal: 16,
                           ),
-                          decoration: BoxDecoration(
+                          decoration:
+                              BoxDecoration(
                             color: Colors.white,
                             borderRadius:
                                 BorderRadius.circular(12),
@@ -189,7 +288,8 @@ Positioned.fill(
                               BoxShadow(
                                 blurRadius: 12,
                                 offset: Offset(0, 4),
-                                color: Color(0x18000000),
+                                color:
+                                    Color(0x18000000),
                               ),
                             ],
                           ),
@@ -198,14 +298,16 @@ Positioned.fill(
                               Icon(
                                 Icons.search,
                                 size: 22,
-                                color: Color(0xFF999999),
+                                color:
+                                    Color(0xFF999999),
                               ),
                               SizedBox(width: 12),
                               Text(
                                 'Search destination...',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: Color(0xFF777777),
+                                  color:
+                                      Color(0xFF777777),
                                 ),
                               ),
                             ],
@@ -224,11 +326,15 @@ Positioned.fill(
 
                 Padding(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 24),
+                      const EdgeInsets.symmetric(
+                    horizontal: 24,
+                  ),
                   child: Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
+                    padding:
+                        const EdgeInsets.all(16),
+                    decoration:
+                        BoxDecoration(
                       color: Colors.white,
                       borderRadius:
                           BorderRadius.circular(12),
@@ -236,7 +342,8 @@ Positioned.fill(
                         BoxShadow(
                           blurRadius: 12,
                           offset: Offset(0, 4),
-                          color: Color(0x18000000),
+                          color:
+                              Color(0x18000000),
                         ),
                       ],
                     ),
@@ -266,7 +373,10 @@ Positioned.fill(
                       VoiceCommandButton(
                         state: voiceState,
                         onTap: () =>
-                            _handleMicTap(context, ref),
+                            _handleMicTap(
+                          context,
+                          ref,
+                        ),
                       ),
 
                       const SizedBox(height: 16),
@@ -279,16 +389,18 @@ Positioned.fill(
                           VoiceCommandPhase.recognized)
                         Padding(
                           padding:
-                              const EdgeInsets.symmetric(
+                              const EdgeInsets
+                                  .symmetric(
                             horizontal: 24,
                           ),
                           child: Text(
                             'Heard: "${voiceState.recognizedText}"',
                             textAlign:
                                 TextAlign.center,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium,
+                            style:
+                                Theme.of(context)
+                                    .textTheme
+                                    .titleMedium,
                           ),
                         ),
 
@@ -300,14 +412,18 @@ Positioned.fill(
                           VoiceCommandPhase.error)
                         Padding(
                           padding:
-                              const EdgeInsets.symmetric(
+                              const EdgeInsets
+                                  .symmetric(
                             horizontal: 24,
                           ),
                           child: Text(
-                            voiceState.errorMessage ?? '',
+                            voiceState
+                                    .errorMessage ??
+                                '',
                             textAlign:
                                 TextAlign.center,
-                            style: const TextStyle(
+                            style:
+                                const TextStyle(
                               color: Colors.red,
                               fontSize: 14,
                             ),
@@ -318,82 +434,12 @@ Positioned.fill(
                 ),
 
                 // ==========================================================
-                // BOTTOM NAVIGATION
+                // SHARED BOTTOM NAVIGATION
                 // ==========================================================
 
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    24,
-                    0,
-                    24,
-                    24,
-                  ),
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius:
-                          BorderRadius.circular(18),
-                      boxShadow: const [
-                        BoxShadow(
-                          blurRadius: 12,
-                          offset: Offset(0, 4),
-                          color: Color(0x18000000),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisAlignment:
-                          MainAxisAlignment.spaceAround,
-                      children: [
-                        _BottomNavigationItem(
-                          icon: Icons.home,
-                          label: 'Home',
-                          active: true,
-                          onTap: () {},
-                        ),
-                        _BottomNavigationItem(
-                          icon: Icons.star,
-                          label: 'Favorites',
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    const FavoritesScreen(),
-                              ),
-                            );
-                          },
-                        ),
-                        _BottomNavigationItem(
-                          icon: Icons.school,
-                          label: 'University',
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    const UniversityLocationsScreen(),
-                              ),
-                            );
-                          },
-                        ),
-                        _BottomNavigationItem(
-                          icon: Icons.settings,
-                          label: 'Settings',
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    const SettingsScreen(),
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
+                const DroobiBottomNav(
+                  currentItem:
+                      DroobiNavItem.home,
                 ),
               ],
             ),
@@ -403,16 +449,19 @@ Positioned.fill(
     );
   }
 
-  // =========================================================================
+  // ===========================================================================
   // SIDE MENU
-  // =========================================================================
+  // ===========================================================================
 
   void _showMenu(BuildContext context) {
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
       barrierLabel: 'Close menu',
-      barrierColor: Colors.black.withValues(alpha: 0.50),
+      barrierColor:
+          Colors.black.withValues(
+        alpha: 0.50,
+      ),
       transitionDuration:
           const Duration(milliseconds: 250),
       pageBuilder: (
@@ -429,7 +478,8 @@ Positioned.fill(
                 width: 288,
                 height: double.infinity,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(
+                  padding:
+                      const EdgeInsets.fromLTRB(
                     24,
                     24,
                     24,
@@ -439,7 +489,10 @@ Positioned.fill(
                     crossAxisAlignment:
                         CrossAxisAlignment.start,
                     children: [
-                      // Menu header
+                      // ====================================================
+                      // MENU HEADER
+                      // ====================================================
+
                       Row(
                         mainAxisAlignment:
                             MainAxisAlignment.spaceBetween,
@@ -448,18 +501,24 @@ Positioned.fill(
                             'Menu',
                             style: TextStyle(
                               fontSize: 21,
-                              fontWeight: FontWeight.w500,
-                              color: Color(0xFF111111),
+                              fontWeight:
+                                  FontWeight.w500,
+                              color:
+                                  Color(0xFF111111),
                             ),
                           ),
                           IconButton(
-                            tooltip: 'Close menu',
+                            tooltip:
+                                'Close menu',
                             onPressed: () {
-                              Navigator.of(context).pop();
+                              Navigator.of(
+                                context,
+                              ).pop();
                             },
                             icon: const Icon(
                               Icons.close,
-                              color: Color(0xFF555555),
+                              color:
+                                  Color(0xFF555555),
                             ),
                           ),
                         ],
@@ -467,23 +526,36 @@ Positioned.fill(
 
                       const SizedBox(height: 24),
 
-                      // Home
+                      // ====================================================
+                      // HOME
+                      // ====================================================
+
                       _MenuItem(
                         icon: Icons.home,
                         label: 'Home',
                         active: true,
                         onTap: () {
-                          Navigator.of(context).pop();
+                          Navigator.of(
+                            context,
+                          ).pop();
                         },
                       ),
 
-                      // Favorites
+                      // ====================================================
+                      // FAVORITES
+                      // ====================================================
+
                       _MenuItem(
                         icon: Icons.star,
                         label: 'Favorites',
                         onTap: () {
-                          Navigator.of(context).pop();
-                          Navigator.of(context).push(
+                          Navigator.of(
+                            context,
+                          ).pop();
+
+                          Navigator.of(
+                            context,
+                          ).push(
                             MaterialPageRoute(
                               builder: (_) =>
                                   const FavoritesScreen(),
@@ -492,13 +564,21 @@ Positioned.fill(
                         },
                       ),
 
-                      // University
+                      // ====================================================
+                      // UNIVERSITY
+                      // ====================================================
+
                       _MenuItem(
                         icon: Icons.school,
                         label: 'University',
                         onTap: () {
-                          Navigator.of(context).pop();
-                          Navigator.of(context).push(
+                          Navigator.of(
+                            context,
+                          ).pop();
+
+                          Navigator.of(
+                            context,
+                          ).push(
                             MaterialPageRoute(
                               builder: (_) =>
                                   const UniversityLocationsScreen(),
@@ -507,13 +587,21 @@ Positioned.fill(
                         },
                       ),
 
-                      // Settings
+                      // ====================================================
+                      // SETTINGS
+                      // ====================================================
+
                       _MenuItem(
                         icon: Icons.settings,
                         label: 'Settings',
                         onTap: () {
-                          Navigator.of(context).pop();
-                          Navigator.of(context).push(
+                          Navigator.of(
+                            context,
+                          ).pop();
+
+                          Navigator.of(
+                            context,
+                          ).push(
                             MaterialPageRoute(
                               builder: (_) =>
                                   const SettingsScreen(),
@@ -529,66 +617,6 @@ Positioned.fill(
           ),
         );
       },
-    );
-  }
-}
-
-// ============================================================================
-// BOTTOM NAVIGATION ITEM
-// ============================================================================
-
-class _BottomNavigationItem extends StatelessWidget {
-  const _BottomNavigationItem({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-    this.active = false,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-  final bool active;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      label: label,
-      selected: active,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius:
-            BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 10,
-            vertical: 6,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                size: 25,
-                color: active
-                    ? const Color(0xFF2F80ED)
-                    : const Color(0xFF777777),
-              ),
-              const SizedBox(height: 3),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: active
-                      ? const Color(0xFF2F80ED)
-                      : const Color(0xFF777777),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
@@ -614,8 +642,8 @@ class _MenuItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: label,
       selected: active,
+      label: label,
       child: InkWell(
         onTap: onTap,
         borderRadius:
@@ -647,8 +675,10 @@ class _MenuItem extends StatelessWidget {
                 label,
                 style: const TextStyle(
                   fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF111111),
+                  fontWeight:
+                      FontWeight.w500,
+                  color:
+                      Color(0xFF111111),
                 ),
               ),
             ],

@@ -11,23 +11,40 @@ dependencies:
     sdk: flutter
 
   # BLE communication with the DroobiBelt ESP32.
+  # Kept isolated behind lib/services/ble/belt_connection_service.dart
+  # so it can be swapped later without touching the rest of the app.
   flutter_blue_plus: ^1.32.12
 
-  # State management.
+  # State management, per Stage 2 architecture decision.
   flutter_riverpod: ^2.5.1
 
-  # Firebase Authentication + Firestore.
-  firebase_core: ^4.15.0
-  firebase_auth: ^6.7.0
-  cloud_firestore: ^6.10.0
+  # Firebase Authentication + minimal users/{uid} Firestore document.
+  # Kept isolated behind lib/services/firebase/auth_service.dart.
+  firebase_core: ^2.32.0
+  firebase_auth: ^4.20.0
+  cloud_firestore: ^4.17.5
 
-  # Destination search.
+  # Destination search (Places API (New) Text Search).
+  # Kept isolated behind lib/services/search/destination_search_service.dart.
   http: ^1.2.1
 
-  # Voice input.
-  speech_to_text: ^7.5.0
+  # Voice input for the Home Screen mic - LOCAL Whisper (whisper.cpp),
+  # replacing speech_to_text. Kept isolated behind
+  # lib/services/voice/voice_input_service.dart.
+  whisper_flutter_new:
 
-  # TTS/audio feedback.
+  # Microphone capture to a WAV file, feeding Whisper.
+  record:
+
+  # App-private temp directory for the recorded WAV file.
+  path_provider:
+
+ 
+  # Kept from the existing project.
+  shared_preferences: ^2.5.3
+
+  # TTS/audio feedback for accessibility announcements (Stage 8).
+  # Kept isolated behind lib/services/accessibility/feedback_service.dart.
   flutter_tts: ^4.0.2
 
   cupertino_icons: ^1.0.6
@@ -37,6 +54,8 @@ dev_dependencies:
     sdk: flutter
 
   flutter_lints: ^3.0.0
+
+  # Kept from the existing project for app icon generation.
   flutter_launcher_icons: ^0.14.4
 
 flutter:
