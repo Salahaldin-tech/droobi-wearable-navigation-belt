@@ -443,7 +443,7 @@ class UniversityLocationsScreen extends ConsumerWidget {
                   _handleLocationSelect(
                     context,
                     item,
-                    location!,
+                    location,
                   );
                 }
               : () {

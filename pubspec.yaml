@@ -48,6 +48,7 @@ dependencies:
   flutter_tts: ^4.0.2
 
   cupertino_icons: ^1.0.6
+  crypto: ^3.0.7
 
 dev_dependencies:
   flutter_test:
@@ -63,6 +64,7 @@ flutter:
 
   assets:
     - assets/images/home_bg.png
+    - assets/images/app_logo.png
 
 flutter_launcher_icons:
   android: true
