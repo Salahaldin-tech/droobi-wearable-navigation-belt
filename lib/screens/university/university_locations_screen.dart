@@ -5,13 +5,89 @@ import '../../models/university_location.dart';
 import '../../state/university_locations_notifier.dart';
 import '../../widgets/droobi_bottom_nav.dart';
 
-class UniversityLocationsScreen extends ConsumerWidget {
+class UniversityLocationsScreen extends ConsumerStatefulWidget {
   const UniversityLocationsScreen({super.key});
 
+  @override
+  ConsumerState<UniversityLocationsScreen> createState() =>
+      _UniversityLocationsScreenState();
+}
+
+class _UniversityLocationsScreenState
+    extends ConsumerState<UniversityLocationsScreen>
+    with SingleTickerProviderStateMixin {
   static const Color _primaryBlue = Color(0xFF2F80ED);
   static const Color _cardColor = Color(0xFFF5F5F5);
   static const Color _textColor = Color(0xFF111111);
   static const Color _secondaryText = Color(0xFF6B7280);
+
+  // Only the first items (the ones visible when the screen opens) animate.
+  static const int _maxAnimatedItems = 10;
+
+  late final AnimationController _backgroundController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _backgroundController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 10),
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Respect the system "remove animations" setting.
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
+
+    if (reduceMotion) {
+      _backgroundController.stop();
+    } else if (!_backgroundController.isAnimating) {
+      _backgroundController.repeat(reverse: true);
+    }
+  }
+
+  @override
+  void dispose() {
+    _backgroundController.dispose();
+    super.dispose();
+  }
+
+  /// Fade + small upward slide when the item first appears.
+  /// Items start slightly later one after another (stagger).
+  /// [index] is the position of the item on screen, from the top.
+  Widget _animatedItem(BuildContext context, int index, Widget child) {
+    if (index >= _maxAnimatedItems ||
+        MediaQuery.disableAnimationsOf(context)) {
+      return child;
+    }
+
+    final delayMs = index * 60;
+    final totalMs = 400 + delayMs;
+
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0, end: 1),
+      duration: Duration(milliseconds: totalMs),
+      curve: Interval(
+        delayMs / totalMs,
+        1.0,
+        curve: Curves.easeOutCubic,
+      ),
+      builder: (context, value, child) {
+        return Opacity(
+          opacity: value,
+          child: Transform.translate(
+            offset: Offset(0, 16 * (1 - value)),
+            child: child,
+          ),
+        );
+      },
+      child: child,
+    );
+  }
 
   // ===========================================================================
   // FIGMA DATA
@@ -207,41 +283,123 @@ class UniversityLocationsScreen extends ConsumerWidget {
   // ===========================================================================
 
   @override
-  Widget build(
-    BuildContext context,
-    WidgetRef ref,
-  ) {
+  Widget build(BuildContext context) {
     final locationsAsync =
         ref.watch(universityLocationsProvider);
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SafeArea(
-        child: locationsAsync.when(
-          loading: () => const Center(
-            child: CircularProgressIndicator(
-              color: _primaryBlue,
+      body: Stack(
+        children: [
+          // =====================================================================
+          // UNIVERSITY BACKGROUND
+          // =====================================================================
+
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/uni_bg.png',
+              fit: BoxFit.cover,
+              excludeFromSemantics: true,
+              errorBuilder: (
+                context,
+                error,
+                stackTrace,
+              ) {
+                return const SizedBox.shrink();
+              },
             ),
           ),
-          error: (error, _) => _buildErrorState(error),
-          data: (locations) {
-            return Column(
-              children: [
-                Expanded(
-                  child: _buildContent(
-                    context,
-                    locations,
-                  ),
-                ),
 
-                // Shared animated bottom navigation
-                const DroobiBottomNav(
-                  currentItem: DroobiNavItem.university,
+          // =====================================================================
+          // LIGHT FOG
+          //
+          // A thin white layer (0.10) keeps the map clearly visible.
+          // =====================================================================
+
+          Positioned.fill(
+            child: Container(
+              color: Colors.white.withValues(
+                alpha: 1,
+              ),
+            ),
+          ),
+
+          // =====================================================================
+          // SOFT ANIMATED GRADIENT
+          // Very light blue and mint tints that drift slowly.
+          // =====================================================================
+
+          Positioned.fill(
+            child: IgnorePointer(
+              child: RepaintBoundary(
+                child: AnimatedBuilder(
+                  animation: _backgroundController,
+                  builder: (context, child) {
+                    final t = Curves.easeInOut.transform(
+                      _backgroundController.value,
+                    );
+
+                    return DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.lerp(
+                            Alignment.topLeft,
+                            Alignment.topRight,
+                            t,
+                          )!,
+                          end: Alignment.lerp(
+                            Alignment.bottomRight,
+                            Alignment.bottomLeft,
+                            t,
+                          )!,
+                          colors: [
+                            const Color(0xFFDCEBFF)
+                                .withValues(alpha: 0.30),
+                            Colors.white.withValues(alpha: 0.05),
+                            const Color(0xFFD9F5EA)
+                                .withValues(alpha: 0.25),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
                 ),
-              ],
-            );
-          },
-        ),
+              ),
+            ),
+          ),
+
+          // =====================================================================
+          // CONTENT
+          // =====================================================================
+
+          SafeArea(
+            child: locationsAsync.when(
+              loading: () => const Center(
+                child: CircularProgressIndicator(
+                  color: _primaryBlue,
+                ),
+              ),
+              error: (error, _) => _buildErrorState(error),
+              data: (locations) {
+                return Column(
+                  children: [
+                    Expanded(
+                      child: _buildContent(
+                        context,
+                        locations,
+                      ),
+                    ),
+
+                    // Shared animated bottom navigation
+                    const DroobiBottomNav(
+                      currentItem: DroobiNavItem.university,
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -254,6 +412,10 @@ class UniversityLocationsScreen extends ConsumerWidget {
     BuildContext context,
     List<UniversityLocation> locations,
   ) {
+    // Position of each item from the top. Used only for the entrance
+    // animation, so the first items appear one after another.
+    int order = 0;
+
     return ListView(
       padding: const EdgeInsets.fromLTRB(
         24,
@@ -266,22 +428,32 @@ class UniversityLocationsScreen extends ConsumerWidget {
         // Header
         // -----------------------------------------------------------------------
 
-        const Text(
-          'Arab American University',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w500,
-            color: _textColor,
-          ),
-        ),
+        _animatedItem(
+          context,
+          order++,
+          const Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Arab American University',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w500,
+                  color: _textColor,
+                ),
+              ),
 
-        const SizedBox(height: 4),
+              SizedBox(height: 4),
 
-        const Text(
-          'الجامعة العربية الأمريكية',
-          style: TextStyle(
-            fontSize: 14,
-            color: _secondaryText,
+              Text(
+                'الجامعة العربية الأمريكية',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: _secondaryText,
+                ),
+              ),
+            ],
           ),
         ),
 
@@ -291,22 +463,30 @@ class UniversityLocationsScreen extends ConsumerWidget {
         // Colleges
         // -----------------------------------------------------------------------
 
-        _buildSectionHeader(
-          icon: Icons.school_outlined,
-          title: 'COLLEGES',
+        _animatedItem(
+          context,
+          order++,
+          _buildSectionHeader(
+            icon: Icons.school_outlined,
+            title: 'COLLEGES',
+          ),
         ),
 
         const SizedBox(height: 12),
 
         ..._colleges.map(
-          (item) => Padding(
-            padding: const EdgeInsets.only(
-              bottom: 8,
-            ),
-            child: _buildLocationCard(
-              context: context,
-              item: item,
-              locations: locations,
+          (item) => _animatedItem(
+            context,
+            order++,
+            Padding(
+              padding: const EdgeInsets.only(
+                bottom: 8,
+              ),
+              child: _buildLocationCard(
+                context: context,
+                item: item,
+                locations: locations,
+              ),
             ),
           ),
         ),

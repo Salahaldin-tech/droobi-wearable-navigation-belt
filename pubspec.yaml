@@ -65,6 +65,8 @@ flutter:
   assets:
     - assets/images/home_bg.png
     - assets/images/app_logo.png
+    - assets/images/Favorites_bg.png
+    - assets/images/uni_bg.png
 
 flutter_launcher_icons:
   android: true
