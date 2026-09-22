@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
-
+import 'location_test_screen.dart';
 import 'ble_test_screen.dart';
 import 'destination_search_test_screen.dart';
 import 'routing_test_screen.dart';
+import 'gps_routing_test_screen.dart';
+import 'compass_test_screen.dart';
+import 'direction_test_screen.dart';
+import 'route_progress_test_screen.dart';
+import 'navigation_direction_test_screen.dart';
 
 /// TEMPORARY dev-only menu. Routes between the per-stage test
 /// screens used to validate individual service layers (BLE, search,
@@ -39,7 +44,69 @@ class DevTestMenu extends StatelessWidget {
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const RoutingTestScreen()),
             ),
-          ),
+          ),ListTile(
+  leading: const Icon(Icons.location_on),
+  title: const Text('Location Test'),
+  onTap: () {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const LocationTestScreen(),
+      ),
+    );
+  },
+),ListTile(
+  leading: const Icon(Icons.navigation),
+  title: const Text('GPS + Routing Test'),
+  onTap: () {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const GpsRoutingTestScreen(),
+      ),
+    );
+  },
+),ListTile(
+  leading: const Icon(Icons.explore),
+  title: const Text('Compass Test'),
+  onTap: () {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const CompassTestScreen(),
+      ),
+    );
+  },
+),ListTile(
+  leading: const Icon(Icons.navigation),
+  title: const Text('Direction Test'),
+  onTap: () {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const DirectionTestScreen(),
+      ),
+    );
+  },
+),
+ListTile(
+  leading: const Icon(Icons.alt_route),
+  title: const Text('Route Progress Test'),
+  onTap: () {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const RouteProgressTestScreen(),
+      ),
+    );
+  },
+),ListTile(
+  leading: const Icon(Icons.navigation),
+  title: const Text('Navigation Direction Test'),
+  onTap: () {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) =>
+            const NavigationDirectionTestScreen(),
+      ),
+    );
+  },
+),
         ],
       ),
     );

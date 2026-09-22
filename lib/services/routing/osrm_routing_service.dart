@@ -100,6 +100,7 @@ class OsrmRoutingService implements RoutingService {
 
     final polyline = rawCoordinates.map((point) {
       final pair = point as List<dynamic>;
+
       // GeoJSON order is [lon, lat] - swapped back to LatLon here.
       return LatLon(
         latitude: (pair[1] as num).toDouble(),
@@ -112,5 +113,9 @@ class OsrmRoutingService implements RoutingService {
       distanceMeters: (route['distance'] as num).toDouble(),
       durationSeconds: (route['duration'] as num).toDouble(),
     );
+  }
+
+  void dispose() {
+    _client.close();
   }
 }

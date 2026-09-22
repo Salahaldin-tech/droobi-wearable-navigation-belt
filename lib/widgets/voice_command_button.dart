@@ -170,7 +170,7 @@ class _VoiceCommandButtonState extends State<VoiceCommandButton>
               height: 180,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: color.withOpacity(0.15),
+                color: color.withValues(alpha: 0.15),
                 border: Border.all(
                   color: color,
                   width: 4,
@@ -179,7 +179,7 @@ class _VoiceCommandButtonState extends State<VoiceCommandButton>
                         VoiceCommandPhase.listening
                     ? [
                         BoxShadow(
-                          color: color.withOpacity(0.25),
+                          color: color.withValues(alpha: 0.25),
                           blurRadius: 18,
                           spreadRadius: 4,
                         ),

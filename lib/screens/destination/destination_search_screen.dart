@@ -23,9 +23,11 @@ class _DestinationSearchScreenState
   @override
   void initState() {
     super.initState();
+
     // If the voice flow already produced a recognized+confirmed query,
     // prefill it and search immediately.
     final existingQuery = ref.read(destinationSearchProvider).query;
+
     if (existingQuery.isNotEmpty) {
       _controller.text = existingQuery;
     }
@@ -39,12 +41,15 @@ class _DestinationSearchScreenState
 
   void _runSearch() {
     final query = _controller.text;
+
     if (query.trim().isEmpty) return;
+
     ref.read(destinationSearchProvider.notifier).search(query);
   }
 
   Future<void> _addToFavorites(Destination destination) async {
     final labelController = TextEditingController(text: destination.name);
+
     final label = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
@@ -54,7 +59,9 @@ class _DestinationSearchScreenState
           label: 'Favorite label',
           child: TextField(
             controller: labelController,
-            decoration: const InputDecoration(labelText: 'Label'),
+            decoration: const InputDecoration(
+              labelText: 'Label',
+            ),
           ),
         ),
         actions: [
@@ -63,7 +70,9 @@ class _DestinationSearchScreenState
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () => Navigator.of(context).pop(labelController.text),
+            onPressed: () => Navigator.of(context).pop(
+              labelController.text,
+            ),
             child: const Text('Save'),
           ),
         ],
@@ -71,6 +80,7 @@ class _DestinationSearchScreenState
     );
 
     if (label == null || label.trim().isEmpty) return;
+
     await ref.read(favoritesActionsProvider).addFavorite(
           label: label.trim(),
           destination: destination,
@@ -78,7 +88,9 @@ class _DestinationSearchScreenState
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Added "$label" to Favorites')),
+        SnackBar(
+          content: Text('Added "$label" to Favorites'),
+        ),
       );
     }
   }
@@ -88,7 +100,9 @@ class _DestinationSearchScreenState
     final state = ref.watch(destinationSearchProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Search Destination')),
+      appBar: AppBar(
+        title: const Text('Search Destination'),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -130,7 +144,9 @@ class _DestinationSearchScreenState
                   padding: const EdgeInsets.only(top: 8),
                   child: Text(
                     state.errorMessage!,
-                    style: const TextStyle(color: Colors.red),
+                    style: const TextStyle(
+                      color: Colors.red,
+                    ),
                   ),
                 ),
               ),
@@ -148,6 +164,7 @@ class _DestinationSearchScreenState
                 separatorBuilder: (_, __) => const Divider(),
                 itemBuilder: (context, index) {
                   final destination = state.results[index];
+
                   return ListTile(
                     title: Text(destination.name),
                     subtitle: Text(destination.address ?? ''),
@@ -159,14 +176,11 @@ class _DestinationSearchScreenState
                         onPressed: () => _addToFavorites(destination),
                       ),
                     ),
+
+                    // Return the selected destination to the screen
+                    // that opened DestinationSearchScreen.
                     onTap: () {
-                      // Selecting a destination to start navigation is
-                      // wired up in the GPS/routing stage - out of
-                      // scope here. For now this just confirms the
-                      // selection is registered.
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Selected ${destination.name}')),
-                      );
+                      Navigator.of(context).pop(destination);
                     },
                   );
                 },
