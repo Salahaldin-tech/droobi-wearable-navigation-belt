@@ -19,12 +19,20 @@ class RouteProgressTestScreen extends ConsumerStatefulWidget {
 
 class _RouteProgressTestScreenState
     extends ConsumerState<RouteProgressTestScreen> {
+  // ================================================================
+  // TEST DESTINATION
+  // ================================================================
+
   static const LatLon _testDestination = LatLon(
-    latitude: 32.4130,
-    longitude: 35.3433,
+    latitude: 32.450504351029885,
+    longitude: 35.29032163919892,
   );
 
-  static const int _lookAheadPoints = 5;
+  // ================================================================
+  // ROUTE PROGRESS
+  // ================================================================
+
+  static const double _lookAheadMeters = 10.0;
 
   final RouteProgressService _routeProgressService =
       RouteProgressService();
@@ -43,6 +51,14 @@ class _RouteProgressTestScreenState
 
   LatLon? _targetPoint;
 
+  double? _distanceFromRoute;
+
+  double? _distanceAhead;
+
+  // ================================================================
+  // RUN TEST
+  // ================================================================
+
   Future<void> _runTest() async {
     if (_isLoading) {
       return;
@@ -51,17 +67,23 @@ class _RouteProgressTestScreenState
     setState(() {
       _isLoading = true;
       _errorMessage = null;
+
       _currentLocation = null;
       _route = null;
+
       _nearestIndex = null;
       _targetIndex = null;
+
       _targetPoint = null;
+
+      _distanceFromRoute = null;
+      _distanceAhead = null;
     });
 
     try {
-      // ==================================================
+      // ============================================================
       // 1. GET CURRENT GPS LOCATION
-      // ==================================================
+      // ============================================================
 
       final locationService =
           ref.read(locationServiceProvider);
@@ -77,14 +99,15 @@ class _RouteProgressTestScreenState
         _currentLocation = currentLocation;
       });
 
-      // ==================================================
-      // 2. CALCULATE REAL OSRM ROUTE
-      // ==================================================
+      // ============================================================
+      // 2. CALCULATE REAL OSRM WALKING ROUTE
+      // ============================================================
 
       final routingService =
           ref.read(routingServiceProvider);
 
-      final route = await routingService.computeRoute(
+      final route =
+          await routingService.computeRoute(
         origin: currentLocation,
         destination: _testDestination,
       );
@@ -97,9 +120,9 @@ class _RouteProgressTestScreenState
         _route = route;
       });
 
-      // ==================================================
-      // 3. FIND NEAREST POINT ON THE ROUTE
-      // ==================================================
+      // ============================================================
+      // 3. FIND NEAREST POINT ON ROUTE
+      // ============================================================
 
       final nearestIndex =
           _routeProgressService.findNearestPointIndex(
@@ -107,18 +130,16 @@ class _RouteProgressTestScreenState
         polyline: route.polyline,
       );
 
-      // ==================================================
-      // 4. GET POINT AHEAD OF USER
-      // ==================================================
+      // ============================================================
+      // 4. FIND TARGET 10 METERS AHEAD ON ROUTE
+      // ============================================================
 
-      final targetIndex = (nearestIndex + _lookAheadPoints)
-          .clamp(
-            0,
-            route.polyline.length - 1,
-          );
-
-      final targetPoint =
-          route.polyline[targetIndex];
+      final target =
+          _routeProgressService.getNextTarget(
+        currentPosition: currentLocation,
+        route: route,
+        lookAheadMeters: _lookAheadMeters,
+      );
 
       if (!mounted) {
         return;
@@ -126,8 +147,16 @@ class _RouteProgressTestScreenState
 
       setState(() {
         _nearestIndex = nearestIndex;
-        _targetIndex = targetIndex;
-        _targetPoint = targetPoint;
+
+        _targetIndex = target.index;
+
+        _targetPoint = target.point;
+
+        _distanceFromRoute =
+            target.distanceFromRouteMeters;
+
+        _distanceAhead =
+            target.distanceAheadMeters;
       });
     } on LocationFailure catch (e) {
       if (!mounted) {
@@ -159,7 +188,8 @@ class _RouteProgressTestScreenState
       }
 
       setState(() {
-        _errorMessage = 'Unexpected error: $e';
+        _errorMessage =
+            'Unexpected error: $e';
       });
     } finally {
       if (mounted) {
@@ -170,19 +200,25 @@ class _RouteProgressTestScreenState
     }
   }
 
+  // ================================================================
+  // BUILD
+  // ================================================================
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Route Progress Test'),
+        title: const Text(
+          'Route Progress Test',
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: ListView(
           children: [
-            // ==================================================
+            // ======================================================
             // TEST DESTINATION
-            // ==================================================
+            // ======================================================
 
             const Text(
               'Test Destination',
@@ -195,22 +231,47 @@ class _RouteProgressTestScreenState
             const SizedBox(height: 8),
 
             Text(
-              'Latitude: ${_testDestination.latitude}\n'
-              'Longitude: ${_testDestination.longitude}',
+              'Latitude: '
+              '${_testDestination.latitude}\n'
+              'Longitude: '
+              '${_testDestination.longitude}',
             ),
 
             const SizedBox(height: 20),
 
-            // ==================================================
+            // ======================================================
+            // LOOK-AHEAD
+            // ======================================================
+
+            const Text(
+              'Navigation Target',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            const Text(
+              'The system looks 10 meters ahead '
+              'along the actual walking route.',
+            ),
+
+            const SizedBox(height: 20),
+
+            // ======================================================
             // BUTTON
-            // ==================================================
+            // ======================================================
 
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _isLoading ? null : _runTest,
+                onPressed:
+                    _isLoading ? null : _runTest,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(
+                  padding:
+                      const EdgeInsets.symmetric(
                     vertical: 12,
                   ),
                   child: Text(
@@ -224,16 +285,20 @@ class _RouteProgressTestScreenState
 
             const SizedBox(height: 20),
 
-            // ==================================================
+            // ======================================================
             // ERROR
-            // ==================================================
+            // ======================================================
 
             if (_errorMessage != null)
               Container(
-                padding: const EdgeInsets.all(12),
+                padding:
+                    const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.red.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(10),
+                  color: Colors.red.withValues(
+                    alpha: 0.08,
+                  ),
+                  borderRadius:
+                      BorderRadius.circular(10),
                 ),
                 child: Text(
                   _errorMessage!,
@@ -244,9 +309,9 @@ class _RouteProgressTestScreenState
                 ),
               ),
 
-            // ==================================================
+            // ======================================================
             // CURRENT GPS
-            // ==================================================
+            // ======================================================
 
             if (_currentLocation != null) ...[
               const Divider(height: 32),
@@ -272,15 +337,15 @@ class _RouteProgressTestScreenState
               ),
             ],
 
-            // ==================================================
+            // ======================================================
             // ROUTE INFORMATION
-            // ==================================================
+            // ======================================================
 
             if (_route != null) ...[
               const Divider(height: 32),
 
               const Text(
-                'Real OSRM Route',
+                'Real OSRM Walking Route',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -305,9 +370,9 @@ class _RouteProgressTestScreenState
               ),
             ],
 
-            // ==================================================
+            // ======================================================
             // ROUTE PROGRESS
-            // ==================================================
+            // ======================================================
 
             if (_nearestIndex != null) ...[
               const Divider(height: 32),
@@ -323,34 +388,48 @@ class _RouteProgressTestScreenState
               const SizedBox(height: 8),
 
               Text(
-                'Nearest route index: $_nearestIndex',
+                'Nearest route segment: '
+                '$_nearestIndex',
               ),
 
-              Text(
-                'Look-ahead points: $_lookAheadPoints',
-              ),
+              const SizedBox(height: 6),
 
               Text(
-                'Target route index: $_targetIndex',
+                'Look-ahead distance: '
+                '${_distanceAhead?.toStringAsFixed(2) ?? '--'} m',
+              ),
+
+              const SizedBox(height: 6),
+
+              Text(
+                'Distance from route: '
+                '${_distanceFromRoute?.toStringAsFixed(2) ?? '--'} m',
+              ),
+
+              const SizedBox(height: 6),
+
+              Text(
+                'Target route segment: '
+                '$_targetIndex',
               ),
             ],
 
-            // ==================================================
+            // ======================================================
             // TARGET POINT
-            // ==================================================
+            // ======================================================
 
             if (_targetPoint != null) ...[
-              const SizedBox(height: 16),
+              const Divider(height: 32),
 
               const Text(
                 'Next Target Point',
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
               ),
 
-              const SizedBox(height: 6),
+              const SizedBox(height: 8),
 
               Text(
                 'Latitude: '
@@ -361,7 +440,31 @@ class _RouteProgressTestScreenState
                 'Longitude: '
                 '${_targetPoint!.longitude}',
               ),
+
+              const SizedBox(height: 12),
+
+              Container(
+                padding:
+                    const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withValues(
+                    alpha: 0.08,
+                  ),
+                  borderRadius:
+                      BorderRadius.circular(10),
+                ),
+                child: Text(
+                  'Target is approximately '
+                  '${_distanceAhead?.toStringAsFixed(1) ?? '--'} '
+                  'meters ahead on the route.',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
             ],
+
+            const SizedBox(height: 30),
           ],
         ),
       ),

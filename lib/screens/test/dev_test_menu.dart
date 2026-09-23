@@ -8,6 +8,7 @@ import 'compass_test_screen.dart';
 import 'direction_test_screen.dart';
 import 'route_progress_test_screen.dart';
 import 'navigation_direction_test_screen.dart';
+import 'gps_filter_test_screen.dart';
 
 /// TEMPORARY dev-only menu. Routes between the per-stage test
 /// screens used to validate individual service layers (BLE, search,
@@ -103,6 +104,20 @@ ListTile(
       MaterialPageRoute(
         builder: (_) =>
             const NavigationDirectionTestScreen(),
+      ),
+    );
+  },
+),ListTile(
+  leading: const Icon(Icons.gps_fixed),
+  title: const Text('GPS Filter Test'),
+  subtitle: const Text(
+    'Test GPS accuracy and jump filtering',
+  ),
+  onTap: () {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) =>
+            const GpsFilterTestScreen(),
       ),
     );
   },

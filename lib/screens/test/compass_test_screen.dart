@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../services/navigation/compass_service.dart';
-import '../../state/compass_notifier.dart';
 
 class CompassTestScreen extends ConsumerStatefulWidget {
   const CompassTestScreen({super.key});
@@ -21,6 +20,11 @@ class _CompassTestScreenState
   double? _heading;
   String? _errorMessage;
 
+  // Use CompassService directly.
+  // No compassServiceProvider is needed.
+  final CompassService _compassService =
+      CompassService();
+
   @override
   void initState() {
     super.initState();
@@ -29,12 +33,12 @@ class _CompassTestScreenState
   }
 
   void _startCompass() {
-    final compassService = ref.read(compassServiceProvider);
-
     _headingSubscription =
-        compassService.headingStream.listen(
+        _compassService.headingStream.listen(
       (heading) {
-        if (!mounted) return;
+        if (!mounted) {
+          return;
+        }
 
         setState(() {
           _heading = heading;
@@ -42,7 +46,9 @@ class _CompassTestScreenState
         });
       },
       onError: (Object error) {
-        if (!mounted) return;
+        if (!mounted) {
+          return;
+        }
 
         setState(() {
           _errorMessage = error.toString();
@@ -99,7 +105,8 @@ class _CompassTestScreenState
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment:
+                MainAxisAlignment.center,
             children: [
               const Icon(
                 Icons.explore,
@@ -146,7 +153,9 @@ class _CompassTestScreenState
                 ),
               ] else ...[
                 const CircularProgressIndicator(),
+
                 const SizedBox(height: 16),
+
                 const Text(
                   'Reading compass...',
                 ),
