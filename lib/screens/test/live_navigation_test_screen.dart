@@ -24,9 +24,9 @@ class _LiveNavigationTestScreenState
   // ================================================================
 
   static const LatLon _testDestination = LatLon(
-    latitude: 32.462187947498116,
-    longitude: 35.29858848014951,
-  );
+  latitude: 32.45093071796531,
+  longitude: 35.28998072943219,
+);
 
   // ================================================================
   // STATE

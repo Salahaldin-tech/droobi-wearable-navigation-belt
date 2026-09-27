@@ -9,6 +9,7 @@ import 'direction_test_screen.dart';
 import 'route_progress_test_screen.dart';
 import 'navigation_direction_test_screen.dart';
 import 'gps_filter_test_screen.dart';
+import 'live_navigation_test_screen.dart';
 
 /// TEMPORARY dev-only menu. Routes between the per-stage test
 /// screens used to validate individual service layers (BLE, search,
@@ -118,6 +119,19 @@ ListTile(
       MaterialPageRoute(
         builder: (_) =>
             const GpsFilterTestScreen(),
+      ),
+    );
+  },
+),ListTile(
+  leading: const Icon(Icons.navigation_outlined),
+  title: const Text('Live Navigation Test'),
+  subtitle: const Text(
+    'Test GPS, route progress, compass, and live direction',
+  ),
+  onTap: () {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const LiveNavigationTestScreen(),
       ),
     );
   },
