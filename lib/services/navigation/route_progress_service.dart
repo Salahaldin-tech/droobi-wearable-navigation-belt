@@ -1,3 +1,4 @@
+
 import 'dart:math' as math;
 
 import '../../models/lat_lon.dart';
@@ -5,10 +6,28 @@ import '../../models/route_result.dart';
 
 class RouteProgressService {
   RouteProgressService({
-    this.defaultLookAheadMeters = 10.0,
+    this.defaultLookAheadMeters = 8.0,
+    this.minimumLookAheadMeters = 4.0,
+    this.maximumLookAheadMeters = 10.0,
+    this.turnDetectionAngleDegrees = 35.0,
   });
 
+  /// Normal look-ahead on reasonably straight sections.
   final double defaultLookAheadMeters;
+
+  /// Minimum look-ahead used when a meaningful turn is close.
+  final double minimumLookAheadMeters;
+
+  /// Maximum look-ahead on long straight sections.
+  final double maximumLookAheadMeters;
+
+  /// A route heading change larger than this is treated
+  /// as a meaningful turn.
+  final double turnDetectionAngleDegrees;
+
+  // ================================================================
+  // SIMPLE TARGET API
+  // ================================================================
 
   LatLon getNextTargetPoint({
     required LatLon currentPosition,
@@ -18,30 +37,24 @@ class RouteProgressService {
     final target = getNextTarget(
       currentPosition: currentPosition,
       route: route,
-      lookAheadMeters:
-          lookAheadMeters ?? defaultLookAheadMeters,
+      lookAheadMeters: lookAheadMeters,
     );
 
     return target.point;
   }
+
+  // ================================================================
+  // MAIN TARGET CALCULATION
+  // ================================================================
 
   RouteTarget getNextTarget({
     required LatLon currentPosition,
     required RouteResult route,
     double? lookAheadMeters,
   }) {
-    final lookAhead =
-        lookAheadMeters ?? defaultLookAheadMeters;
-
     if (route.polyline.isEmpty) {
       throw const RouteProgressFailure(
         'Route polyline is empty.',
-      );
-    }
-
-    if (lookAhead < 0) {
-      throw const RouteProgressFailure(
-        'Look-ahead distance cannot be negative.',
       );
     }
 
@@ -54,6 +67,8 @@ class RouteProgressService {
           currentPosition,
           route.polyline.first,
         ),
+        routeBearing: null,
+        isNearTurn: false,
       );
     }
 
@@ -62,13 +77,28 @@ class RouteProgressService {
       polyline: route.polyline,
     );
 
-    var remainingLookAhead = lookAhead;
+    final adaptiveLookAhead =
+        lookAheadMeters ??
+        _calculateAdaptiveLookAhead(
+          route: route,
+          nearestSegmentIndex:
+              nearest.segmentIndex,
+          projectedPoint:
+              nearest.projectedPoint,
+        );
 
-    var segmentIndex = nearest.segmentIndex;
-    var segmentStart = nearest.projectedPoint;
+    var remainingLookAhead =
+        adaptiveLookAhead;
 
-    while (segmentIndex <
-        route.polyline.length - 1) {
+    var segmentIndex =
+        nearest.segmentIndex;
+
+    var segmentStart =
+        nearest.projectedPoint;
+
+    while (
+        segmentIndex <
+            route.polyline.length - 1) {
       final segmentEnd =
           route.polyline[segmentIndex + 1];
 
@@ -78,46 +108,241 @@ class RouteProgressService {
         segmentEnd,
       );
 
-      if (remainingLookAhead <= segmentDistance) {
+      if (segmentDistance <= 0.01) {
+        segmentIndex++;
+        segmentStart =
+            route.polyline[segmentIndex];
+        continue;
+      }
+
+      if (remainingLookAhead <=
+          segmentDistance) {
+        final factor =
+            remainingLookAhead /
+                segmentDistance;
+
         final target =
             _interpolatePoint(
           segmentStart,
           segmentEnd,
-          segmentDistance == 0
-              ? 0
-              : remainingLookAhead /
-                  segmentDistance,
+          factor,
+        );
+
+        final routeBearing =
+            calculateBearing(
+          from: segmentStart,
+          to: segmentEnd,
         );
 
         return RouteTarget(
           point: target,
           index: segmentIndex + 1,
-          distanceAheadMeters: lookAhead -
-              remainingLookAhead +
-              remainingLookAhead,
+          distanceAheadMeters:
+              adaptiveLookAhead -
+                  remainingLookAhead +
+                  remainingLookAhead,
           distanceFromRouteMeters:
               nearest.distanceFromRouteMeters,
+          routeBearing: routeBearing,
+          isNearTurn:
+              _isTurnNear(
+            route: route,
+            segmentIndex:
+                segmentIndex,
+          ),
         );
       }
 
-      remainingLookAhead -= segmentDistance;
+      remainingLookAhead -=
+          segmentDistance;
 
       segmentIndex++;
-      segmentStart = route.polyline[segmentIndex];
+
+      segmentStart =
+          route.polyline[segmentIndex];
     }
 
     final lastIndex =
         route.polyline.length - 1;
 
+    double? finalBearing;
+
+    if (lastIndex > 0) {
+      finalBearing =
+          calculateBearing(
+        from: route.polyline[lastIndex - 1],
+        to: route.polyline[lastIndex],
+      );
+    }
+
     return RouteTarget(
       point: route.polyline[lastIndex],
       index: lastIndex,
       distanceAheadMeters:
-          lookAhead - remainingLookAhead,
+          adaptiveLookAhead -
+              remainingLookAhead,
       distanceFromRouteMeters:
           nearest.distanceFromRouteMeters,
+      routeBearing: finalBearing,
+      isNearTurn: false,
     );
   }
+
+  // ================================================================
+  // ADAPTIVE LOOK-AHEAD
+  // ================================================================
+
+  double _calculateAdaptiveLookAhead({
+    required RouteResult route,
+    required int nearestSegmentIndex,
+    required LatLon projectedPoint,
+  }) {
+    final turnDistance =
+        _distanceToNextMeaningfulTurn(
+      route: route,
+      startSegmentIndex:
+          nearestSegmentIndex,
+      projectedPoint:
+          projectedPoint,
+    );
+
+    if (turnDistance == null) {
+      return defaultLookAheadMeters
+          .clamp(
+            minimumLookAheadMeters,
+            maximumLookAheadMeters,
+          )
+          .toDouble();
+    }
+
+    // Very close to a turn.
+    if (turnDistance <= 7.0) {
+      return minimumLookAheadMeters;
+    }
+
+    // Turn is approaching.
+    if (turnDistance <= 15.0) {
+      return 5.0;
+    }
+
+    // Turn exists but is still far enough away.
+    if (turnDistance <= 25.0) {
+      return 7.0;
+    }
+
+    return maximumLookAheadMeters;
+  }
+
+  // ================================================================
+  // NEXT TURN
+  // ================================================================
+
+  double? _distanceToNextMeaningfulTurn({
+    required RouteResult route,
+    required int startSegmentIndex,
+    required LatLon projectedPoint,
+  }) {
+    final polyline = route.polyline;
+
+    if (polyline.length < 3) {
+      return null;
+    }
+
+    var accumulatedDistance = 0.0;
+
+    // Distance from the current projected point
+    // to the end of the current segment.
+    if (startSegmentIndex <
+        polyline.length - 1) {
+      accumulatedDistance +=
+          distanceBetween(
+        projectedPoint,
+        polyline[startSegmentIndex + 1],
+      );
+    }
+
+    for (
+      var i = startSegmentIndex + 1;
+      i < polyline.length - 1;
+      i++
+    ) {
+      if (i + 1 >= polyline.length) {
+        break;
+      }
+
+      final incomingBearing =
+          calculateBearing(
+        from: polyline[i - 1],
+        to: polyline[i],
+      );
+
+      final outgoingBearing =
+          calculateBearing(
+        from: polyline[i],
+        to: polyline[i + 1],
+      );
+
+      final turnAngle =
+          _angularDifference(
+        incomingBearing,
+        outgoingBearing,
+      );
+
+      if (turnAngle >=
+          turnDetectionAngleDegrees) {
+        return accumulatedDistance;
+      }
+
+      accumulatedDistance +=
+          distanceBetween(
+        polyline[i],
+        polyline[i + 1],
+      );
+    }
+
+    return null;
+  }
+
+  bool _isTurnNear({
+    required RouteResult route,
+    required int segmentIndex,
+  }) {
+    if (route.polyline.length < 3) {
+      return false;
+    }
+
+    if (segmentIndex <= 0 ||
+        segmentIndex >=
+            route.polyline.length - 1) {
+      return false;
+    }
+
+    final incomingBearing =
+        calculateBearing(
+      from:
+          route.polyline[segmentIndex - 1],
+      to:
+          route.polyline[segmentIndex],
+    );
+
+    final outgoingBearing =
+        calculateBearing(
+      from:
+          route.polyline[segmentIndex],
+      to:
+          route.polyline[segmentIndex + 1],
+    );
+
+    return _angularDifference(
+          incomingBearing,
+          outgoingBearing,
+        ) >=
+        turnDetectionAngleDegrees;
+  }
+
+  // ================================================================
+  // NEAREST ROUTE POINT
+  // ================================================================
 
   int findNearestPointIndex({
     required LatLon currentPosition,
@@ -138,35 +363,54 @@ class RouteProgressService {
     return nearest.segmentIndex;
   }
 
+  // ================================================================
+  // DISTANCE
+  // ================================================================
+
   double distanceBetween(
     LatLon first,
     LatLon second,
   ) {
-    const earthRadiusMeters = 6371000.0;
+    const earthRadiusMeters =
+        6371000.0;
 
     final latitude1 =
-        _degreesToRadians(first.latitude);
+        _degreesToRadians(
+      first.latitude,
+    );
 
     final latitude2 =
-        _degreesToRadians(second.latitude);
+        _degreesToRadians(
+      second.latitude,
+    );
 
     final deltaLatitude =
         _degreesToRadians(
-      second.latitude - first.latitude,
+      second.latitude -
+          first.latitude,
     );
 
     final deltaLongitude =
         _degreesToRadians(
-      second.longitude - first.longitude,
+      second.longitude -
+          first.longitude,
     );
 
     final a =
-        math.sin(deltaLatitude / 2) *
-                math.sin(deltaLatitude / 2) +
+        math.sin(
+                  deltaLatitude / 2,
+                ) *
+                math.sin(
+                  deltaLatitude / 2,
+                ) +
             math.cos(latitude1) *
                 math.cos(latitude2) *
-                math.sin(deltaLongitude / 2) *
-                math.sin(deltaLongitude / 2);
+                math.sin(
+                  deltaLongitude / 2,
+                ) *
+                math.sin(
+                  deltaLongitude / 2,
+                );
 
     final c =
         2 *
@@ -177,6 +421,53 @@ class RouteProgressService {
 
     return earthRadiusMeters * c;
   }
+
+  // ================================================================
+  // BEARING
+  // ================================================================
+
+  double calculateBearing({
+    required LatLon from,
+    required LatLon to,
+  }) {
+    final latitude1 =
+        _degreesToRadians(
+      from.latitude,
+    );
+
+    final latitude2 =
+        _degreesToRadians(
+      to.latitude,
+    );
+
+    final deltaLongitude =
+        _degreesToRadians(
+      to.longitude -
+          from.longitude,
+    );
+
+    final y =
+        math.sin(deltaLongitude) *
+            math.cos(latitude2);
+
+    final x =
+        math.cos(latitude1) *
+                math.sin(latitude2) -
+            math.sin(latitude1) *
+                math.cos(latitude2) *
+                math.cos(deltaLongitude);
+
+    final bearing =
+        math.atan2(y, x);
+
+    return _normalizeBearing(
+      _radiansToDegrees(bearing),
+    );
+  }
+
+  // ================================================================
+  // NEAREST POINT
+  // ================================================================
 
   _NearestRoutePoint _findNearestPointOnRoute({
     required LatLon currentPosition,
@@ -189,11 +480,16 @@ class RouteProgressService {
 
     LatLon? nearestPoint;
 
-    for (var i = 0;
-        i < polyline.length - 1;
-        i++) {
-      final start = polyline[i];
-      final end = polyline[i + 1];
+    for (
+      var i = 0;
+      i < polyline.length - 1;
+      i++
+    ) {
+      final start =
+          polyline[i];
+
+      final end =
+          polyline[i + 1];
 
       final projected =
           _projectPointOntoSegment(
@@ -208,20 +504,32 @@ class RouteProgressService {
         projected,
       );
 
-      if (distance < nearestDistance) {
-        nearestDistance = distance;
-        nearestSegmentIndex = i;
-        nearestPoint = projected;
+      if (distance <
+          nearestDistance) {
+        nearestDistance =
+            distance;
+
+        nearestSegmentIndex =
+            i;
+
+        nearestPoint =
+            projected;
       }
     }
 
     return _NearestRoutePoint(
-      segmentIndex: nearestSegmentIndex,
-      projectedPoint: nearestPoint!,
+      segmentIndex:
+          nearestSegmentIndex,
+      projectedPoint:
+          nearestPoint!,
       distanceFromRouteMeters:
           nearestDistance,
     );
   }
+
+  // ================================================================
+  // PROJECT GPS ONTO ROUTE SEGMENT
+  // ================================================================
 
   LatLon _projectPointOntoSegment(
     LatLon point,
@@ -270,7 +578,10 @@ class RouteProgressService {
         (px * sx + py * sy) /
             segmentLengthSquared;
 
-    t = t.clamp(0.0, 1.0);
+    t = t.clamp(
+      0.0,
+      1.0,
+    );
 
     return _interpolatePoint(
       start,
@@ -278,6 +589,10 @@ class RouteProgressService {
       t,
     );
   }
+
+  // ================================================================
+  // INTERPOLATION
+  // ================================================================
 
   LatLon _interpolatePoint(
     LatLon start,
@@ -298,12 +613,61 @@ class RouteProgressService {
     );
   }
 
+  // ================================================================
+  // ANGLES
+  // ================================================================
+
+  double _angularDifference(
+    double first,
+    double second,
+  ) {
+    var difference =
+        (first - second) % 360;
+
+    if (difference > 180) {
+      difference -= 360;
+    }
+
+    if (difference < -180) {
+      difference += 360;
+    }
+
+    return difference.abs();
+  }
+
+  double _normalizeBearing(
+    double bearing,
+  ) {
+    var normalized =
+        bearing % 360;
+
+    if (normalized < 0) {
+      normalized += 360;
+    }
+
+    return normalized;
+  }
+
   double _degreesToRadians(
     double degrees,
   ) {
-    return degrees * math.pi / 180.0;
+    return degrees *
+        math.pi /
+        180.0;
+  }
+
+  double _radiansToDegrees(
+    double radians,
+  ) {
+    return radians *
+        180.0 /
+        math.pi;
   }
 }
+
+// ================================================================
+// ROUTE TARGET
+// ================================================================
 
 class RouteTarget {
   const RouteTarget({
@@ -311,6 +675,8 @@ class RouteTarget {
     required this.index,
     required this.distanceAheadMeters,
     required this.distanceFromRouteMeters,
+    required this.routeBearing,
+    required this.isNearTurn,
   });
 
   final LatLon point;
@@ -318,13 +684,25 @@ class RouteTarget {
   /// Polyline segment/end index around the target.
   final int index;
 
-  /// Requested look-ahead distance.
+  /// Actual distance travelled ahead along the route.
   final double distanceAheadMeters;
 
-  /// How far the current GPS position is from
-  /// the calculated route.
+  /// Distance between GPS position and route.
   final double distanceFromRouteMeters;
+
+  /// Direction of travel along the route.
+  ///
+  /// This is deliberately different from the bearing
+  /// from the user's GPS position to the target.
+  final double? routeBearing;
+
+  /// Whether the target is close to a meaningful route turn.
+  final bool isNearTurn;
 }
+
+// ================================================================
+// INTERNAL NEAREST POINT
+// ================================================================
 
 class _NearestRoutePoint {
   const _NearestRoutePoint({
@@ -338,6 +716,10 @@ class _NearestRoutePoint {
   final double distanceFromRouteMeters;
 }
 
+// ================================================================
+// FAILURE
+// ================================================================
+
 class RouteProgressFailure implements Exception {
   const RouteProgressFailure(this.message);
 
@@ -346,3 +728,4 @@ class RouteProgressFailure implements Exception {
   @override
   String toString() => message;
 }
+

@@ -1,4 +1,6 @@
+
 import 'dart:async';
+import 'dart:math' as math;
 
 import '../../models/lat_lon.dart';
 import '../../models/location_fix.dart';
@@ -40,6 +42,7 @@ class NavigationSnapshot {
   final NavigationState state;
 
   final LatLon? currentPosition;
+
   final double? accuracyMeters;
 
   final RouteResult? route;
@@ -69,17 +72,40 @@ class NavigationService {
     GpsFilterService? gpsFilterService,
     RouteProgressService? routeProgressService,
     DirectionCalculator? directionCalculator,
-    this.lookAheadMeters = 10.0,
+
+    // --------------------------------------------------------------
+    // ROUTE FOLLOWING
+    // --------------------------------------------------------------
+
+    this.lookAheadMeters = 8.0,
+
     this.arrivalDistanceMeters = 8.0,
+
+    // --------------------------------------------------------------
+    // COMPASS SMOOTHING
+    // --------------------------------------------------------------
+
+    this.compassSampleCount = 5,
+
+    this.minimumHeadingChangeDegrees = 8.0,
+
+    // --------------------------------------------------------------
+    // DIRECTION STABILITY
+    // --------------------------------------------------------------
+
+    this.directionConfirmationSamples = 3,
   })  : _locationService = locationService,
         _routingService = routingService,
         _compassService = compassService,
         _gpsFilterService =
-            gpsFilterService ?? GpsFilterService(),
+            gpsFilterService ??
+                GpsFilterService(),
         _routeProgressService =
-            routeProgressService ?? RouteProgressService(),
+            routeProgressService ??
+                RouteProgressService(),
         _directionCalculator =
-            directionCalculator ?? DirectionCalculator();
+            directionCalculator ??
+                DirectionCalculator();
 
   final LocationService _locationService;
 
@@ -93,17 +119,42 @@ class NavigationService {
 
   final DirectionCalculator _directionCalculator;
 
+  // ================================================================
+  // SETTINGS
+  // ================================================================
+
+  /// Fallback look-ahead.
+  ///
+  /// RouteProgressService can reduce this near turns.
   final double lookAheadMeters;
 
   final double arrivalDistanceMeters;
 
-  StreamSubscription<LocationFix>? _locationSubscription;
+  final int compassSampleCount;
 
-  StreamSubscription<double>? _compassSubscription;
+  final double minimumHeadingChangeDegrees;
 
-  final StreamController<NavigationSnapshot>
+  final int directionConfirmationSamples;
+
+  // ================================================================
+  // STREAMS
+  // ================================================================
+
+  StreamSubscription<LocationFix>?
+      _locationSubscription;
+
+  StreamSubscription<double>?
+      _compassSubscription;
+
+  final StreamController<
+          NavigationSnapshot>
       _snapshotController =
-      StreamController<NavigationSnapshot>.broadcast();
+      StreamController<
+          NavigationSnapshot>.broadcast();
+
+  // ================================================================
+  // STATE
+  // ================================================================
 
   NavigationSnapshot _snapshot =
       const NavigationSnapshot(
@@ -124,15 +175,40 @@ class NavigationService {
 
   bool _isDisposed = false;
 
-  Stream<NavigationSnapshot> get snapshots =>
-      _snapshotController.stream;
+  // ================================================================
+  // COMPASS SMOOTHING
+  // ================================================================
 
-  NavigationSnapshot get snapshot => _snapshot;
+  final List<double> _headingSamples = [];
 
-  bool get isNavigating => _isNavigating;
+  double? _lastPublishedHeading;
 
   // ================================================================
-  // START NAVIGATION
+  // DIRECTION STABILITY
+  // ================================================================
+
+  NavigationDirection? _confirmedDirection;
+
+  NavigationDirection? _candidateDirection;
+
+  int _candidateDirectionCount = 0;
+
+  // ================================================================
+  // PUBLIC
+  // ================================================================
+
+  Stream<NavigationSnapshot>
+      get snapshots =>
+          _snapshotController.stream;
+
+  NavigationSnapshot get snapshot =>
+      _snapshot;
+
+  bool get isNavigating =>
+      _isNavigating;
+
+  // ================================================================
+  // START
   // ================================================================
 
   Future<void> start({
@@ -144,7 +220,8 @@ class NavigationService {
       );
     }
 
-    if (_isStarting || _isNavigating) {
+    if (_isStarting ||
+        _isNavigating) {
       return;
     }
 
@@ -152,17 +229,19 @@ class NavigationService {
 
     await stop();
 
-    _destination = destination;
+    _destination =
+        destination;
 
     _publish(
       const NavigationSnapshot(
-        state: NavigationState.starting,
+        state:
+            NavigationState.starting,
       ),
     );
 
     try {
       // ------------------------------------------------------------
-      // 1. GET INITIAL GPS
+      // 1. INITIAL GPS
       // ------------------------------------------------------------
 
       final initialFix =
@@ -181,16 +260,20 @@ class NavigationService {
         );
       }
 
-      _lastAcceptedFix = filteredFix;
+      _lastAcceptedFix =
+          filteredFix;
 
       // ------------------------------------------------------------
-      // 2. CALCULATE INITIAL ROUTE
+      // 2. ROUTE
       // ------------------------------------------------------------
 
       final route =
-          await _routingService.computeRoute(
-        origin: filteredFix.position,
-        destination: destination,
+          await _routingService
+              .computeRoute(
+        origin:
+            filteredFix.position,
+        destination:
+            destination,
       );
 
       if (route.polyline.isEmpty) {
@@ -202,29 +285,43 @@ class NavigationService {
       _route = route;
 
       // ------------------------------------------------------------
-      // 3. START COMPASS
+      // 3. INITIAL COMPASS
       // ------------------------------------------------------------
 
       final initialHeading =
           await _compassService
               .getCurrentHeading();
 
-      _latestHeading = initialHeading;
+      _resetCompassSmoothing();
+
+      final smoothedInitialHeading =
+          _addCompassSample(
+                initialHeading,
+                forcePublish: true,
+              ) ??
+              initialHeading;
+
+      _latestHeading =
+          smoothedInitialHeading;
 
       // ------------------------------------------------------------
-      // 4. START LIVE STREAMS
+      // 4. START LIVE NAVIGATION
       // ------------------------------------------------------------
 
       _isNavigating = true;
 
       _publish(
         NavigationSnapshot(
-          state: NavigationState.navigating,
+          state:
+              NavigationState.navigating,
           currentPosition:
               filteredFix.position,
           accuracyMeters:
-              filteredFix.accuracyMeters,
+              filteredFix
+                  .accuracyMeters,
           route: route,
+          heading:
+              smoothedInitialHeading,
         ),
       );
 
@@ -233,20 +330,22 @@ class NavigationService {
       _startLocationStream();
 
       // ------------------------------------------------------------
-      // 5. CALCULATE FIRST DIRECTION
+      // 5. FIRST CALCULATION
       // ------------------------------------------------------------
 
       _updateNavigation(
         filteredFix,
-        initialHeading,
+        smoothedInitialHeading,
       );
     } catch (e) {
       _isNavigating = false;
 
       _publish(
         NavigationSnapshot(
-          state: NavigationState.routeUnavailable,
-          errorMessage: e.toString(),
+          state:
+              NavigationState.routeUnavailable,
+          errorMessage:
+              e.toString(),
         ),
       );
 
@@ -257,14 +356,17 @@ class NavigationService {
   }
 
   // ================================================================
-  // LIVE GPS
+  // GPS STREAM
   // ================================================================
 
   void _startLocationStream() {
-    _locationSubscription?.cancel();
+    _locationSubscription
+        ?.cancel();
 
     _locationSubscription =
-        _locationService.locationFixStream.listen(
+        _locationService
+            .locationFixStream
+            .listen(
       _handleLocationFix,
       onError: (Object error) {
         if (!_isNavigating) {
@@ -274,13 +376,17 @@ class NavigationService {
         _publish(
           NavigationSnapshot(
             state:
-                NavigationState.gpsUnavailable,
+                NavigationState
+                    .gpsUnavailable,
             currentPosition:
-                _lastAcceptedFix?.position,
+                _lastAcceptedFix
+                    ?.position,
             accuracyMeters:
-                _lastAcceptedFix?.accuracyMeters,
+                _lastAcceptedFix
+                    ?.accuracyMeters,
             route: _route,
-            heading: _latestHeading,
+            heading:
+                _latestHeading,
             errorMessage:
                 error.toString(),
           ),
@@ -292,33 +398,36 @@ class NavigationService {
   void _handleLocationFix(
     LocationFix rawFix,
   ) {
-    if (!_isNavigating || _route == null) {
+    if (!_isNavigating ||
+        _route == null) {
       return;
     }
 
     final filteredFix =
-        _gpsFilterService.process(
-      rawFix,
-    );
+        _gpsFilterService
+            .process(rawFix);
 
     if (filteredFix == null) {
-      // Do not immediately stop navigation.
-      // Simply ignore this GPS sample.
       return;
     }
 
-    _lastAcceptedFix = filteredFix;
+    _lastAcceptedFix =
+        filteredFix;
 
-    final heading = _latestHeading;
+    final heading =
+        _latestHeading;
 
     if (heading == null) {
       _publish(
         NavigationSnapshot(
-          state: NavigationState.recovering,
+          state:
+              NavigationState
+                  .recovering,
           currentPosition:
               filteredFix.position,
           accuracyMeters:
-              filteredFix.accuracyMeters,
+              filteredFix
+                  .accuracyMeters,
           route: _route,
           errorMessage:
               'Waiting for compass heading.',
@@ -335,28 +444,18 @@ class NavigationService {
   }
 
   // ================================================================
-  // LIVE COMPASS
+  // COMPASS STREAM
   // ================================================================
 
   void _startCompassStream() {
-    _compassSubscription?.cancel();
+    _compassSubscription
+        ?.cancel();
 
     _compassSubscription =
-        _compassService.headingStream.listen(
-      (heading) {
-        if (!_isNavigating ||
-            _lastAcceptedFix == null ||
-            _route == null) {
-          return;
-        }
-
-        _latestHeading = heading;
-
-        _updateNavigation(
-          _lastAcceptedFix!,
-          heading,
-        );
-      },
+        _compassService
+            .headingStream
+            .listen(
+      _handleCompassHeading,
       onError: (Object error) {
         if (!_isNavigating) {
           return;
@@ -364,18 +463,185 @@ class NavigationService {
 
         _publish(
           NavigationSnapshot(
-            state: NavigationState.recovering,
+            state:
+                NavigationState
+                    .recovering,
             currentPosition:
-                _lastAcceptedFix?.position,
+                _lastAcceptedFix
+                    ?.position,
             accuracyMeters:
-                _lastAcceptedFix?.accuracyMeters,
+                _lastAcceptedFix
+                    ?.accuracyMeters,
             route: _route,
+            heading:
+                _latestHeading,
             errorMessage:
                 'Compass error: $error',
           ),
         );
       },
     );
+  }
+
+  void _handleCompassHeading(
+    double rawHeading,
+  ) {
+    if (!_isNavigating ||
+        _lastAcceptedFix == null ||
+        _route == null) {
+      return;
+    }
+
+    final smoothedHeading =
+        _addCompassSample(
+      rawHeading,
+    );
+
+    if (smoothedHeading == null) {
+      return;
+    }
+
+    _latestHeading =
+        smoothedHeading;
+
+    _updateNavigation(
+      _lastAcceptedFix!,
+      smoothedHeading,
+    );
+  }
+
+  // ================================================================
+  // COMPASS SMOOTHING
+  // ================================================================
+
+  double? _addCompassSample(
+    double heading, {
+    bool forcePublish = false,
+  }) {
+    final normalized =
+        _normalizeHeading(
+      heading,
+    );
+
+    _headingSamples.add(
+      normalized,
+    );
+
+    while (_headingSamples.length >
+        compassSampleCount) {
+      _headingSamples.removeAt(0);
+    }
+
+    final smoothed =
+        _circularMean(
+      _headingSamples,
+    );
+
+    if (forcePublish ||
+        _lastPublishedHeading ==
+            null) {
+      _lastPublishedHeading =
+          smoothed;
+
+      return smoothed;
+    }
+
+    final change =
+        _angularDifference(
+      smoothed,
+      _lastPublishedHeading!,
+    );
+
+    // Ignore small compass fluctuations.
+    if (change <
+        minimumHeadingChangeDegrees) {
+      return _lastPublishedHeading;
+    }
+
+    _lastPublishedHeading =
+        smoothed;
+
+    return smoothed;
+  }
+
+  double _circularMean(
+    List<double> values,
+  ) {
+    if (values.isEmpty) {
+      return 0;
+    }
+
+    double sinSum = 0;
+
+    double cosSum = 0;
+
+    for (final value
+        in values) {
+      final radians =
+          value *
+              math.pi /
+              180.0;
+
+      sinSum +=
+          math.sin(radians);
+
+      cosSum +=
+          math.cos(radians);
+    }
+
+    var result =
+        math.atan2(
+              sinSum,
+              cosSum,
+            ) *
+            180.0 /
+            math.pi;
+
+    if (result < 0) {
+      result += 360;
+    }
+
+    return result;
+  }
+
+  double _angularDifference(
+    double first,
+    double second,
+  ) {
+    var difference =
+        (first - second) % 360;
+
+    if (difference > 180) {
+      difference -= 360;
+    }
+
+    if (difference < -180) {
+      difference += 360;
+    }
+
+    return difference.abs();
+  }
+
+  double _normalizeHeading(
+    double heading,
+  ) {
+    var normalized =
+        heading % 360;
+
+    if (normalized < 0) {
+      normalized += 360;
+    }
+
+    return normalized;
+  }
+
+  void _resetCompassSmoothing() {
+    _headingSamples.clear();
+
+    _lastPublishedHeading =
+        null;
+
+    _latestHeading = null;
   }
 
   // ================================================================
@@ -388,42 +654,55 @@ class NavigationService {
   ) {
     final route = _route;
 
-    if (route == null) {
+    final destination =
+        _destination;
+
+    if (route == null ||
+        destination == null) {
       return;
     }
 
+    // ------------------------------------------------------------
+    // GET ADAPTIVE ROUTE TARGET
+    // ------------------------------------------------------------
+
     final target =
-        _routeProgressService.getNextTarget(
-      currentPosition: fix.position,
+        _routeProgressService
+            .getNextTarget(
+      currentPosition:
+          fix.position,
       route: route,
       lookAheadMeters:
           lookAheadMeters,
     );
 
     // ------------------------------------------------------------
-    // ARRIVAL CHECK
+    // ARRIVAL
     // ------------------------------------------------------------
 
     final distanceToDestination =
-        _routeProgressService.distanceBetween(
+        _routeProgressService
+            .distanceBetween(
       fix.position,
-      _destination!,
+      destination,
     );
 
     if (distanceToDestination <=
         arrivalDistanceMeters) {
       _publish(
         NavigationSnapshot(
-          state: NavigationState.arrived,
+          state:
+              NavigationState.arrived,
           currentPosition:
               fix.position,
           accuracyMeters:
               fix.accuracyMeters,
           route: route,
           targetPoint:
-              _destination,
+              destination,
           distanceFromRouteMeters:
-              target.distanceFromRouteMeters,
+              target
+                  .distanceFromRouteMeters,
           heading: heading,
         ),
       );
@@ -434,31 +713,57 @@ class NavigationService {
     }
 
     // ------------------------------------------------------------
-    // BEARING
+    // ROUTE BEARING
+    // ------------------------------------------------------------
+    //
+    // IMPORTANT:
+    //
+    // We intentionally use the direction of the route segment,
+    // rather than calculating:
+    //
+    //     GPS -> target point
+    //
+    // This prevents GPS being slightly left/right of the road
+    // from producing a false instruction to cross the road.
+    //
+    // The route itself determines the direction of travel.
     // ------------------------------------------------------------
 
     final bearing =
-        _directionCalculator.calculateBearing(
-      from: fix.position,
-      to: target.point,
-    );
+        target.routeBearing ??
+            _directionCalculator
+                .calculateBearing(
+              from: fix.position,
+              to: target.point,
+            );
 
     // ------------------------------------------------------------
     // RELATIVE ANGLE
     // ------------------------------------------------------------
 
     final relativeAngle =
-        _directionCalculator.normalizeAngle(
+        _directionCalculator
+            .normalizeAngle(
       bearing - heading,
     );
 
     // ------------------------------------------------------------
-    // 8-DIRECTION DECISION
+    // RAW DIRECTION
+    // ------------------------------------------------------------
+
+    final rawDirection =
+        _directionCalculator
+            .directionFromAngle(
+      relativeAngle,
+    );
+
+    // ------------------------------------------------------------
+    // STABILIZED DIRECTION
     // ------------------------------------------------------------
 
     final direction =
-        _directionCalculator.directionFromAngle(
-      relativeAngle,
+        _stabilizeDirection(
+      rawDirection,
     );
 
     // ------------------------------------------------------------
@@ -467,7 +772,8 @@ class NavigationService {
 
     _publish(
       NavigationSnapshot(
-        state: NavigationState.navigating,
+        state:
+            NavigationState.navigating,
         currentPosition:
             fix.position,
         accuracyMeters:
@@ -476,13 +782,82 @@ class NavigationService {
         targetPoint:
             target.point,
         distanceFromRouteMeters:
-            target.distanceFromRouteMeters,
-        targetBearing: bearing,
-        heading: heading,
-        relativeAngle: relativeAngle,
-        direction: direction,
+            target
+                .distanceFromRouteMeters,
+        targetBearing:
+            bearing,
+        heading:
+            heading,
+        relativeAngle:
+            relativeAngle,
+        direction:
+            direction,
       ),
     );
+  }
+
+  // ================================================================
+  // DIRECTION STABILITY
+  // ================================================================
+
+  NavigationDirection
+      _stabilizeDirection(
+    NavigationDirection candidate,
+  ) {
+    // First direction.
+    if (_confirmedDirection ==
+        null) {
+      _confirmedDirection =
+          candidate;
+
+      _candidateDirection =
+          null;
+
+      _candidateDirectionCount =
+          0;
+
+      return _confirmedDirection!;
+    }
+
+    // Same direction.
+    if (candidate ==
+        _confirmedDirection) {
+      _candidateDirection =
+          null;
+
+      _candidateDirectionCount =
+          0;
+
+      return _confirmedDirection!;
+    }
+
+    // New candidate.
+    if (_candidateDirection !=
+        candidate) {
+      _candidateDirection =
+          candidate;
+
+      _candidateDirectionCount =
+          1;
+
+      return _confirmedDirection!;
+    }
+
+    _candidateDirectionCount++;
+
+    if (_candidateDirectionCount >=
+        directionConfirmationSamples) {
+      _confirmedDirection =
+          _candidateDirection;
+
+      _candidateDirection =
+          null;
+
+      _candidateDirectionCount =
+          0;
+    }
+
+    return _confirmedDirection!;
   }
 
   // ================================================================
@@ -492,23 +867,46 @@ class NavigationService {
   Future<void> stop() async {
     _isNavigating = false;
 
-    await _locationSubscription?.cancel();
-    _locationSubscription = null;
+    await _locationSubscription
+        ?.cancel();
 
-    await _compassSubscription?.cancel();
-    _compassSubscription = null;
+    _locationSubscription =
+        null;
+
+    await _compassSubscription
+        ?.cancel();
+
+    _compassSubscription =
+        null;
 
     _gpsFilterService.reset();
 
-    _lastAcceptedFix = null;
-    _latestHeading = null;
+    _lastAcceptedFix =
+        null;
+
+    _latestHeading =
+        null;
+
     _route = null;
+
     _destination = null;
+
+    _confirmedDirection =
+        null;
+
+    _candidateDirection =
+        null;
+
+    _candidateDirectionCount =
+        0;
+
+    _resetCompassSmoothing();
 
     if (!_isDisposed) {
       _publish(
         const NavigationSnapshot(
-          state: NavigationState.stopped,
+          state:
+              NavigationState.stopped,
         ),
       );
     }
@@ -521,9 +919,11 @@ class NavigationService {
   void _publish(
     NavigationSnapshot snapshot,
   ) {
-    _snapshot = snapshot;
+    _snapshot =
+        snapshot;
 
-    if (!_snapshotController.isClosed) {
+    if (!_snapshotController
+        .isClosed) {
       _snapshotController.add(
         snapshot,
       );
@@ -539,18 +939,29 @@ class NavigationService {
 
     _isNavigating = false;
 
-    await _locationSubscription?.cancel();
-    await _compassSubscription?.cancel();
+    await _locationSubscription
+        ?.cancel();
 
-    await _snapshotController.close();
+    await _compassSubscription
+        ?.cancel();
+
+    if (!_snapshotController
+        .isClosed) {
+      await _snapshotController.close();
+    }
   }
 }
 
-class NavigationFailure implements Exception {
-  const NavigationFailure(this.message);
+class NavigationFailure
+    implements Exception {
+  const NavigationFailure(
+    this.message,
+  );
 
   final String message;
 
   @override
-  String toString() => message;
+  String toString() =>
+      message;
 }
+

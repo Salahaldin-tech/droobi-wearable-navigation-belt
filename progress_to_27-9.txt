@@ -1,0 +1,487 @@
+Absolutely. Let’s lock the progress down so we **do not lose our place again**.
+
+# 🧭 Droobi Navigation — Current Progress
+
+## ✅ 1. Destination/Search
+
+**DONE**
+
+We have the real destination search flow:
+
+```text
+User searches
+     ↓
+Search results
+     ↓
+User selects destination
+     ↓
+Destination object
+     ↓
+Live Navigation
+```
+
+The selected destination is **not hard-coded** anymore.
+
+`Destination` contains:
+
+* name
+* latitude
+* longitude
+* address
+
+So Search is already capable of passing the actual selected location into navigation.
+
+---
+
+## ✅ 2. Production Live Navigation Screen
+
+**DONE**
+
+We created a **real user-facing**:
+
+```text
+LiveNavigationScreen
+```
+
+It is separate from the old developer test screen.
+
+It receives the destination:
+
+```text
+Destination
+    ↓
+LatLon
+    ↓
+LiveNavigationScreen
+```
+
+The screen displays the live navigation state, including the **large direction indicator/arrows in the middle**.
+
+It handles:
+
+* Starting navigation
+* Navigating
+* GPS problems
+* Recovery
+* Arrival
+* Stopping navigation
+* Errors
+
+And importantly:
+
+```text
+ARRIVED
+```
+
+works.
+
+You actually tested it in the real world and **reached the target successfully**.
+
+---
+
+# ✅ 3. NavigationService
+
+**DONE**
+
+The production `NavigationService` is already implemented.
+
+Its flow is:
+
+```text
+Current GPS
+     ↓
+GPS filtering
+     ↓
+Get route
+     ↓
+Compass
+     ↓
+Live GPS updates
+     ↓
+Live compass updates
+     ↓
+Route progress
+     ↓
+Calculate bearing
+     ↓
+Calculate relative angle
+     ↓
+Determine direction
+     ↓
+NavigationSnapshot
+```
+
+It supports:
+
+* `starting`
+* `navigating`
+* `gpsUnavailable`
+* `routeUnavailable`
+* `recovering`
+* `arrived`
+* `stopped`
+
+No need to rebuild this.
+
+---
+
+# ✅ 4. RouteProgressService
+
+**DONE**
+
+This is already implemented and used by `NavigationService`.
+
+It handles:
+
+* Finding the closest point on the route
+* Calculating distance from the route
+* Finding the next target point
+* Looking ahead along the route
+* Distance calculations
+
+Current production navigation has the configurable:
+
+```text
+lookAheadMeters
+```
+
+We discussed changing the effective look-ahead from **10 m toward 5 m**, because you noticed that turns can occur before the 10 m target.
+
+**Important:** we have NOT blindly rebuilt RouteProgressService. It already works.
+
+---
+
+# ✅ 5. CompassService
+
+**DONE**
+
+We have a real `CompassService` using:
+
+```text
+flutter_compass
+```
+
+It provides:
+
+```text
+headingStream
+```
+
+and:
+
+```text
+getCurrentHeading()
+```
+
+The heading is normalized to:
+
+```text
+0–360°
+```
+
+---
+
+# ✅ 6. Compass Smoothing
+
+**DONE**
+
+We already worked on the compass instability you found during testing.
+
+We added smoothing/stability behavior around the compass instead of allowing every tiny heading fluctuation to immediately change navigation.
+
+You tested the improved version and reported:
+
+> **"it's slightly better"**
+
+So this is **already implemented**.
+
+We are now in the refinement stage, not starting compass handling from zero.
+
+---
+
+# ✅ 7. Direction Stabilization
+
+**DONE**
+
+We also added direction confirmation/stabilization so that a temporary compass fluctuation doesn't immediately produce:
+
+```text
+FORWARD
+RIGHT
+FORWARD
+LEFT
+FORWARD
+```
+
+Instead, the direction has to remain consistent for the required confirmation samples before becoming the active direction.
+
+This is specifically intended for the blind-user experience.
+
+---
+
+# ✅ 8. Navigation Notifier / Riverpod
+
+**DONE**
+
+We have:
+
+```text
+navigation_notifier.dart
+```
+
+which connects the UI/state layer to the existing `NavigationService`.
+
+The provider wires together:
+
+```text
+LocationService
+RoutingService
+CompassService
+GpsFilterService
+RouteProgressService
+DirectionCalculator
+        ↓
+NavigationService
+```
+
+And the provider no longer has the old conflicting `compassServiceProvider` issue.
+
+---
+
+# ✅ 9. Real-world Navigation Test
+
+**DONE + TESTED**
+
+Your actual test gave us very useful information:
+
+### Worked
+
+✅ Route loaded correctly
+✅ Navigation followed the route
+✅ You reached the destination
+✅ App correctly showed **ARRIVED**
+
+### Problems discovered
+
+⚠️ Compass still changed somewhat frequently
+→ We implemented additional smoothing/stability.
+
+⚠️ You were on one side of the same street, but the app sometimes directed you toward the other side.
+
+This second issue is an important **route-following refinement** we still need to address.
+
+---
+
+# ✅ 10. Search → Live Navigation
+
+**DONE**
+
+This is already connected.
+
+```text
+Search
+  ↓
+Select result
+  ↓
+Destination
+  ↓
+LiveNavigationScreen
+```
+
+So **we are NOT working on Search anymore.**
+
+---
+
+# ✅ 11. Favorites Data Layer
+
+**MOSTLY DONE**
+
+Favorites already has:
+
+* Firebase/Firestore storage
+* Favorite model
+* latitude
+* longitude
+* label/name
+* add favorite
+* remove favorite
+* Favorites provider
+* Search → Add to Favorites
+
+So the data itself is already there.
+
+### ❗ What's left
+
+The missing piece is:
+
+```text
+Favorites
+    ↓
+Tap favorite
+    ↓
+LiveNavigationScreen
+```
+
+In other words, **Favorites needs to use the navigation system we already built.**
+
+We do **not** create another navigation implementation.
+
+---
+
+# ⏳ 12. University Locations
+
+**Planned — NOT BUILT YET**
+
+We agreed that University locations will be manually defined because the map/routing provider doesn't know the university's internal routes properly.
+
+The future structure is:
+
+```text
+University
+   ↓
+Manual points
+   ↓
+Destination
+   ↓
+Live Navigation
+```
+
+You want to be able to manually define something like:
+
+```text
+Point 1
+Point 2
+Point 3
+...
+Point 20
+```
+
+and select a university destination.
+
+### Important
+
+We are **keeping the architecture ready for this**, but we're doing University **later**.
+
+---
+
+# ⏳ 13. Belt / ESP32 Commands
+
+**Planned — NOT fully connected yet**
+
+We established an important requirement:
+
+The belt should **NOT** receive a command on every GPS/compass update.
+
+Instead:
+
+```text
+Navigation calculates:
+
+FORWARD
+FORWARD
+FORWARD
+FORWARD
+```
+
+The belt receives:
+
+```text
+FORWARD
+```
+
+**once.**
+
+Then when the actual navigation direction changes:
+
+```text
+FORWARD
+       ↓
+FORWARD_RIGHT
+```
+
+the belt receives:
+
+```text
+FORWARD_RIGHT
+```
+
+once.
+
+So the eventual architecture is:
+
+```text
+Navigation
+     ↓
+Confirmed Direction
+     ↓
+Belt Command Layer
+     ↓
+BLE
+     ↓
+ESP32
+     ↓
+Motor
+```
+
+And the ESP32 project remains based on the architecture we've already established.
+
+---
+
+# 📍 WHERE WE ARE RIGHT NOW
+
+This is the exact point:
+
+```text
+                    DROOBI
+                       │
+          ┌────────────┼────────────┐
+          │            │            │
+        Search     Favorites    University
+          │            │         ⏳ later
+          │            │
+          ▼            ▼
+      Destination  Destination
+          │            │
+          └──────┬─────┘
+                 ▼
+       LiveNavigationScreen
+                 │
+                 ▼
+        NavigationService
+                 │
+       ┌─────────┼─────────┐
+       ▼         ▼         ▼
+      GPS     Compass    Routing
+       │         │         │
+       └─────────┼─────────┘
+                 ▼
+       RouteProgressService
+                 │
+                 ▼
+        Direction Calculation
+                 │
+                 ▼
+       Direction Stabilization
+                 │
+                 ▼
+          Navigation Arrow
+                 │
+                 ▼
+             ARRIVED
+```
+
+## 🎯 NEXT TASK
+
+**Favorites → Live Navigation.**
+
+After that:
+
+1. Test Favorites navigation.
+2. Refine the route-side issue.
+3. Finalize 5 m look-ahead behavior.
+4. Finish the belt command layer.
+5. Build the manual University points system.
+
+So **we are NOT rebuilding Live Navigation, Search, NavigationService, RouteProgressService, or CompassService.**
+
+We're continuing from the existing implementation.

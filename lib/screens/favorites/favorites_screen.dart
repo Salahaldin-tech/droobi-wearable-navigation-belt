@@ -1,9 +1,12 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/favorite_location.dart';
+import '../../models/lat_lon.dart';
 import '../../state/favorites_notifier.dart';
 import '../../widgets/droobi_bottom_nav.dart';
+import '../navigation/live_navigation_screen.dart';
 
 class FavoritesScreen extends ConsumerStatefulWidget {
   const FavoritesScreen({super.key});
@@ -18,73 +21,98 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
   static const Color _primaryBlue = Color(0xFF2F80ED);
   static const Color _cardColor = Color(0xFFF5F5F5);
   static const Color _textColor = Color(0xFF111111);
-  static const Color _secondaryText = Color(0xFF6B7280);
-  static const Color _heartColor = Color(0xFFEB5757);
+  static const Color _secondaryText = Color(0xFF666666);
 
-  late final AnimationController _entranceController;
   late final AnimationController _backgroundController;
-  late final Animation<double> _headerAnimation;
-
-  bool _entranceStarted = false;
+  late final AnimationController _headerAnimation;
 
   @override
   void initState() {
     super.initState();
 
-    _entranceController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1200),
-    );
-
     _backgroundController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 10),
-    );
+      duration: const Duration(seconds: 8),
+    )..repeat(reverse: true);
 
-    _headerAnimation = CurvedAnimation(
-      parent: _entranceController,
-      curve: Curves.easeOutCubic,
-    );
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    // Respect the system "remove animations" setting.
-    final reduceMotion = MediaQuery.disableAnimationsOf(context);
-
-    if (reduceMotion) {
-      _entranceController.value = 1.0;
-      _backgroundController.stop();
-    } else {
-      if (!_entranceStarted) {
-        _entranceStarted = true;
-        _entranceController.forward();
-      }
-
-      if (!_backgroundController.isAnimating) {
-        _backgroundController.repeat(reverse: true);
-      }
-    }
+    _headerAnimation = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    )..forward();
   }
 
   @override
   void dispose() {
-    _entranceController.dispose();
     _backgroundController.dispose();
+    _headerAnimation.dispose();
     super.dispose();
   }
 
-  /// Fade + small upward slide, driven by the entrance animation.
-  Widget _fadeSlide(Animation<double> animation, Widget child) {
+  // ===========================================================================
+  // OPEN FAVORITE IN LIVE NAVIGATION
+  // ===========================================================================
+
+  void _openFavoriteNavigation(
+    BuildContext context,
+    FavoriteLocation favorite,
+  ) {
+    final destination = LatLon(
+      latitude: favorite.latitude,
+      longitude: favorite.longitude,
+    );
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => LiveNavigationScreen(
+          destination: destination,
+        ),
+      ),
+    );
+  }
+
+  // ===========================================================================
+  // REMOVE FAVORITE
+  // ===========================================================================
+
+  Future<void> _removeFavorite(
+    BuildContext context,
+    FavoriteLocation favorite,
+  ) async {
+    await ref
+        .read(favoritesActionsProvider)
+        .removeFavorite(favorite.id);
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            '"${favorite.label}" removed from Favorites',
+          ),
+        ),
+      );
+  }
+
+  // ===========================================================================
+  // ANIMATED HEADER / CONTENT
+  // ===========================================================================
+
+  Widget _fadeSlide(
+    Animation<double> animation,
+    Widget child,
+  ) {
     return FadeTransition(
       opacity: animation,
       child: SlideTransition(
-        position: animation.drive(
-          Tween<Offset>(
-            begin: const Offset(0, 0.2),
-            end: Offset.zero,
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.04),
+          end: Offset.zero,
+        ).animate(
+          CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOut,
           ),
         ),
         child: child,
@@ -92,29 +120,32 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
     );
   }
 
-  /// Each card fades and slides up when it first appears.
-  /// The first cards start slightly later than each other (stagger).
-  Widget _animatedItem(BuildContext context, int index, Widget child) {
-    if (MediaQuery.disableAnimationsOf(context)) {
-      return child;
-    }
-
-    final delayMs = (index < 6 ? index : 6) * 120;
-    final totalMs = 800 + delayMs;
-
+  Widget _animatedItem(
+    BuildContext context,
+    int index,
+    Widget child,
+  ) {
     return TweenAnimationBuilder<double>(
-      tween: Tween<double>(begin: 0, end: 1),
-      duration: Duration(milliseconds: totalMs),
-      curve: Interval(
-        delayMs / totalMs,
-        1.0,
-        curve: Curves.easeOutCubic,
+      duration: Duration(
+        milliseconds: 350 + (index * 70),
       ),
-      builder: (context, value, child) {
+      tween: Tween<double>(
+        begin: 0,
+        end: 1,
+      ),
+      curve: Curves.easeOutCubic,
+      builder: (
+        context,
+        value,
+        child,
+      ) {
         return Opacity(
           opacity: value,
           child: Transform.translate(
-            offset: Offset(0, 16 * (1 - value)),
+            offset: Offset(
+              0,
+              20 * (1 - value),
+            ),
             child: child,
           ),
         );
@@ -123,17 +154,20 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
     );
   }
 
+  // ===========================================================================
+  // BUILD
+  // ===========================================================================
+
   @override
   Widget build(BuildContext context) {
     final favoritesAsync = ref.watch(favoritesProvider);
 
     return Scaffold(
       backgroundColor: Colors.white,
-
       body: Stack(
         children: [
           // =====================================================================
-          // FAVORITES BACKGROUND
+          // MAP BACKGROUND
           // =====================================================================
 
           Positioned.fill(
@@ -153,21 +187,18 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
 
           // =====================================================================
           // LIGHT FOG
-          //
-          // A thin white layer (0.10) keeps the map clearly visible.
           // =====================================================================
 
           Positioned.fill(
             child: Container(
               color: Colors.white.withValues(
-                alpha: 1,
+                alpha: 0.90,
               ),
             ),
           ),
 
           // =====================================================================
           // SOFT ANIMATED GRADIENT
-          // Very light blue and mint tints that drift slowly.
           // =====================================================================
 
           Positioned.fill(
@@ -175,8 +206,12 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
               child: RepaintBoundary(
                 child: AnimatedBuilder(
                   animation: _backgroundController,
-                  builder: (context, child) {
-                    final t = Curves.easeInOut.transform(
+                  builder: (
+                    context,
+                    child,
+                  ) {
+                    final t =
+                        Curves.easeInOut.transform(
                       _backgroundController.value,
                     );
 
@@ -196,7 +231,9 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
                           colors: [
                             const Color(0xFFDCEBFF)
                                 .withValues(alpha: 0.30),
-                            Colors.white.withValues(alpha: 0.05),
+                            Colors.white.withValues(
+                              alpha: 0.05,
+                            ),
                             const Color(0xFFD9F5EA)
                                 .withValues(alpha: 0.25),
                           ],
@@ -216,10 +253,6 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
           SafeArea(
             child: Column(
               children: [
-                // =================================================================
-                // MAIN CONTENT
-                // =================================================================
-
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(
@@ -232,9 +265,9 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
                       crossAxisAlignment:
                           CrossAxisAlignment.start,
                       children: [
-                        // =========================================================
+                        // =======================================================
                         // HEADER
-                        // =========================================================
+                        // =======================================================
 
                         _fadeSlide(
                           _headerAnimation,
@@ -247,13 +280,12 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
                                 'Favorites',
                                 style: TextStyle(
                                   fontSize: 24,
-                                  fontWeight: FontWeight.w500,
+                                  fontWeight:
+                                      FontWeight.w500,
                                   color: _textColor,
                                 ),
                               ),
-
                               SizedBox(height: 4),
-
                               Text(
                                 'المفضلة',
                                 style: TextStyle(
@@ -267,43 +299,79 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
 
                         const SizedBox(height: 24),
 
-                        // =========================================================
-                        // FAVORITES LIST
-                        // =========================================================
+                        // =======================================================
+                        // FAVORITES
+                        // =======================================================
 
                         Expanded(
                           child: favoritesAsync.when(
-                            // -----------------------------------------------------
-                            // LOADING
-                            // -----------------------------------------------------
-
                             loading: () {
                               return const Center(
                                 child:
-                                    CircularProgressIndicator(
-                                  color: _primaryBlue,
+                                    CircularProgressIndicator(),
+                              );
+                            },
+                            error: (
+                              error,
+                              stackTrace,
+                            ) {
+                              return Center(
+                                child: Text(
+                                  'Unable to load Favorites.',
+                                  style:
+                                      const TextStyle(
+                                    color: Colors.red,
+                                    fontSize: 15,
+                                  ),
                                 ),
                               );
                             },
-
-                            // -----------------------------------------------------
-                            // ERROR
-                            // -----------------------------------------------------
-
-                            error: (error, _) {
-                              return _buildErrorState(error);
-                            },
-
-                            // -----------------------------------------------------
-                            // DATA
-                            // -----------------------------------------------------
-
-                            data: (favorites) {
-                              // Favorites still come only from Firestore.
-                              // No demo or hardcoded locations.
-
+                            data: (
+                              favorites,
+                            ) {
                               if (favorites.isEmpty) {
-                                return _buildEmptyState();
+                                return const Center(
+                                  child: Column(
+                                    mainAxisSize:
+                                        MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons
+                                            .star_border,
+                                        size: 64,
+                                        color:
+                                            _secondaryText,
+                                      ),
+                                      SizedBox(
+                                        height: 16,
+                                      ),
+                                      Text(
+                                        'No Favorites yet',
+                                        style:
+                                            TextStyle(
+                                          fontSize: 18,
+                                          fontWeight:
+                                              FontWeight
+                                                  .w500,
+                                          color:
+                                              _textColor,
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        height: 6,
+                                      ),
+                                      Text(
+                                        'Add places from Search.',
+                                        style:
+                                            TextStyle(
+                                          fontSize: 14,
+                                          color:
+                                              _secondaryText,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
                               }
 
                               return ListView.separated(
@@ -312,7 +380,8 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
                                   top: 4,
                                   bottom: 16,
                                 ),
-                                itemCount: favorites.length,
+                                itemCount:
+                                    favorites.length,
                                 separatorBuilder: (
                                   _,
                                   __,
@@ -384,34 +453,26 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
           borderRadius:
               BorderRadius.circular(12),
 
-          // ---------------------------------------------------------------------
+          // -------------------------------------------------------------------
           // SELECT FAVORITE
-          // ---------------------------------------------------------------------
+          // -------------------------------------------------------------------
 
-          onTap: () {
-            // GPS + routing will be connected
-            // in the navigation stage.
+          onTap: () => _openFavoriteNavigation(
+            context,
+            favorite,
+          ),
 
-            ScaffoldMessenger.of(context)
-              ..hideCurrentSnackBar()
-              ..showSnackBar(
-                SnackBar(
-                  content: Text(
-                    'Selected ${favorite.label}',
-                  ),
-                ),
-              );
-          },
+          // -------------------------------------------------------------------
+          // CARD
+          // -------------------------------------------------------------------
 
           child: Padding(
-            padding:
-                const EdgeInsets.all(16),
-
+            padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                // -----------------------------------------------------------------
+                // ----------------------------------------------------------------
                 // LOCATION ICON
-                // -----------------------------------------------------------------
+                // ----------------------------------------------------------------
 
                 Container(
                   width: 48,
@@ -430,9 +491,9 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
 
                 const SizedBox(width: 16),
 
-                // -----------------------------------------------------------------
+                // ----------------------------------------------------------------
                 // FAVORITE NAME
-                // -----------------------------------------------------------------
+                // ----------------------------------------------------------------
 
                 Expanded(
                   child: Column(
@@ -449,202 +510,50 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
                           fontSize: 16,
                           fontWeight:
                               FontWeight.w500,
-                          color:
-                              _textColor,
+                          color: _textColor,
                         ),
                       ),
-
                       const SizedBox(height: 4),
-
-                      const Text(
-                        'موقع مفضل',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color:
-                              _secondaryText,
+                      Text(
+                        '${favorite.latitude.toStringAsFixed(5)}, '
+                        '${favorite.longitude.toStringAsFixed(5)}',
+                        style:
+                            const TextStyle(
+                          fontSize: 12,
+                          color: _secondaryText,
                         ),
                       ),
                     ],
                   ),
                 ),
 
-                const SizedBox(width: 8),
-
-                // -----------------------------------------------------------------
-                // HEART / REMOVE
-                // -----------------------------------------------------------------
+                // ----------------------------------------------------------------
+                // DELETE
+                // ----------------------------------------------------------------
 
                 Semantics(
                   button: true,
                   label:
                       'Remove ${favorite.label} from Favorites',
-                  hint:
-                      'Double tap to remove this favorite',
                   child: IconButton(
-                    tooltip:
-                        'Remove from Favorites',
-
-                    constraints:
-                        const BoxConstraints(
-                      minWidth: 48,
-                      minHeight: 48,
-                    ),
-
-                    padding:
-                        EdgeInsets.zero,
-
                     icon: const Icon(
-                      Icons.favorite,
-                      size: 22,
-                      color: _heartColor,
+                      Icons.delete_outline,
+                      color: _secondaryText,
                     ),
-
-                    // -------------------------------------------------------------
-                    // REMOVE FAVORITE
-                    // -------------------------------------------------------------
-
-                    onPressed: () async {
-                      try {
-                        await ref
-                            .read(
-                              favoritesActionsProvider,
-                            )
-                            .removeFavorite(
-                              favorite.id,
-                            );
-                      } catch (_) {
-                        if (!context.mounted) {
-                          return;
-                        }
-
-                        ScaffoldMessenger.of(
-                          context,
-                        )
-                            ..hideCurrentSnackBar()
-                            ..showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Could not remove this favorite.',
-                                ),
-                              ),
-                            );
-                      }
-                    },
+                    onPressed: () =>
+                        _removeFavorite(
+                      context,
+                      favorite,
+                    ),
                   ),
+                ),
+
+                const Icon(
+                  Icons.chevron_right,
+                  color: _secondaryText,
                 ),
               ],
             ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ===========================================================================
-  // EMPTY STATE
-  // ===========================================================================
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Semantics(
-        liveRegion: true,
-        label:
-            'No favorites yet. لا توجد مفضلات حتى الآن.',
-        child: Column(
-          mainAxisSize:
-              MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.star_outline,
-              size: 64,
-              color:
-                  Colors.grey.shade300,
-            ),
-
-            const SizedBox(height: 16),
-
-            const Text(
-              'No favorites yet',
-              textAlign:
-                  TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                color:
-                    _secondaryText,
-              ),
-            ),
-
-            const SizedBox(height: 4),
-
-            const Text(
-              'لا توجد مفضلات حتى الآن',
-              textAlign:
-                  TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color:
-                    Color(0xFF9CA3AF),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ===========================================================================
-  // ERROR STATE
-  // ===========================================================================
-
-  Widget _buildErrorState(
-    Object error,
-  ) {
-    return Center(
-      child: Padding(
-        padding:
-            const EdgeInsets.all(24),
-        child: Semantics(
-          liveRegion: true,
-          child: Column(
-            mainAxisSize:
-                MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.error_outline,
-                size: 48,
-                color:
-                    Colors.grey.shade400,
-              ),
-
-              const SizedBox(height: 16),
-
-              const Text(
-                'Could not load favorites.',
-                textAlign:
-                    TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight:
-                      FontWeight.w500,
-                  color:
-                      _textColor,
-                ),
-              ),
-
-              const SizedBox(height: 8),
-
-              Text(
-                error.toString(),
-                textAlign:
-                    TextAlign.center,
-                style:
-                    const TextStyle(
-                  fontSize: 12,
-                  color:
-                      _secondaryText,
-                ),
-              ),
-            ],
           ),
         ),
       ),

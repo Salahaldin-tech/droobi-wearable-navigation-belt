@@ -1,0 +1,3577 @@
+==================== destination.dart ====================
+/// A resolved destination candidate, as returned by destination search.
+///
+/// This is the shared shape used by search results now, and will be
+/// reused by Favorites/University Locations in later stages since
+/// they carry the same minimal fields (per the Stage 2 data model).
+class Destination {
+  const Destination({
+    required this.name,
+    required this.latitude,
+    required this.longitude,
+    this.address,
+  });
+
+  final String name;
+  final double latitude;
+  final double longitude;
+
+  /// Formatted address, when the search provider returns one.
+  /// Nullable because not every provider/result guarantees it.
+  final String? address;
+}
+
+==================== destination_search_screen.dart ====================
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../models/destination.dart';
+import '../../models/lat_lon.dart';
+import '../../screens/navigation/live_navigation_screen.dart';
+import '../../state/destination_search_notifier.dart';
+import '../../state/favorites_notifier.dart';
+
+/// Real Destination Search screen.
+///
+/// Search results can be:
+/// - Added to Favorites
+/// - Selected as the destination for Live Navigation
+class DestinationSearchScreen extends ConsumerStatefulWidget {
+  const DestinationSearchScreen({super.key});
+
+  @override
+  ConsumerState<DestinationSearchScreen> createState() =>
+      _DestinationSearchScreenState();
+}
+
+class _DestinationSearchScreenState
+    extends ConsumerState<DestinationSearchScreen> {
+  final _controller = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+
+    // If the voice flow already produced a recognized
+    // and confirmed query, prefill it and search immediately.
+    final existingQuery =
+        ref.read(destinationSearchProvider).query;
+
+    if (existingQuery.isNotEmpty) {
+      _controller.text = existingQuery;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  // ================================================================
+  // SEARCH
+  // ================================================================
+
+  void _runSearch() {
+    final query = _controller.text;
+
+    if (query.trim().isEmpty) {
+      return;
+    }
+
+    ref
+        .read(destinationSearchProvider.notifier)
+        .search(query);
+  }
+
+  // ================================================================
+  // ADD TO FAVORITES
+  // ================================================================
+
+  Future<void> _addToFavorites(
+    Destination destination,
+  ) async {
+    final labelController =
+        TextEditingController(
+      text: destination.name,
+    );
+
+    final label = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Add to Favorites'),
+        content: Semantics(
+          textField: true,
+          label: 'Favorite label',
+          child: TextField(
+            controller: labelController,
+            decoration: const InputDecoration(
+              labelText: 'Label',
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(
+                labelController.text,
+              );
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+
+    labelController.dispose();
+
+    if (label == null || label.trim().isEmpty) {
+      return;
+    }
+
+    await ref
+        .read(favoritesActionsProvider)
+        .addFavorite(
+          label: label.trim(),
+          destination: destination,
+        );
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Added "$label" to Favorites',
+          ),
+        ),
+      );
+    }
+  }
+
+  // ================================================================
+  // OPEN LIVE NAVIGATION
+  // ================================================================
+
+  void _openLiveNavigation(
+    Destination destination,
+  ) {
+    final latLon = LatLon(
+      latitude: destination.latitude,
+      longitude: destination.longitude,
+    );
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => LiveNavigationScreen(
+          destination: latLon,
+        ),
+      ),
+    );
+  }
+
+  // ================================================================
+  // BUILD
+  // ================================================================
+
+  @override
+  Widget build(BuildContext context) {
+    final state =
+        ref.watch(destinationSearchProvider);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'Search Destination',
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment:
+              CrossAxisAlignment.stretch,
+          children: [
+            // --------------------------------------------------------
+            // SEARCH BAR
+            // --------------------------------------------------------
+
+            Row(
+              children: [
+                Expanded(
+                  child: Semantics(
+                    textField: true,
+                    label: 'Search destination',
+                    child: TextField(
+                      controller: _controller,
+                      decoration:
+                          const InputDecoration(
+                        labelText:
+                            'Where do you want to go?',
+                        border:
+                            OutlineInputBorder(),
+                      ),
+                      onSubmitted: (_) =>
+                          _runSearch(),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(width: 12),
+
+                Semantics(
+                  button: true,
+                  label: 'Search',
+                  child: ElevatedButton(
+                    onPressed: state.isLoading
+                        ? null
+                        : _runSearch,
+                    child: const Text('Search'),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 12),
+
+            // --------------------------------------------------------
+            // LOADING
+            // --------------------------------------------------------
+
+            if (state.isLoading)
+              const LinearProgressIndicator(),
+
+            // --------------------------------------------------------
+            // ERROR
+            // --------------------------------------------------------
+
+            if (state.errorMessage != null)
+              Semantics(
+                liveRegion: true,
+                child: Padding(
+                  padding:
+                      const EdgeInsets.only(top: 8),
+                  child: Text(
+                    state.errorMessage!,
+                    style: const TextStyle(
+                      color: Colors.red,
+                    ),
+                  ),
+                ),
+              ),
+
+            // --------------------------------------------------------
+            // NO RESULTS
+            // --------------------------------------------------------
+
+            if (!state.isLoading &&
+                state.errorMessage == null &&
+                state.results.isEmpty &&
+                state.query.isNotEmpty)
+              const Padding(
+                padding:
+                    EdgeInsets.only(top: 16),
+                child: Text(
+                  'No results found.',
+                ),
+              ),
+
+            const SizedBox(height: 8),
+
+            // --------------------------------------------------------
+            // RESULTS
+            // --------------------------------------------------------
+
+            Expanded(
+              child: ListView.separated(
+                itemCount:
+                    state.results.length,
+                separatorBuilder:
+                    (_, __) =>
+                        const Divider(),
+                itemBuilder:
+                    (context, index) {
+                  final destination =
+                      state.results[index];
+
+                  return ListTile(
+                    leading: const Icon(
+                      Icons.location_on_outlined,
+                    ),
+
+                    title: Text(
+                      destination.name,
+                    ),
+
+                    subtitle: Text(
+                      destination.address ?? '',
+                    ),
+
+                    trailing: Semantics(
+                      button: true,
+                      label:
+                          'Add ${destination.name} '
+                          'to Favorites',
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.star_border,
+                        ),
+                        onPressed: () =>
+                            _addToFavorites(
+                          destination,
+                        ),
+                      ),
+                    ),
+
+                    // ------------------------------------------------
+                    // SELECT DESTINATION
+                    // ------------------------------------------------
+                    //
+                    // Instead of returning the destination to
+                    // another screen, the real production flow now
+                    // opens Live Navigation directly.
+                    //
+                    onTap: () =>
+                        _openLiveNavigation(
+                      destination,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+==================== favorites_notifier.dart ====================
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../models/destination.dart';
+import '../models/favorite_location.dart';
+import '../services/firebase/favorites_service.dart';
+import '../services/firebase/firestore_favorites_service.dart';
+import 'auth_state_notifier.dart';
+
+final favoritesServiceProvider = Provider<FavoritesService>((ref) {
+  return FirestoreFavoritesService();
+});
+
+/// Streams the signed-in user's favorites. Emits an empty list when
+/// signed out, rather than erroring - screens can check auth state
+/// separately if they need to distinguish "no favorites" from
+/// "not signed in".
+final favoritesProvider = StreamProvider<List<FavoriteLocation>>((ref) {
+  final service = ref.watch(favoritesServiceProvider);
+  final authState = ref.watch(authStateProvider);
+
+  final uid = authState.maybeWhen(
+    data: (user) => user?.uid,
+    orElse: () => null,
+  );
+
+  if (uid == null) {
+    return Stream.value(const []);
+  }
+  return service.watchFavorites(uid);
+});
+
+/// Thin action wrapper for add/remove, so screens don't need to reach
+/// into favoritesServiceProvider + auth state directly.
+class FavoritesActions {
+  FavoritesActions(this._ref);
+
+  final Ref _ref;
+
+  Future<void> addFavorite({
+    required String label,
+    required Destination destination,
+  }) async {
+    final uid = _ref.read(authStateProvider).value?.uid;
+    if (uid == null) return;
+    await _ref.read(favoritesServiceProvider).addFavorite(
+          uid: uid,
+          label: label,
+          destination: destination,
+        );
+  }
+
+  Future<void> removeFavorite(String favoriteId) async {
+    final uid = _ref.read(authStateProvider).value?.uid;
+    if (uid == null) return;
+    await _ref
+        .read(favoritesServiceProvider)
+        .removeFavorite(uid: uid, favoriteId: favoriteId);
+  }
+}
+
+final favoritesActionsProvider = Provider<FavoritesActions>((ref) {
+  return FavoritesActions(ref);
+});
+
+==================== favorites_screen.dart ====================
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../models/favorite_location.dart';
+import '../../state/favorites_notifier.dart';
+import '../../widgets/droobi_bottom_nav.dart';
+
+class FavoritesScreen extends ConsumerStatefulWidget {
+  const FavoritesScreen({super.key});
+
+  @override
+  ConsumerState<FavoritesScreen> createState() =>
+      _FavoritesScreenState();
+}
+
+class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
+    with TickerProviderStateMixin {
+  static const Color _primaryBlue = Color(0xFF2F80ED);
+  static const Color _cardColor = Color(0xFFF5F5F5);
+  static const Color _textColor = Color(0xFF111111);
+  static const Color _secondaryText = Color(0xFF6B7280);
+  static const Color _heartColor = Color(0xFFEB5757);
+
+  late final AnimationController _entranceController;
+  late final AnimationController _backgroundController;
+  late final Animation<double> _headerAnimation;
+
+  bool _entranceStarted = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _entranceController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+
+    _backgroundController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 10),
+    );
+
+    _headerAnimation = CurvedAnimation(
+      parent: _entranceController,
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Respect the system "remove animations" setting.
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
+
+    if (reduceMotion) {
+      _entranceController.value = 1.0;
+      _backgroundController.stop();
+    } else {
+      if (!_entranceStarted) {
+        _entranceStarted = true;
+        _entranceController.forward();
+      }
+
+      if (!_backgroundController.isAnimating) {
+        _backgroundController.repeat(reverse: true);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _entranceController.dispose();
+    _backgroundController.dispose();
+    super.dispose();
+  }
+
+  /// Fade + small upward slide, driven by the entrance animation.
+  Widget _fadeSlide(Animation<double> animation, Widget child) {
+    return FadeTransition(
+      opacity: animation,
+      child: SlideTransition(
+        position: animation.drive(
+          Tween<Offset>(
+            begin: const Offset(0, 0.2),
+            end: Offset.zero,
+          ),
+        ),
+        child: child,
+      ),
+    );
+  }
+
+  /// Each card fades and slides up when it first appears.
+  /// The first cards start slightly later than each other (stagger).
+  Widget _animatedItem(BuildContext context, int index, Widget child) {
+    if (MediaQuery.disableAnimationsOf(context)) {
+      return child;
+    }
+
+    final delayMs = (index < 6 ? index : 6) * 120;
+    final totalMs = 800 + delayMs;
+
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0, end: 1),
+      duration: Duration(milliseconds: totalMs),
+      curve: Interval(
+        delayMs / totalMs,
+        1.0,
+        curve: Curves.easeOutCubic,
+      ),
+      builder: (context, value, child) {
+        return Opacity(
+          opacity: value,
+          child: Transform.translate(
+            offset: Offset(0, 16 * (1 - value)),
+            child: child,
+          ),
+        );
+      },
+      child: child,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final favoritesAsync = ref.watch(favoritesProvider);
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+
+      body: Stack(
+        children: [
+          // =====================================================================
+          // FAVORITES BACKGROUND
+          // =====================================================================
+
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/Favorites_bg.png',
+              fit: BoxFit.cover,
+              excludeFromSemantics: true,
+              errorBuilder: (
+                context,
+                error,
+                stackTrace,
+              ) {
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+
+          // =====================================================================
+          // LIGHT FOG
+          //
+          // A thin white layer (0.10) keeps the map clearly visible.
+          // =====================================================================
+
+          Positioned.fill(
+            child: Container(
+              color: Colors.white.withValues(
+                alpha: 1,
+              ),
+            ),
+          ),
+
+          // =====================================================================
+          // SOFT ANIMATED GRADIENT
+          // Very light blue and mint tints that drift slowly.
+          // =====================================================================
+
+          Positioned.fill(
+            child: IgnorePointer(
+              child: RepaintBoundary(
+                child: AnimatedBuilder(
+                  animation: _backgroundController,
+                  builder: (context, child) {
+                    final t = Curves.easeInOut.transform(
+                      _backgroundController.value,
+                    );
+
+                    return DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.lerp(
+                            Alignment.topLeft,
+                            Alignment.topRight,
+                            t,
+                          )!,
+                          end: Alignment.lerp(
+                            Alignment.bottomRight,
+                            Alignment.bottomLeft,
+                            t,
+                          )!,
+                          colors: [
+                            const Color(0xFFDCEBFF)
+                                .withValues(alpha: 0.30),
+                            Colors.white.withValues(alpha: 0.05),
+                            const Color(0xFFD9F5EA)
+                                .withValues(alpha: 0.25),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+
+          // =====================================================================
+          // MAIN CONTENT
+          // =====================================================================
+
+          SafeArea(
+            child: Column(
+              children: [
+                // =================================================================
+                // MAIN CONTENT
+                // =================================================================
+
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      24,
+                      24,
+                      24,
+                      8,
+                    ),
+                    child: Column(
+                      crossAxisAlignment:
+                          CrossAxisAlignment.start,
+                      children: [
+                        // =========================================================
+                        // HEADER
+                        // =========================================================
+
+                        _fadeSlide(
+                          _headerAnimation,
+                          const Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment:
+                                CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Favorites',
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w500,
+                                  color: _textColor,
+                                ),
+                              ),
+
+                              SizedBox(height: 4),
+
+                              Text(
+                                'المفضلة',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: _secondaryText,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        // =========================================================
+                        // FAVORITES LIST
+                        // =========================================================
+
+                        Expanded(
+                          child: favoritesAsync.when(
+                            // -----------------------------------------------------
+                            // LOADING
+                            // -----------------------------------------------------
+
+                            loading: () {
+                              return const Center(
+                                child:
+                                    CircularProgressIndicator(
+                                  color: _primaryBlue,
+                                ),
+                              );
+                            },
+
+                            // -----------------------------------------------------
+                            // ERROR
+                            // -----------------------------------------------------
+
+                            error: (error, _) {
+                              return _buildErrorState(error);
+                            },
+
+                            // -----------------------------------------------------
+                            // DATA
+                            // -----------------------------------------------------
+
+                            data: (favorites) {
+                              // Favorites still come only from Firestore.
+                              // No demo or hardcoded locations.
+
+                              if (favorites.isEmpty) {
+                                return _buildEmptyState();
+                              }
+
+                              return ListView.separated(
+                                padding:
+                                    const EdgeInsets.only(
+                                  top: 4,
+                                  bottom: 16,
+                                ),
+                                itemCount: favorites.length,
+                                separatorBuilder: (
+                                  _,
+                                  __,
+                                ) {
+                                  return const SizedBox(
+                                    height: 12,
+                                  );
+                                },
+                                itemBuilder: (
+                                  context,
+                                  index,
+                                ) {
+                                  final favorite =
+                                      favorites[index];
+
+                                  return _animatedItem(
+                                    context,
+                                    index,
+                                    _buildFavoriteCard(
+                                      context,
+                                      ref,
+                                      favorite,
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // =================================================================
+                // SHARED BOTTOM NAVIGATION
+                // =================================================================
+
+                const DroobiBottomNav(
+                  currentItem:
+                      DroobiNavItem.favorites,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ===========================================================================
+  // FAVORITE CARD
+  // ===========================================================================
+
+  Widget _buildFavoriteCard(
+    BuildContext context,
+    WidgetRef ref,
+    FavoriteLocation favorite,
+  ) {
+    return Semantics(
+      container: true,
+      label:
+          'Favorite location: ${favorite.label}',
+      child: Material(
+        color: _cardColor,
+        borderRadius:
+            BorderRadius.circular(12),
+        child: InkWell(
+          borderRadius:
+              BorderRadius.circular(12),
+
+          // ---------------------------------------------------------------------
+          // SELECT FAVORITE
+          // ---------------------------------------------------------------------
+
+          onTap: () {
+            // GPS + routing will be connected
+            // in the navigation stage.
+
+            ScaffoldMessenger.of(context)
+              ..hideCurrentSnackBar()
+              ..showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'Selected ${favorite.label}',
+                  ),
+                ),
+              );
+          },
+
+          child: Padding(
+            padding:
+                const EdgeInsets.all(16),
+
+            child: Row(
+              children: [
+                // -----------------------------------------------------------------
+                // LOCATION ICON
+                // -----------------------------------------------------------------
+
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration:
+                      const BoxDecoration(
+                    color: _primaryBlue,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.location_on_outlined,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
+
+                const SizedBox(width: 16),
+
+                // -----------------------------------------------------------------
+                // FAVORITE NAME
+                // -----------------------------------------------------------------
+
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment:
+                        CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        favorite.label,
+                        maxLines: 2,
+                        overflow:
+                            TextOverflow.ellipsis,
+                        style:
+                            const TextStyle(
+                          fontSize: 16,
+                          fontWeight:
+                              FontWeight.w500,
+                          color:
+                              _textColor,
+                        ),
+                      ),
+
+                      const SizedBox(height: 4),
+
+                      const Text(
+                        'موقع مفضل',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color:
+                              _secondaryText,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(width: 8),
+
+                // -----------------------------------------------------------------
+                // HEART / REMOVE
+                // -----------------------------------------------------------------
+
+                Semantics(
+                  button: true,
+                  label:
+                      'Remove ${favorite.label} from Favorites',
+                  hint:
+                      'Double tap to remove this favorite',
+                  child: IconButton(
+                    tooltip:
+                        'Remove from Favorites',
+
+                    constraints:
+                        const BoxConstraints(
+                      minWidth: 48,
+                      minHeight: 48,
+                    ),
+
+                    padding:
+                        EdgeInsets.zero,
+
+                    icon: const Icon(
+                      Icons.favorite,
+                      size: 22,
+                      color: _heartColor,
+                    ),
+
+                    // -------------------------------------------------------------
+                    // REMOVE FAVORITE
+                    // -------------------------------------------------------------
+
+                    onPressed: () async {
+                      try {
+                        await ref
+                            .read(
+                              favoritesActionsProvider,
+                            )
+                            .removeFavorite(
+                              favorite.id,
+                            );
+                      } catch (_) {
+                        if (!context.mounted) {
+                          return;
+                        }
+
+                        ScaffoldMessenger.of(
+                          context,
+                        )
+                            ..hideCurrentSnackBar()
+                            ..showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Could not remove this favorite.',
+                                ),
+                              ),
+                            );
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ===========================================================================
+  // EMPTY STATE
+  // ===========================================================================
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Semantics(
+        liveRegion: true,
+        label:
+            'No favorites yet. لا توجد مفضلات حتى الآن.',
+        child: Column(
+          mainAxisSize:
+              MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.star_outline,
+              size: 64,
+              color:
+                  Colors.grey.shade300,
+            ),
+
+            const SizedBox(height: 16),
+
+            const Text(
+              'No favorites yet',
+              textAlign:
+                  TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+                color:
+                    _secondaryText,
+              ),
+            ),
+
+            const SizedBox(height: 4),
+
+            const Text(
+              'لا توجد مفضلات حتى الآن',
+              textAlign:
+                  TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color:
+                    Color(0xFF9CA3AF),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ===========================================================================
+  // ERROR STATE
+  // ===========================================================================
+
+  Widget _buildErrorState(
+    Object error,
+  ) {
+    return Center(
+      child: Padding(
+        padding:
+            const EdgeInsets.all(24),
+        child: Semantics(
+          liveRegion: true,
+          child: Column(
+            mainAxisSize:
+                MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.error_outline,
+                size: 48,
+                color:
+                    Colors.grey.shade400,
+              ),
+
+              const SizedBox(height: 16),
+
+              const Text(
+                'Could not load favorites.',
+                textAlign:
+                    TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight:
+                      FontWeight.w500,
+                  color:
+                      _textColor,
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              Text(
+                error.toString(),
+                textAlign:
+                    TextAlign.center,
+                style:
+                    const TextStyle(
+                  fontSize: 12,
+                  color:
+                      _secondaryText,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+==================== navigation_notifier.dart ====================
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../services/location/gps_filter_service.dart';
+import '../services/navigation/compass_service.dart';
+import '../services/navigation/direction_calculator.dart';
+import '../services/navigation/navigation_service.dart';
+import '../services/navigation/route_progress_service.dart';
+import 'location_notifier.dart';
+import 'routing_notifier.dart';
+
+final navigationServiceProvider =
+    Provider<NavigationService>((ref) {
+  final service = NavigationService(
+    locationService:
+        ref.read(locationServiceProvider),
+
+    routingService:
+        ref.read(routingServiceProvider),
+
+    compassService:
+        CompassService(),
+
+    gpsFilterService:
+        GpsFilterService(),
+
+    routeProgressService:
+        RouteProgressService(),
+
+    directionCalculator:
+        DirectionCalculator(),
+
+    lookAheadMeters: 10.0,
+
+    arrivalDistanceMeters: 8.0,
+  );
+
+  ref.onDispose(service.dispose);
+
+  return service;
+});
+==================== live_navigation_screen.dart ====================
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../models/lat_lon.dart';
+import '../../models/navigation_direction.dart';
+import '../../services/navigation/navigation_service.dart';
+import '../../state/navigation_notifier.dart';
+
+class LiveNavigationScreen extends ConsumerStatefulWidget {
+  const LiveNavigationScreen({
+    super.key,
+    required this.destination,
+  });
+
+  final LatLon destination;
+
+  @override
+  ConsumerState<LiveNavigationScreen> createState() =>
+      _LiveNavigationScreenState();
+}
+
+class _LiveNavigationScreenState
+    extends ConsumerState<LiveNavigationScreen> {
+  StreamSubscription<NavigationSnapshot>? _navigationSubscription;
+
+  NavigationSnapshot _snapshot = const NavigationSnapshot(
+    state: NavigationState.idle,
+  );
+
+  bool _starting = false;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _startNavigation();
+    });
+  }
+
+  // ================================================================
+  // START
+  // ================================================================
+
+  Future<void> _startNavigation() async {
+    if (_starting) {
+      return;
+    }
+
+    _starting = true;
+
+    final navigationService =
+        ref.read(navigationServiceProvider);
+
+    _navigationSubscription?.cancel();
+
+    _navigationSubscription =
+        navigationService.snapshots.listen(
+      (snapshot) {
+        if (!mounted) {
+          return;
+        }
+
+        setState(() {
+          _snapshot = snapshot;
+
+          if (snapshot.errorMessage != null) {
+            _errorMessage = snapshot.errorMessage;
+          } else if (snapshot.state ==
+              NavigationState.navigating) {
+            _errorMessage = null;
+          }
+        });
+      },
+      onError: (Object error) {
+        if (!mounted) {
+          return;
+        }
+
+        setState(() {
+          _errorMessage = error.toString();
+        });
+      },
+    );
+
+    try {
+      await navigationService.start(
+        destination: widget.destination,
+      );
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _errorMessage = error.toString();
+      });
+    } finally {
+      _starting = false;
+    }
+  }
+
+  // ================================================================
+  // STOP
+  // ================================================================
+
+  Future<void> _stopNavigation() async {
+    final navigationService =
+        ref.read(navigationServiceProvider);
+
+    await navigationService.stop();
+
+    if (!mounted) {
+      return;
+    }
+
+    Navigator.of(context).pop();
+  }
+
+  // ================================================================
+  // BACK
+  // ================================================================
+
+  Future<bool> _handleBack() async {
+    final navigationService =
+        ref.read(navigationServiceProvider);
+
+    await navigationService.stop();
+
+    return true;
+  }
+
+  // ================================================================
+  // DIRECTION ICON
+  // ================================================================
+
+  IconData _directionIcon(
+    NavigationDirection? direction,
+  ) {
+    switch (direction) {
+      case NavigationDirection.forward:
+        return Icons.arrow_upward;
+
+      case NavigationDirection.forwardRight:
+        return Icons.north_east;
+
+      case NavigationDirection.right:
+        return Icons.arrow_forward;
+
+      case NavigationDirection.backRight:
+        return Icons.south_east;
+
+      case NavigationDirection.back:
+        return Icons.arrow_downward;
+
+      case NavigationDirection.backLeft:
+        return Icons.south_west;
+
+      case NavigationDirection.left:
+        return Icons.arrow_back;
+
+      case NavigationDirection.forwardLeft:
+        return Icons.north_west;
+
+      case null:
+        return Icons.navigation;
+    }
+  }
+
+  // ================================================================
+  // DIRECTION TEXT
+  // ================================================================
+
+  String _directionText(
+    NavigationDirection? direction,
+  ) {
+    switch (direction) {
+      case NavigationDirection.forward:
+        return 'FORWARD';
+
+      case NavigationDirection.forwardRight:
+        return 'FORWARD RIGHT';
+
+      case NavigationDirection.right:
+        return 'RIGHT';
+
+      case NavigationDirection.backRight:
+        return 'BACK RIGHT';
+
+      case NavigationDirection.back:
+        return 'BACK';
+
+      case NavigationDirection.backLeft:
+        return 'BACK LEFT';
+
+      case NavigationDirection.left:
+        return 'LEFT';
+
+      case NavigationDirection.forwardLeft:
+        return 'FORWARD LEFT';
+
+      case null:
+        return 'CALCULATING';
+    }
+  }
+
+  // ================================================================
+  // STATE TEXT
+  // ================================================================
+
+  String _stateText(NavigationState state) {
+    switch (state) {
+      case NavigationState.idle:
+        return 'Ready';
+
+      case NavigationState.starting:
+        return 'Preparing route...';
+
+      case NavigationState.navigating:
+        return 'Navigation active';
+
+      case NavigationState.gpsUnavailable:
+        return 'GPS unavailable';
+
+      case NavigationState.routeUnavailable:
+        return 'Route unavailable';
+
+      case NavigationState.recovering:
+        return 'Recovering...';
+
+      case NavigationState.arrived:
+        return 'You have arrived';
+
+      case NavigationState.stopped:
+        return 'Navigation stopped';
+    }
+  }
+
+  // ================================================================
+  // DISTANCE
+  // ================================================================
+
+  String _formatDistance(double? distance) {
+    if (distance == null) {
+      return '--';
+    }
+
+    if (distance < 1000) {
+      return '${distance.round()} m';
+    }
+
+    final kilometers = distance / 1000;
+
+    return '${kilometers.toStringAsFixed(1)} km';
+  }
+
+  // ================================================================
+  // BUILD
+  // ================================================================
+
+  @override
+  Widget build(BuildContext context) {
+    final direction = _snapshot.direction;
+
+    final isArrived =
+        _snapshot.state == NavigationState.arrived;
+
+    final isNavigating =
+        _snapshot.state == NavigationState.navigating;
+
+    final isStarting =
+        _snapshot.state == NavigationState.starting;
+
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) {
+          return;
+        }
+
+        final shouldLeave = await _handleBack();
+
+        if (shouldLeave && mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          elevation: 0,
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
+          title: const Text(
+            'Live Navigation',
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          centerTitle: true,
+        ),
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              20,
+              10,
+              20,
+              20,
+            ),
+            child: Column(
+              children: [
+                _buildStatusCard(),
+
+                const SizedBox(height: 18),
+
+                Expanded(
+                  child: _buildNavigationContent(
+                    direction: direction,
+                    isArrived: isArrived,
+                    isNavigating: isNavigating,
+                    isStarting: isStarting,
+                  ),
+                ),
+
+                const SizedBox(height: 18),
+
+                _buildBottomControls(
+                  isArrived: isArrived,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ================================================================
+  // STATUS CARD
+  // ================================================================
+
+  Widget _buildStatusCard() {
+    final distance =
+        _formatDistance(
+          _snapshot.distanceFromRouteMeters,
+        );
+
+    final state =
+        _stateText(_snapshot.state);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(
+        horizontal: 18,
+        vertical: 16,
+      ),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        color: Colors.grey.shade100,
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.blue.shade50,
+            ),
+            child: Icon(
+              Icons.navigation,
+              color: Colors.blue.shade700,
+            ),
+          ),
+
+          const SizedBox(width: 14),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
+              children: [
+                Text(
+                  state,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+
+                const SizedBox(height: 4),
+
+                Text(
+                  'Route distance: $distance',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          if (_snapshot.accuracyMeters != null)
+            Text(
+              'GPS\n±${_snapshot.accuracyMeters!.round()} m',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 11,
+                color: Colors.grey.shade600,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  // ================================================================
+  // NAVIGATION CONTENT
+  // ================================================================
+
+  Widget _buildNavigationContent({
+    required NavigationDirection? direction,
+    required bool isArrived,
+    required bool isNavigating,
+    required bool isStarting,
+  }) {
+    if (_errorMessage != null &&
+        _snapshot.state != NavigationState.navigating) {
+      return _buildErrorState();
+    }
+
+    if (isArrived) {
+      return _buildArrivedState();
+    }
+
+    if (isStarting ||
+        _snapshot.state == NavigationState.recovering) {
+      return _buildLoadingState();
+    }
+
+    return _buildDirectionState(
+      direction: direction,
+      isNavigating: isNavigating,
+    );
+  }
+
+  // ================================================================
+  // DIRECTION STATE
+  // ================================================================
+
+  Widget _buildDirectionState({
+    required NavigationDirection? direction,
+    required bool isNavigating,
+  }) {
+    final icon = _directionIcon(direction);
+    final text = _directionText(direction);
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          isNavigating
+              ? 'NEXT DIRECTION'
+              : 'WAITING FOR NAVIGATION',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1.4,
+            color: Colors.grey.shade600,
+          ),
+        ),
+
+        const SizedBox(height: 24),
+
+        AnimatedSwitcher(
+          duration: const Duration(
+            milliseconds: 300,
+          ),
+          transitionBuilder: (
+            Widget child,
+            Animation<double> animation,
+          ) {
+            return ScaleTransition(
+              scale: animation,
+              child: FadeTransition(
+                opacity: animation,
+                child: child,
+              ),
+            );
+          },
+          child: Container(
+            key: ValueKey(direction),
+            width: 220,
+            height: 220,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.blue.shade50,
+              border: Border.all(
+                color: Colors.blue.shade100,
+                width: 3,
+              ),
+            ),
+            child: Center(
+              child: Icon(
+                icon,
+                size: 140,
+                color: Colors.blue.shade600,
+              ),
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 24),
+
+        AnimatedSwitcher(
+          duration: const Duration(
+            milliseconds: 250,
+          ),
+          child: Text(
+            text,
+            key: ValueKey(text),
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 12),
+
+        if (_snapshot.relativeAngle != null)
+          Text(
+            'Direction angle: '
+            '${_snapshot.relativeAngle!.toStringAsFixed(0)}°',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey.shade600,
+            ),
+          ),
+
+        const SizedBox(height: 8),
+
+        if (_snapshot.heading != null)
+          Text(
+            'Heading: '
+            '${_snapshot.heading!.toStringAsFixed(0)}°',
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.grey.shade500,
+            ),
+          ),
+      ],
+    );
+  }
+
+  // ================================================================
+  // LOADING
+  // ================================================================
+
+  Widget _buildLoadingState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment:
+            MainAxisAlignment.center,
+        children: [
+          const SizedBox(
+            width: 58,
+            height: 58,
+            child: CircularProgressIndicator(
+              strokeWidth: 5,
+            ),
+          ),
+
+          const SizedBox(height: 28),
+
+          Text(
+            _snapshot.state ==
+                    NavigationState.recovering
+                ? 'Recovering navigation...'
+                : 'Preparing navigation...',
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+
+          const SizedBox(height: 10),
+
+          Text(
+            'Getting your position and route.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 15,
+              color: Colors.grey.shade600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ================================================================
+  // ARRIVED
+  // ================================================================
+
+  Widget _buildArrivedState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment:
+            MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 190,
+            height: 190,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.green.shade50,
+              border: Border.all(
+                color: Colors.green.shade200,
+                width: 3,
+              ),
+            ),
+            child: Icon(
+              Icons.check,
+              size: 120,
+              color: Colors.green.shade600,
+            ),
+          ),
+
+          const SizedBox(height: 28),
+
+          const Text(
+            'ARRIVED',
+            style: TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.5,
+            ),
+          ),
+
+          const SizedBox(height: 10),
+
+          Text(
+            'You have reached your destination.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey.shade600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ================================================================
+  // ERROR
+  // ================================================================
+
+  Widget _buildErrorState() {
+    return Center(
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment:
+              MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 82,
+              color: Colors.red.shade400,
+            ),
+
+            const SizedBox(height: 22),
+
+            const Text(
+              'Navigation Error',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            Text(
+              _errorMessage ?? 'Unknown error.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15,
+                color: Colors.grey.shade700,
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            ElevatedButton.icon(
+              onPressed: _startNavigation,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Try Again'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ================================================================
+  // BOTTOM CONTROLS
+  // ================================================================
+
+  Widget _buildBottomControls({
+    required bool isArrived,
+  }) {
+    return SizedBox(
+      width: double.infinity,
+      height: 56,
+      child: ElevatedButton.icon(
+        onPressed: isArrived
+            ? () {
+                Navigator.of(context).pop();
+              }
+            : _stopNavigation,
+        icon: Icon(
+          isArrived
+              ? Icons.check
+              : Icons.stop_circle_outlined,
+        ),
+        label: Text(
+          isArrived
+              ? 'DONE'
+              : 'STOP NAVIGATION',
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor:
+              isArrived
+                  ? Colors.green.shade600
+                  : Colors.red.shade600,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ================================================================
+  // DISPOSE
+  // ================================================================
+
+  @override
+  void dispose() {
+    _navigationSubscription?.cancel();
+
+    super.dispose();
+  }
+}
+==================== navigation_service.dart ====================
+
+import 'dart:async';
+import 'dart:math' as math;
+
+import '../../models/lat_lon.dart';
+import '../../models/location_fix.dart';
+import '../../models/navigation_direction.dart';
+import '../../models/route_result.dart';
+import '../location/gps_filter_service.dart';
+import '../location/location_service.dart';
+import '../routing/routing_service.dart';
+import 'compass_service.dart';
+import 'direction_calculator.dart';
+import 'route_progress_service.dart';
+
+enum NavigationState {
+  idle,
+  starting,
+  navigating,
+  gpsUnavailable,
+  routeUnavailable,
+  recovering,
+  arrived,
+  stopped,
+}
+
+class NavigationSnapshot {
+  const NavigationSnapshot({
+    required this.state,
+    this.currentPosition,
+    this.accuracyMeters,
+    this.route,
+    this.targetPoint,
+    this.distanceFromRouteMeters,
+    this.targetBearing,
+    this.heading,
+    this.relativeAngle,
+    this.direction,
+    this.errorMessage,
+  });
+
+  final NavigationState state;
+
+  final LatLon? currentPosition;
+
+  final double? accuracyMeters;
+
+  final RouteResult? route;
+
+  final LatLon? targetPoint;
+
+  final double? distanceFromRouteMeters;
+
+  final double? targetBearing;
+
+  final double? heading;
+
+  final double? relativeAngle;
+
+  final NavigationDirection? direction;
+
+  final String? errorMessage;
+
+  String? get command => direction?.command;
+}
+
+class NavigationService {
+  NavigationService({
+    required LocationService locationService,
+    required RoutingService routingService,
+    required CompassService compassService,
+    GpsFilterService? gpsFilterService,
+    RouteProgressService? routeProgressService,
+    DirectionCalculator? directionCalculator,
+
+    // --------------------------------------------------------------
+    // ROUTE FOLLOWING
+    // --------------------------------------------------------------
+
+    this.lookAheadMeters = 8.0,
+
+    this.arrivalDistanceMeters = 8.0,
+
+    // --------------------------------------------------------------
+    // COMPASS SMOOTHING
+    // --------------------------------------------------------------
+
+    this.compassSampleCount = 5,
+
+    this.minimumHeadingChangeDegrees = 8.0,
+
+    // --------------------------------------------------------------
+    // DIRECTION STABILITY
+    // --------------------------------------------------------------
+
+    this.directionConfirmationSamples = 3,
+  })  : _locationService = locationService,
+        _routingService = routingService,
+        _compassService = compassService,
+        _gpsFilterService =
+            gpsFilterService ??
+                GpsFilterService(),
+        _routeProgressService =
+            routeProgressService ??
+                RouteProgressService(),
+        _directionCalculator =
+            directionCalculator ??
+                DirectionCalculator();
+
+  final LocationService _locationService;
+
+  final RoutingService _routingService;
+
+  final CompassService _compassService;
+
+  final GpsFilterService _gpsFilterService;
+
+  final RouteProgressService _routeProgressService;
+
+  final DirectionCalculator _directionCalculator;
+
+  // ================================================================
+  // SETTINGS
+  // ================================================================
+
+  /// Fallback look-ahead.
+  ///
+  /// RouteProgressService can reduce this near turns.
+  final double lookAheadMeters;
+
+  final double arrivalDistanceMeters;
+
+  final int compassSampleCount;
+
+  final double minimumHeadingChangeDegrees;
+
+  final int directionConfirmationSamples;
+
+  // ================================================================
+  // STREAMS
+  // ================================================================
+
+  StreamSubscription<LocationFix>?
+      _locationSubscription;
+
+  StreamSubscription<double>?
+      _compassSubscription;
+
+  final StreamController<
+          NavigationSnapshot>
+      _snapshotController =
+      StreamController<
+          NavigationSnapshot>.broadcast();
+
+  // ================================================================
+  // STATE
+  // ================================================================
+
+  NavigationSnapshot _snapshot =
+      const NavigationSnapshot(
+    state: NavigationState.idle,
+  );
+
+  RouteResult? _route;
+
+  LatLon? _destination;
+
+  LocationFix? _lastAcceptedFix;
+
+  double? _latestHeading;
+
+  bool _isStarting = false;
+
+  bool _isNavigating = false;
+
+  bool _isDisposed = false;
+
+  // ================================================================
+  // COMPASS SMOOTHING
+  // ================================================================
+
+  final List<double> _headingSamples = [];
+
+  double? _lastPublishedHeading;
+
+  // ================================================================
+  // DIRECTION STABILITY
+  // ================================================================
+
+  NavigationDirection? _confirmedDirection;
+
+  NavigationDirection? _candidateDirection;
+
+  int _candidateDirectionCount = 0;
+
+  // ================================================================
+  // PUBLIC
+  // ================================================================
+
+  Stream<NavigationSnapshot>
+      get snapshots =>
+          _snapshotController.stream;
+
+  NavigationSnapshot get snapshot =>
+      _snapshot;
+
+  bool get isNavigating =>
+      _isNavigating;
+
+  // ================================================================
+  // START
+  // ================================================================
+
+  Future<void> start({
+    required LatLon destination,
+  }) async {
+    if (_isDisposed) {
+      throw StateError(
+        'NavigationService has been disposed.',
+      );
+    }
+
+    if (_isStarting ||
+        _isNavigating) {
+      return;
+    }
+
+    _isStarting = true;
+
+    await stop();
+
+    _destination =
+        destination;
+
+    _publish(
+      const NavigationSnapshot(
+        state:
+            NavigationState.starting,
+      ),
+    );
+
+    try {
+      // ------------------------------------------------------------
+      // 1. INITIAL GPS
+      // ------------------------------------------------------------
+
+      final initialFix =
+          await _locationService
+              .getCurrentLocationFix();
+
+      final filteredFix =
+          _gpsFilterService.process(
+        initialFix,
+      );
+
+      if (filteredFix == null) {
+        throw const NavigationFailure(
+          'Initial GPS position was rejected by '
+          'the GPS quality filter.',
+        );
+      }
+
+      _lastAcceptedFix =
+          filteredFix;
+
+      // ------------------------------------------------------------
+      // 2. ROUTE
+      // ------------------------------------------------------------
+
+      final route =
+          await _routingService
+              .computeRoute(
+        origin:
+            filteredFix.position,
+        destination:
+            destination,
+      );
+
+      if (route.polyline.isEmpty) {
+        throw const NavigationFailure(
+          'The routing service returned an empty route.',
+        );
+      }
+
+      _route = route;
+
+      // ------------------------------------------------------------
+      // 3. INITIAL COMPASS
+      // ------------------------------------------------------------
+
+      final initialHeading =
+          await _compassService
+              .getCurrentHeading();
+
+      _resetCompassSmoothing();
+
+      final smoothedInitialHeading =
+          _addCompassSample(
+                initialHeading,
+                forcePublish: true,
+              ) ??
+              initialHeading;
+
+      _latestHeading =
+          smoothedInitialHeading;
+
+      // ------------------------------------------------------------
+      // 4. START LIVE NAVIGATION
+      // ------------------------------------------------------------
+
+      _isNavigating = true;
+
+      _publish(
+        NavigationSnapshot(
+          state:
+              NavigationState.navigating,
+          currentPosition:
+              filteredFix.position,
+          accuracyMeters:
+              filteredFix
+                  .accuracyMeters,
+          route: route,
+          heading:
+              smoothedInitialHeading,
+        ),
+      );
+
+      _startCompassStream();
+
+      _startLocationStream();
+
+      // ------------------------------------------------------------
+      // 5. FIRST CALCULATION
+      // ------------------------------------------------------------
+
+      _updateNavigation(
+        filteredFix,
+        smoothedInitialHeading,
+      );
+    } catch (e) {
+      _isNavigating = false;
+
+      _publish(
+        NavigationSnapshot(
+          state:
+              NavigationState.routeUnavailable,
+          errorMessage:
+              e.toString(),
+        ),
+      );
+
+      rethrow;
+    } finally {
+      _isStarting = false;
+    }
+  }
+
+  // ================================================================
+  // GPS STREAM
+  // ================================================================
+
+  void _startLocationStream() {
+    _locationSubscription
+        ?.cancel();
+
+    _locationSubscription =
+        _locationService
+            .locationFixStream
+            .listen(
+      _handleLocationFix,
+      onError: (Object error) {
+        if (!_isNavigating) {
+          return;
+        }
+
+        _publish(
+          NavigationSnapshot(
+            state:
+                NavigationState
+                    .gpsUnavailable,
+            currentPosition:
+                _lastAcceptedFix
+                    ?.position,
+            accuracyMeters:
+                _lastAcceptedFix
+                    ?.accuracyMeters,
+            route: _route,
+            heading:
+                _latestHeading,
+            errorMessage:
+                error.toString(),
+          ),
+        );
+      },
+    );
+  }
+
+  void _handleLocationFix(
+    LocationFix rawFix,
+  ) {
+    if (!_isNavigating ||
+        _route == null) {
+      return;
+    }
+
+    final filteredFix =
+        _gpsFilterService
+            .process(rawFix);
+
+    if (filteredFix == null) {
+      return;
+    }
+
+    _lastAcceptedFix =
+        filteredFix;
+
+    final heading =
+        _latestHeading;
+
+    if (heading == null) {
+      _publish(
+        NavigationSnapshot(
+          state:
+              NavigationState
+                  .recovering,
+          currentPosition:
+              filteredFix.position,
+          accuracyMeters:
+              filteredFix
+                  .accuracyMeters,
+          route: _route,
+          errorMessage:
+              'Waiting for compass heading.',
+        ),
+      );
+
+      return;
+    }
+
+    _updateNavigation(
+      filteredFix,
+      heading,
+    );
+  }
+
+  // ================================================================
+  // COMPASS STREAM
+  // ================================================================
+
+  void _startCompassStream() {
+    _compassSubscription
+        ?.cancel();
+
+    _compassSubscription =
+        _compassService
+            .headingStream
+            .listen(
+      _handleCompassHeading,
+      onError: (Object error) {
+        if (!_isNavigating) {
+          return;
+        }
+
+        _publish(
+          NavigationSnapshot(
+            state:
+                NavigationState
+                    .recovering,
+            currentPosition:
+                _lastAcceptedFix
+                    ?.position,
+            accuracyMeters:
+                _lastAcceptedFix
+                    ?.accuracyMeters,
+            route: _route,
+            heading:
+                _latestHeading,
+            errorMessage:
+                'Compass error: $error',
+          ),
+        );
+      },
+    );
+  }
+
+  void _handleCompassHeading(
+    double rawHeading,
+  ) {
+    if (!_isNavigating ||
+        _lastAcceptedFix == null ||
+        _route == null) {
+      return;
+    }
+
+    final smoothedHeading =
+        _addCompassSample(
+      rawHeading,
+    );
+
+    if (smoothedHeading == null) {
+      return;
+    }
+
+    _latestHeading =
+        smoothedHeading;
+
+    _updateNavigation(
+      _lastAcceptedFix!,
+      smoothedHeading,
+    );
+  }
+
+  // ================================================================
+  // COMPASS SMOOTHING
+  // ================================================================
+
+  double? _addCompassSample(
+    double heading, {
+    bool forcePublish = false,
+  }) {
+    final normalized =
+        _normalizeHeading(
+      heading,
+    );
+
+    _headingSamples.add(
+      normalized,
+    );
+
+    while (_headingSamples.length >
+        compassSampleCount) {
+      _headingSamples.removeAt(0);
+    }
+
+    final smoothed =
+        _circularMean(
+      _headingSamples,
+    );
+
+    if (forcePublish ||
+        _lastPublishedHeading ==
+            null) {
+      _lastPublishedHeading =
+          smoothed;
+
+      return smoothed;
+    }
+
+    final change =
+        _angularDifference(
+      smoothed,
+      _lastPublishedHeading!,
+    );
+
+    // Ignore small compass fluctuations.
+    if (change <
+        minimumHeadingChangeDegrees) {
+      return _lastPublishedHeading;
+    }
+
+    _lastPublishedHeading =
+        smoothed;
+
+    return smoothed;
+  }
+
+  double _circularMean(
+    List<double> values,
+  ) {
+    if (values.isEmpty) {
+      return 0;
+    }
+
+    double sinSum = 0;
+
+    double cosSum = 0;
+
+    for (final value
+        in values) {
+      final radians =
+          value *
+              math.pi /
+              180.0;
+
+      sinSum +=
+          math.sin(radians);
+
+      cosSum +=
+          math.cos(radians);
+    }
+
+    var result =
+        math.atan2(
+              sinSum,
+              cosSum,
+            ) *
+            180.0 /
+            math.pi;
+
+    if (result < 0) {
+      result += 360;
+    }
+
+    return result;
+  }
+
+  double _angularDifference(
+    double first,
+    double second,
+  ) {
+    var difference =
+        (first - second) % 360;
+
+    if (difference > 180) {
+      difference -= 360;
+    }
+
+    if (difference < -180) {
+      difference += 360;
+    }
+
+    return difference.abs();
+  }
+
+  double _normalizeHeading(
+    double heading,
+  ) {
+    var normalized =
+        heading % 360;
+
+    if (normalized < 0) {
+      normalized += 360;
+    }
+
+    return normalized;
+  }
+
+  void _resetCompassSmoothing() {
+    _headingSamples.clear();
+
+    _lastPublishedHeading =
+        null;
+
+    _latestHeading = null;
+  }
+
+  // ================================================================
+  // NAVIGATION CALCULATION
+  // ================================================================
+
+  void _updateNavigation(
+    LocationFix fix,
+    double heading,
+  ) {
+    final route = _route;
+
+    final destination =
+        _destination;
+
+    if (route == null ||
+        destination == null) {
+      return;
+    }
+
+    // ------------------------------------------------------------
+    // GET ADAPTIVE ROUTE TARGET
+    // ------------------------------------------------------------
+
+    final target =
+        _routeProgressService
+            .getNextTarget(
+      currentPosition:
+          fix.position,
+      route: route,
+      lookAheadMeters:
+          lookAheadMeters,
+    );
+
+    // ------------------------------------------------------------
+    // ARRIVAL
+    // ------------------------------------------------------------
+
+    final distanceToDestination =
+        _routeProgressService
+            .distanceBetween(
+      fix.position,
+      destination,
+    );
+
+    if (distanceToDestination <=
+        arrivalDistanceMeters) {
+      _publish(
+        NavigationSnapshot(
+          state:
+              NavigationState.arrived,
+          currentPosition:
+              fix.position,
+          accuracyMeters:
+              fix.accuracyMeters,
+          route: route,
+          targetPoint:
+              destination,
+          distanceFromRouteMeters:
+              target
+                  .distanceFromRouteMeters,
+          heading: heading,
+        ),
+      );
+
+      _isNavigating = false;
+
+      return;
+    }
+
+    // ------------------------------------------------------------
+    // ROUTE BEARING
+    // ------------------------------------------------------------
+    //
+    // IMPORTANT:
+    //
+    // We intentionally use the direction of the route segment,
+    // rather than calculating:
+    //
+    //     GPS -> target point
+    //
+    // This prevents GPS being slightly left/right of the road
+    // from producing a false instruction to cross the road.
+    //
+    // The route itself determines the direction of travel.
+    // ------------------------------------------------------------
+
+    final bearing =
+        target.routeBearing ??
+            _directionCalculator
+                .calculateBearing(
+              from: fix.position,
+              to: target.point,
+            );
+
+    // ------------------------------------------------------------
+    // RELATIVE ANGLE
+    // ------------------------------------------------------------
+
+    final relativeAngle =
+        _directionCalculator
+            .normalizeAngle(
+      bearing - heading,
+    );
+
+    // ------------------------------------------------------------
+    // RAW DIRECTION
+    // ------------------------------------------------------------
+
+    final rawDirection =
+        _directionCalculator
+            .directionFromAngle(
+      relativeAngle,
+    );
+
+    // ------------------------------------------------------------
+    // STABILIZED DIRECTION
+    // ------------------------------------------------------------
+
+    final direction =
+        _stabilizeDirection(
+      rawDirection,
+    );
+
+    // ------------------------------------------------------------
+    // PUBLISH
+    // ------------------------------------------------------------
+
+    _publish(
+      NavigationSnapshot(
+        state:
+            NavigationState.navigating,
+        currentPosition:
+            fix.position,
+        accuracyMeters:
+            fix.accuracyMeters,
+        route: route,
+        targetPoint:
+            target.point,
+        distanceFromRouteMeters:
+            target
+                .distanceFromRouteMeters,
+        targetBearing:
+            bearing,
+        heading:
+            heading,
+        relativeAngle:
+            relativeAngle,
+        direction:
+            direction,
+      ),
+    );
+  }
+
+  // ================================================================
+  // DIRECTION STABILITY
+  // ================================================================
+
+  NavigationDirection
+      _stabilizeDirection(
+    NavigationDirection candidate,
+  ) {
+    // First direction.
+    if (_confirmedDirection ==
+        null) {
+      _confirmedDirection =
+          candidate;
+
+      _candidateDirection =
+          null;
+
+      _candidateDirectionCount =
+          0;
+
+      return _confirmedDirection!;
+    }
+
+    // Same direction.
+    if (candidate ==
+        _confirmedDirection) {
+      _candidateDirection =
+          null;
+
+      _candidateDirectionCount =
+          0;
+
+      return _confirmedDirection!;
+    }
+
+    // New candidate.
+    if (_candidateDirection !=
+        candidate) {
+      _candidateDirection =
+          candidate;
+
+      _candidateDirectionCount =
+          1;
+
+      return _confirmedDirection!;
+    }
+
+    _candidateDirectionCount++;
+
+    if (_candidateDirectionCount >=
+        directionConfirmationSamples) {
+      _confirmedDirection =
+          _candidateDirection;
+
+      _candidateDirection =
+          null;
+
+      _candidateDirectionCount =
+          0;
+    }
+
+    return _confirmedDirection!;
+  }
+
+  // ================================================================
+  // STOP
+  // ================================================================
+
+  Future<void> stop() async {
+    _isNavigating = false;
+
+    await _locationSubscription
+        ?.cancel();
+
+    _locationSubscription =
+        null;
+
+    await _compassSubscription
+        ?.cancel();
+
+    _compassSubscription =
+        null;
+
+    _gpsFilterService.reset();
+
+    _lastAcceptedFix =
+        null;
+
+    _latestHeading =
+        null;
+
+    _route = null;
+
+    _destination = null;
+
+    _confirmedDirection =
+        null;
+
+    _candidateDirection =
+        null;
+
+    _candidateDirectionCount =
+        0;
+
+    _resetCompassSmoothing();
+
+    if (!_isDisposed) {
+      _publish(
+        const NavigationSnapshot(
+          state:
+              NavigationState.stopped,
+        ),
+      );
+    }
+  }
+
+  // ================================================================
+  // PUBLISH
+  // ================================================================
+
+  void _publish(
+    NavigationSnapshot snapshot,
+  ) {
+    _snapshot =
+        snapshot;
+
+    if (!_snapshotController
+        .isClosed) {
+      _snapshotController.add(
+        snapshot,
+      );
+    }
+  }
+
+  // ================================================================
+  // DISPOSE
+  // ================================================================
+
+  Future<void> dispose() async {
+    _isDisposed = true;
+
+    _isNavigating = false;
+
+    await _locationSubscription
+        ?.cancel();
+
+    await _compassSubscription
+        ?.cancel();
+
+    if (!_snapshotController
+        .isClosed) {
+      await _snapshotController.close();
+    }
+  }
+}
+
+class NavigationFailure
+    implements Exception {
+  const NavigationFailure(
+    this.message,
+  );
+
+  final String message;
+
+  @override
+  String toString() =>
+      message;
+}
+
+
+==================== route_progress_service.dart ====================
+
+import 'dart:math' as math;
+
+import '../../models/lat_lon.dart';
+import '../../models/route_result.dart';
+
+class RouteProgressService {
+  RouteProgressService({
+    this.defaultLookAheadMeters = 8.0,
+    this.minimumLookAheadMeters = 4.0,
+    this.maximumLookAheadMeters = 10.0,
+    this.turnDetectionAngleDegrees = 35.0,
+  });
+
+  /// Normal look-ahead on reasonably straight sections.
+  final double defaultLookAheadMeters;
+
+  /// Minimum look-ahead used when a meaningful turn is close.
+  final double minimumLookAheadMeters;
+
+  /// Maximum look-ahead on long straight sections.
+  final double maximumLookAheadMeters;
+
+  /// A route heading change larger than this is treated
+  /// as a meaningful turn.
+  final double turnDetectionAngleDegrees;
+
+  // ================================================================
+  // SIMPLE TARGET API
+  // ================================================================
+
+  LatLon getNextTargetPoint({
+    required LatLon currentPosition,
+    required RouteResult route,
+    double? lookAheadMeters,
+  }) {
+    final target = getNextTarget(
+      currentPosition: currentPosition,
+      route: route,
+      lookAheadMeters: lookAheadMeters,
+    );
+
+    return target.point;
+  }
+
+  // ================================================================
+  // MAIN TARGET CALCULATION
+  // ================================================================
+
+  RouteTarget getNextTarget({
+    required LatLon currentPosition,
+    required RouteResult route,
+    double? lookAheadMeters,
+  }) {
+    if (route.polyline.isEmpty) {
+      throw const RouteProgressFailure(
+        'Route polyline is empty.',
+      );
+    }
+
+    if (route.polyline.length == 1) {
+      return RouteTarget(
+        point: route.polyline.first,
+        index: 0,
+        distanceAheadMeters: 0,
+        distanceFromRouteMeters: distanceBetween(
+          currentPosition,
+          route.polyline.first,
+        ),
+        routeBearing: null,
+        isNearTurn: false,
+      );
+    }
+
+    final nearest = _findNearestPointOnRoute(
+      currentPosition: currentPosition,
+      polyline: route.polyline,
+    );
+
+    final adaptiveLookAhead =
+        lookAheadMeters ??
+        _calculateAdaptiveLookAhead(
+          route: route,
+          nearestSegmentIndex:
+              nearest.segmentIndex,
+          projectedPoint:
+              nearest.projectedPoint,
+        );
+
+    var remainingLookAhead =
+        adaptiveLookAhead;
+
+    var segmentIndex =
+        nearest.segmentIndex;
+
+    var segmentStart =
+        nearest.projectedPoint;
+
+    while (
+        segmentIndex <
+            route.polyline.length - 1) {
+      final segmentEnd =
+          route.polyline[segmentIndex + 1];
+
+      final segmentDistance =
+          distanceBetween(
+        segmentStart,
+        segmentEnd,
+      );
+
+      if (segmentDistance <= 0.01) {
+        segmentIndex++;
+        segmentStart =
+            route.polyline[segmentIndex];
+        continue;
+      }
+
+      if (remainingLookAhead <=
+          segmentDistance) {
+        final factor =
+            remainingLookAhead /
+                segmentDistance;
+
+        final target =
+            _interpolatePoint(
+          segmentStart,
+          segmentEnd,
+          factor,
+        );
+
+        final routeBearing =
+            calculateBearing(
+          from: segmentStart,
+          to: segmentEnd,
+        );
+
+        return RouteTarget(
+          point: target,
+          index: segmentIndex + 1,
+          distanceAheadMeters:
+              adaptiveLookAhead -
+                  remainingLookAhead +
+                  remainingLookAhead,
+          distanceFromRouteMeters:
+              nearest.distanceFromRouteMeters,
+          routeBearing: routeBearing,
+          isNearTurn:
+              _isTurnNear(
+            route: route,
+            segmentIndex:
+                segmentIndex,
+          ),
+        );
+      }
+
+      remainingLookAhead -=
+          segmentDistance;
+
+      segmentIndex++;
+
+      segmentStart =
+          route.polyline[segmentIndex];
+    }
+
+    final lastIndex =
+        route.polyline.length - 1;
+
+    double? finalBearing;
+
+    if (lastIndex > 0) {
+      finalBearing =
+          calculateBearing(
+        from: route.polyline[lastIndex - 1],
+        to: route.polyline[lastIndex],
+      );
+    }
+
+    return RouteTarget(
+      point: route.polyline[lastIndex],
+      index: lastIndex,
+      distanceAheadMeters:
+          adaptiveLookAhead -
+              remainingLookAhead,
+      distanceFromRouteMeters:
+          nearest.distanceFromRouteMeters,
+      routeBearing: finalBearing,
+      isNearTurn: false,
+    );
+  }
+
+  // ================================================================
+  // ADAPTIVE LOOK-AHEAD
+  // ================================================================
+
+  double _calculateAdaptiveLookAhead({
+    required RouteResult route,
+    required int nearestSegmentIndex,
+    required LatLon projectedPoint,
+  }) {
+    final turnDistance =
+        _distanceToNextMeaningfulTurn(
+      route: route,
+      startSegmentIndex:
+          nearestSegmentIndex,
+      projectedPoint:
+          projectedPoint,
+    );
+
+    if (turnDistance == null) {
+      return defaultLookAheadMeters
+          .clamp(
+            minimumLookAheadMeters,
+            maximumLookAheadMeters,
+          )
+          .toDouble();
+    }
+
+    // Very close to a turn.
+    if (turnDistance <= 7.0) {
+      return minimumLookAheadMeters;
+    }
+
+    // Turn is approaching.
+    if (turnDistance <= 15.0) {
+      return 5.0;
+    }
+
+    // Turn exists but is still far enough away.
+    if (turnDistance <= 25.0) {
+      return 7.0;
+    }
+
+    return maximumLookAheadMeters;
+  }
+
+  // ================================================================
+  // NEXT TURN
+  // ================================================================
+
+  double? _distanceToNextMeaningfulTurn({
+    required RouteResult route,
+    required int startSegmentIndex,
+    required LatLon projectedPoint,
+  }) {
+    final polyline = route.polyline;
+
+    if (polyline.length < 3) {
+      return null;
+    }
+
+    var accumulatedDistance = 0.0;
+
+    // Distance from the current projected point
+    // to the end of the current segment.
+    if (startSegmentIndex <
+        polyline.length - 1) {
+      accumulatedDistance +=
+          distanceBetween(
+        projectedPoint,
+        polyline[startSegmentIndex + 1],
+      );
+    }
+
+    for (
+      var i = startSegmentIndex + 1;
+      i < polyline.length - 1;
+      i++
+    ) {
+      if (i + 1 >= polyline.length) {
+        break;
+      }
+
+      final incomingBearing =
+          calculateBearing(
+        from: polyline[i - 1],
+        to: polyline[i],
+      );
+
+      final outgoingBearing =
+          calculateBearing(
+        from: polyline[i],
+        to: polyline[i + 1],
+      );
+
+      final turnAngle =
+          _angularDifference(
+        incomingBearing,
+        outgoingBearing,
+      );
+
+      if (turnAngle >=
+          turnDetectionAngleDegrees) {
+        return accumulatedDistance;
+      }
+
+      accumulatedDistance +=
+          distanceBetween(
+        polyline[i],
+        polyline[i + 1],
+      );
+    }
+
+    return null;
+  }
+
+  bool _isTurnNear({
+    required RouteResult route,
+    required int segmentIndex,
+  }) {
+    if (route.polyline.length < 3) {
+      return false;
+    }
+
+    if (segmentIndex <= 0 ||
+        segmentIndex >=
+            route.polyline.length - 1) {
+      return false;
+    }
+
+    final incomingBearing =
+        calculateBearing(
+      from:
+          route.polyline[segmentIndex - 1],
+      to:
+          route.polyline[segmentIndex],
+    );
+
+    final outgoingBearing =
+        calculateBearing(
+      from:
+          route.polyline[segmentIndex],
+      to:
+          route.polyline[segmentIndex + 1],
+    );
+
+    return _angularDifference(
+          incomingBearing,
+          outgoingBearing,
+        ) >=
+        turnDetectionAngleDegrees;
+  }
+
+  // ================================================================
+  // NEAREST ROUTE POINT
+  // ================================================================
+
+  int findNearestPointIndex({
+    required LatLon currentPosition,
+    required List<LatLon> polyline,
+  }) {
+    if (polyline.isEmpty) {
+      throw const RouteProgressFailure(
+        'Route polyline is empty.',
+      );
+    }
+
+    final nearest =
+        _findNearestPointOnRoute(
+      currentPosition: currentPosition,
+      polyline: polyline,
+    );
+
+    return nearest.segmentIndex;
+  }
+
+  // ================================================================
+  // DISTANCE
+  // ================================================================
+
+  double distanceBetween(
+    LatLon first,
+    LatLon second,
+  ) {
+    const earthRadiusMeters =
+        6371000.0;
+
+    final latitude1 =
+        _degreesToRadians(
+      first.latitude,
+    );
+
+    final latitude2 =
+        _degreesToRadians(
+      second.latitude,
+    );
+
+    final deltaLatitude =
+        _degreesToRadians(
+      second.latitude -
+          first.latitude,
+    );
+
+    final deltaLongitude =
+        _degreesToRadians(
+      second.longitude -
+          first.longitude,
+    );
+
+    final a =
+        math.sin(
+                  deltaLatitude / 2,
+                ) *
+                math.sin(
+                  deltaLatitude / 2,
+                ) +
+            math.cos(latitude1) *
+                math.cos(latitude2) *
+                math.sin(
+                  deltaLongitude / 2,
+                ) *
+                math.sin(
+                  deltaLongitude / 2,
+                );
+
+    final c =
+        2 *
+        math.atan2(
+          math.sqrt(a),
+          math.sqrt(1 - a),
+        );
+
+    return earthRadiusMeters * c;
+  }
+
+  // ================================================================
+  // BEARING
+  // ================================================================
+
+  double calculateBearing({
+    required LatLon from,
+    required LatLon to,
+  }) {
+    final latitude1 =
+        _degreesToRadians(
+      from.latitude,
+    );
+
+    final latitude2 =
+        _degreesToRadians(
+      to.latitude,
+    );
+
+    final deltaLongitude =
+        _degreesToRadians(
+      to.longitude -
+          from.longitude,
+    );
+
+    final y =
+        math.sin(deltaLongitude) *
+            math.cos(latitude2);
+
+    final x =
+        math.cos(latitude1) *
+                math.sin(latitude2) -
+            math.sin(latitude1) *
+                math.cos(latitude2) *
+                math.cos(deltaLongitude);
+
+    final bearing =
+        math.atan2(y, x);
+
+    return _normalizeBearing(
+      _radiansToDegrees(bearing),
+    );
+  }
+
+  // ================================================================
+  // NEAREST POINT
+  // ================================================================
+
+  _NearestRoutePoint _findNearestPointOnRoute({
+    required LatLon currentPosition,
+    required List<LatLon> polyline,
+  }) {
+    var nearestDistance =
+        double.infinity;
+
+    var nearestSegmentIndex = 0;
+
+    LatLon? nearestPoint;
+
+    for (
+      var i = 0;
+      i < polyline.length - 1;
+      i++
+    ) {
+      final start =
+          polyline[i];
+
+      final end =
+          polyline[i + 1];
+
+      final projected =
+          _projectPointOntoSegment(
+        currentPosition,
+        start,
+        end,
+      );
+
+      final distance =
+          distanceBetween(
+        currentPosition,
+        projected,
+      );
+
+      if (distance <
+          nearestDistance) {
+        nearestDistance =
+            distance;
+
+        nearestSegmentIndex =
+            i;
+
+        nearestPoint =
+            projected;
+      }
+    }
+
+    return _NearestRoutePoint(
+      segmentIndex:
+          nearestSegmentIndex,
+      projectedPoint:
+          nearestPoint!,
+      distanceFromRouteMeters:
+          nearestDistance,
+    );
+  }
+
+  // ================================================================
+  // PROJECT GPS ONTO ROUTE SEGMENT
+  // ================================================================
+
+  LatLon _projectPointOntoSegment(
+    LatLon point,
+    LatLon start,
+    LatLon end,
+  ) {
+    final latitudeScale =
+        111320.0;
+
+    final longitudeScale =
+        111320.0 *
+            math.cos(
+              _degreesToRadians(
+                point.latitude,
+              ),
+            );
+
+    final px =
+        (point.longitude -
+                start.longitude) *
+            longitudeScale;
+
+    final py =
+        (point.latitude -
+                start.latitude) *
+            latitudeScale;
+
+    final sx =
+        (end.longitude -
+                start.longitude) *
+            longitudeScale;
+
+    final sy =
+        (end.latitude -
+                start.latitude) *
+            latitudeScale;
+
+    final segmentLengthSquared =
+        sx * sx + sy * sy;
+
+    if (segmentLengthSquared == 0) {
+      return start;
+    }
+
+    var t =
+        (px * sx + py * sy) /
+            segmentLengthSquared;
+
+    t = t.clamp(
+      0.0,
+      1.0,
+    );
+
+    return _interpolatePoint(
+      start,
+      end,
+      t,
+    );
+  }
+
+  // ================================================================
+  // INTERPOLATION
+  // ================================================================
+
+  LatLon _interpolatePoint(
+    LatLon start,
+    LatLon end,
+    double factor,
+  ) {
+    return LatLon(
+      latitude:
+          start.latitude +
+              (end.latitude -
+                      start.latitude) *
+                  factor,
+      longitude:
+          start.longitude +
+              (end.longitude -
+                      start.longitude) *
+                  factor,
+    );
+  }
+
+  // ================================================================
+  // ANGLES
+  // ================================================================
+
+  double _angularDifference(
+    double first,
+    double second,
+  ) {
+    var difference =
+        (first - second) % 360;
+
+    if (difference > 180) {
+      difference -= 360;
+    }
+
+    if (difference < -180) {
+      difference += 360;
+    }
+
+    return difference.abs();
+  }
+
+  double _normalizeBearing(
+    double bearing,
+  ) {
+    var normalized =
+        bearing % 360;
+
+    if (normalized < 0) {
+      normalized += 360;
+    }
+
+    return normalized;
+  }
+
+  double _degreesToRadians(
+    double degrees,
+  ) {
+    return degrees *
+        math.pi /
+        180.0;
+  }
+
+  double _radiansToDegrees(
+    double radians,
+  ) {
+    return radians *
+        180.0 /
+        math.pi;
+  }
+}
+
+// ================================================================
+// ROUTE TARGET
+// ================================================================
+
+class RouteTarget {
+  const RouteTarget({
+    required this.point,
+    required this.index,
+    required this.distanceAheadMeters,
+    required this.distanceFromRouteMeters,
+    required this.routeBearing,
+    required this.isNearTurn,
+  });
+
+  final LatLon point;
+
+  /// Polyline segment/end index around the target.
+  final int index;
+
+  /// Actual distance travelled ahead along the route.
+  final double distanceAheadMeters;
+
+  /// Distance between GPS position and route.
+  final double distanceFromRouteMeters;
+
+  /// Direction of travel along the route.
+  ///
+  /// This is deliberately different from the bearing
+  /// from the user's GPS position to the target.
+  final double? routeBearing;
+
+  /// Whether the target is close to a meaningful route turn.
+  final bool isNearTurn;
+}
+
+// ================================================================
+// INTERNAL NEAREST POINT
+// ================================================================
+
+class _NearestRoutePoint {
+  const _NearestRoutePoint({
+    required this.segmentIndex,
+    required this.projectedPoint,
+    required this.distanceFromRouteMeters,
+  });
+
+  final int segmentIndex;
+  final LatLon projectedPoint;
+  final double distanceFromRouteMeters;
+}
+
+// ================================================================
+// FAILURE
+// ================================================================
+
+class RouteProgressFailure implements Exception {
+  const RouteProgressFailure(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
+}
+
