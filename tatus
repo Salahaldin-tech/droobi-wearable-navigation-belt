@@ -1,0 +1,881 @@
+[1mdiff --git a/lib/services/navigation/navigation_service.dart b/lib/services/navigation/navigation_service.dart[m
+[1mindex f640b6c..9309a30 100644[m
+[1m--- a/lib/services/navigation/navigation_service.dart[m
+[1m+++ b/lib/services/navigation/navigation_service.dart[m
+[36m@@ -1,4 +1,3 @@[m
+[31m-[m
+ import 'dart:async';[m
+ import 'dart:math' as math;[m
+ [m
+[36m@@ -42,7 +41,6 @@[m [mclass NavigationSnapshot {[m
+   final NavigationState state;[m
+ [m
+   final LatLon? currentPosition;[m
+[31m-[m
+   final double? accuracyMeters;[m
+ [m
+   final RouteResult? route;[m
+[36m@@ -76,8 +74,11 @@[m [mclass NavigationService {[m
+     // --------------------------------------------------------------[m
+     // ROUTE FOLLOWING[m
+     // --------------------------------------------------------------[m
+[31m-[m
+[31m-    this.lookAheadMeters = 8.0,[m
+[32m+[m[32m    //[m
+[32m+[m[32m    // null means RouteProgressService decides the look-ahead[m
+[32m+[m[32m    // adaptively according to the route and upcoming turns.[m
+[32m+[m[32m    //[m
+[32m+[m[32m    this.lookAheadMeters,[m
+ [m
+     this.arrivalDistanceMeters = 8.0,[m
+ [m
+[36m@@ -98,14 +99,11 @@[m [mclass NavigationService {[m
+         _routingService = routingService,[m
+         _compassService = compassService,[m
+         _gpsFilterService =[m
+[31m-            gpsFilterService ??[m
+[31m-                GpsFilterService(),[m
+[32m+[m[32m            gpsFilterService ?? GpsFilterService(),[m
+         _routeProgressService =[m
+[31m-            routeProgressService ??[m
+[31m-                RouteProgressService(),[m
+[32m+[m[32m            routeProgressService ?? RouteProgressService(),[m
+         _directionCalculator =[m
+[31m-            directionCalculator ??[m
+[31m-                DirectionCalculator();[m
+[32m+[m[32m            directionCalculator ?? DirectionCalculator();[m
+ [m
+   final LocationService _locationService;[m
+ [m
+[36m@@ -123,10 +121,11 @@[m [mclass NavigationService {[m
+   // SETTINGS[m
+   // ================================================================[m
+ [m
+[31m-  /// Fallback look-ahead.[m
+[32m+[m[32m  /// Optional fallback look-ahead.[m
+   ///[m
+[31m-  /// RouteProgressService can reduce this near turns.[m
+[31m-  final double lookAheadMeters;[m
+[32m+[m[32m  /// When null, RouteProgressService calculates the adaptive[m
+[32m+[m[32m  /// look-ahead automatically.[m
+[32m+[m[32m  final double? lookAheadMeters;[m
+ [m
+   final double arrivalDistanceMeters;[m
+ [m
+[36m@@ -140,17 +139,13 @@[m [mclass NavigationService {[m
+   // STREAMS[m
+   // ================================================================[m
+ [m
+[31m-  StreamSubscription<LocationFix>?[m
+[31m-      _locationSubscription;[m
+[32m+[m[32m  StreamSubscription<LocationFix>? _locationSubscription;[m
+ [m
+[31m-  StreamSubscription<double>?[m
+[31m-      _compassSubscription;[m
+[32m+[m[32m  StreamSubscription<double>? _compassSubscription;[m
+ [m
+[31m-  final StreamController<[m
+[31m-          NavigationSnapshot>[m
+[32m+[m[32m  final StreamController<NavigationSnapshot>[m
+       _snapshotController =[m
+[31m-      StreamController<[m
+[31m-          NavigationSnapshot>.broadcast();[m
+[32m+[m[32m      StreamController<NavigationSnapshot>.broadcast();[m
+ [m
+   // ================================================================[m
+   // STATE[m
+[36m@@ -197,15 +192,12 @@[m [mclass NavigationService {[m
+   // PUBLIC[m
+   // ================================================================[m
+ [m
+[31m-  Stream<NavigationSnapshot>[m
+[31m-      get snapshots =>[m
+[31m-          _snapshotController.stream;[m
+[32m+[m[32m  Stream<NavigationSnapshot> get snapshots =>[m
+[32m+[m[32m      _snapshotController.stream;[m
+ [m
+[31m-  NavigationSnapshot get snapshot =>[m
+[31m-      _snapshot;[m
+[32m+[m[32m  NavigationSnapshot get snapshot => _snapshot;[m
+ [m
+[31m-  bool get isNavigating =>[m
+[31m-      _isNavigating;[m
+[32m+[m[32m  bool get isNavigating => _isNavigating;[m
+ [m
+   // ================================================================[m
+   // START[m
+[36m@@ -220,8 +212,7 @@[m [mclass NavigationService {[m
+       );[m
+     }[m
+ [m
+[31m-    if (_isStarting ||[m
+[31m-        _isNavigating) {[m
+[32m+[m[32m    if (_isStarting || _isNavigating) {[m
+       return;[m
+     }[m
+ [m
+[36m@@ -229,13 +220,11 @@[m [mclass NavigationService {[m
+ [m
+     await stop();[m
+ [m
+[31m-    _destination =[m
+[31m-        destination;[m
+[32m+[m[32m    _destination = destination;[m
+ [m
+     _publish([m
+       const NavigationSnapshot([m
+[31m-        state:[m
+[31m-            NavigationState.starting,[m
+[32m+[m[32m        state: NavigationState.starting,[m
+       ),[m
+     );[m
+ [m
+[36m@@ -243,37 +232,23 @@[m [mclass NavigationService {[m
+       // ------------------------------------------------------------[m
+       // 1. INITIAL GPS[m
+       // ------------------------------------------------------------[m
+[31m-[m
+[31m-      final initialFix =[m
+[31m-          await _locationService[m
+[31m-              .getCurrentLocationFix();[m
+[32m+[m[32m      //[m
+[32m+[m[32m      // Keeps trying until the GPS quality filter accepts a fix[m
+[32m+[m[32m      // (or the timeout is reached).[m
+ [m
+       final filteredFix =[m
+[31m-          _gpsFilterService.process([m
+[31m-        initialFix,[m
+[31m-      );[m
+[31m-[m
+[31m-      if (filteredFix == null) {[m
+[31m-        throw const NavigationFailure([m
+[31m-          'Initial GPS position was rejected by '[m
+[31m-          'the GPS quality filter.',[m
+[31m-        );[m
+[31m-      }[m
+[32m+[m[32m          await _waitForGoodInitialFix();[m
+ [m
+[31m-      _lastAcceptedFix =[m
+[31m-          filteredFix;[m
+[32m+[m[32m      _lastAcceptedFix = filteredFix;[m
+ [m
+       // ------------------------------------------------------------[m
+       // 2. ROUTE[m
+       // ------------------------------------------------------------[m
+ [m
+       final route =[m
+[31m-          await _routingService[m
+[31m-              .computeRoute([m
+[31m-        origin:[m
+[31m-            filteredFix.position,[m
+[31m-        destination:[m
+[31m-            destination,[m
+[32m+[m[32m          await _routingService.computeRoute([m
+[32m+[m[32m        origin: filteredFix.position,[m
+[32m+[m[32m        destination: destination,[m
+       );[m
+ [m
+       if (route.polyline.isEmpty) {[m
+[36m@@ -289,8 +264,7 @@[m [mclass NavigationService {[m
+       // ------------------------------------------------------------[m
+ [m
+       final initialHeading =[m
+[31m-          await _compassService[m
+[31m-              .getCurrentHeading();[m
+[32m+[m[32m          await _compassService.getCurrentHeading();[m
+ [m
+       _resetCompassSmoothing();[m
+ [m
+[36m@@ -301,8 +275,7 @@[m [mclass NavigationService {[m
+               ) ??[m
+               initialHeading;[m
+ [m
+[31m-      _latestHeading =[m
+[31m-          smoothedInitialHeading;[m
+[32m+[m[32m      _latestHeading = smoothedInitialHeading;[m
+ [m
+       // ------------------------------------------------------------[m
+       // 4. START LIVE NAVIGATION[m
+[36m@@ -312,16 +285,11 @@[m [mclass NavigationService {[m
+ [m
+       _publish([m
+         NavigationSnapshot([m
+[31m-          state:[m
+[31m-              NavigationState.navigating,[m
+[31m-          currentPosition:[m
+[31m-              filteredFix.position,[m
+[31m-          accuracyMeters:[m
+[31m-              filteredFix[m
+[31m-                  .accuracyMeters,[m
+[32m+[m[32m          state: NavigationState.navigating,[m
+[32m+[m[32m          currentPosition: filteredFix.position,[m
+[32m+[m[32m          accuracyMeters: filteredFix.accuracyMeters,[m
+           route: route,[m
+[31m-          heading:[m
+[31m-              smoothedInitialHeading,[m
+[32m+[m[32m          heading: smoothedInitialHeading,[m
+         ),[m
+       );[m
+ [m
+[36m@@ -342,10 +310,8 @@[m [mclass NavigationService {[m
+ [m
+       _publish([m
+         NavigationSnapshot([m
+[31m-          state:[m
+[31m-              NavigationState.routeUnavailable,[m
+[31m-          errorMessage:[m
+[31m-              e.toString(),[m
+[32m+[m[32m          state: NavigationState.routeUnavailable,[m
+[32m+[m[32m          errorMessage: e.toString(),[m
+         ),[m
+       );[m
+ [m
+[36m@@ -355,18 +321,56 @@[m [mclass NavigationService {[m
+     }[m
+   }[m
+ [m
+[32m+[m[32m  // ================================================================[m
+[32m+[m[32m  // INITIAL GPS RETRY[m
+[32m+[m[32m  // ================================================================[m
+[32m+[m
+[32m+[m[32m  Future<LocationFix> _waitForGoodInitialFix({[m
+[32m+[m[32m    Duration timeout = const Duration(seconds: 30),[m
+[32m+[m[32m    Duration retryDelay = const Duration(seconds: 1),[m
+[32m+[m[32m  }) async {[m
+[32m+[m[32m    final deadline = DateTime.now().add(timeout);[m
+[32m+[m
+[32m+[m[32m    while (DateTime.now().isBefore(deadline)) {[m
+[32m+[m[32m      // stop() was called while we were waiting.[m
+[32m+[m[32m      if (_destination == null) {[m
+[32m+[m[32m        throw const NavigationFailure([m
+[32m+[m[32m          'Navigation was cancelled.',[m
+[32m+[m[32m        );[m
+[32m+[m[32m      }[m
+[32m+[m
+[32m+[m[32m      try {[m
+[32m+[m[32m        final rawFix =[m
+[32m+[m[32m            await _locationService.getCurrentLocationFix();[m
+[32m+[m
+[32m+[m[32m        final filtered =[m
+[32m+[m[32m            _gpsFilterService.process(rawFix);[m
+[32m+[m
+[32m+[m[32m        if (filtered != null) {[m
+[32m+[m[32m          return filtered;[m
+[32m+[m[32m        }[m
+[32m+[m[32m      } catch (_) {[m
+[32m+[m[32m        // GPS read failed, keep trying until the timeout.[m
+[32m+[m[32m      }[m
+[32m+[m
+[32m+[m[32m      await Future.delayed(retryDelay);[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    throw const NavigationFailure([m
+[32m+[m[32m      'Could not get a good GPS fix. '[m
+[32m+[m[32m      'Move to an open area and try again.',[m
+[32m+[m[32m    );[m
+[32m+[m[32m  }[m
+[32m+[m
+   // ================================================================[m
+   // GPS STREAM[m
+   // ================================================================[m
+ [m
+   void _startLocationStream() {[m
+[31m-    _locationSubscription[m
+[31m-        ?.cancel();[m
+[32m+[m[32m    _locationSubscription?.cancel();[m
+ [m
+     _locationSubscription =[m
+[31m-        _locationService[m
+[31m-            .locationFixStream[m
+[31m-            .listen([m
+[32m+[m[32m        _locationService.locationFixStream.listen([m
+       _handleLocationFix,[m
+       onError: (Object error) {[m
+         if (!_isNavigating) {[m
+[36m@@ -375,20 +379,13 @@[m [mclass NavigationService {[m
+ [m
+         _publish([m
+           NavigationSnapshot([m
+[31m-            state:[m
+[31m-                NavigationState[m
+[31m-                    .gpsUnavailable,[m
+[31m-            currentPosition:[m
+[31m-                _lastAcceptedFix[m
+[31m-                    ?.position,[m
+[32m+[m[32m            state: NavigationState.gpsUnavailable,[m
+[32m+[m[32m            currentPosition: _lastAcceptedFix?.position,[m
+             accuracyMeters:[m
+[31m-                _lastAcceptedFix[m
+[31m-                    ?.accuracyMeters,[m
+[32m+[m[32m                _lastAcceptedFix?.accuracyMeters,[m
+             route: _route,[m
+[31m-            heading:[m
+[31m-                _latestHeading,[m
+[31m-            errorMessage:[m
+[31m-                error.toString(),[m
+[32m+[m[32m            heading: _latestHeading,[m
+[32m+[m[32m            errorMessage: error.toString(),[m
+           ),[m
+         );[m
+       },[m
+[36m@@ -398,39 +395,30 @@[m [mclass NavigationService {[m
+   void _handleLocationFix([m
+     LocationFix rawFix,[m
+   ) {[m
+[31m-    if (!_isNavigating ||[m
+[31m-        _route == null) {[m
+[32m+[m[32m    if (!_isNavigating || _route == null) {[m
+       return;[m
+     }[m
+ [m
+     final filteredFix =[m
+[31m-        _gpsFilterService[m
+[31m-            .process(rawFix);[m
+[32m+[m[32m        _gpsFilterService.process(rawFix);[m
+ [m
+     if (filteredFix == null) {[m
+[32m+[m[32m      // Ignore rejected GPS samples without stopping navigation.[m
+       return;[m
+     }[m
+ [m
+[31m-    _lastAcceptedFix =[m
+[31m-        filteredFix;[m
+[32m+[m[32m    _lastAcceptedFix = filteredFix;[m
+ [m
+[31m-    final heading =[m
+[31m-        _latestHeading;[m
+[32m+[m[32m    final heading = _latestHeading;[m
+ [m
+     if (heading == null) {[m
+       _publish([m
+         NavigationSnapshot([m
+[31m-          state:[m
+[31m-              NavigationState[m
+[31m-                  .recovering,[m
+[31m-          currentPosition:[m
+[31m-              filteredFix.position,[m
+[31m-          accuracyMeters:[m
+[31m-              filteredFix[m
+[31m-                  .accuracyMeters,[m
+[32m+[m[32m          state: NavigationState.recovering,[m
+[32m+[m[32m          currentPosition: filteredFix.position,[m
+[32m+[m[32m          accuracyMeters: filteredFix.accuracyMeters,[m
+           route: _route,[m
+[31m-          errorMessage:[m
+[31m-              'Waiting for compass heading.',[m
+[32m+[m[32m          errorMessage: 'Waiting for compass heading.',[m
+         ),[m
+       );[m
+ [m
+[36m@@ -448,13 +436,10 @@[m [mclass NavigationService {[m
+   // ================================================================[m
+ [m
+   void _startCompassStream() {[m
+[31m-    _compassSubscription[m
+[31m-        ?.cancel();[m
+[32m+[m[32m    _compassSubscription?.cancel();[m
+ [m
+     _compassSubscription =[m
+[31m-        _compassService[m
+[31m-            .headingStream[m
+[31m-            .listen([m
+[32m+[m[32m        _compassService.headingStream.listen([m
+       _handleCompassHeading,[m
+       onError: (Object error) {[m
+         if (!_isNavigating) {[m
+[36m@@ -463,20 +448,13 @@[m [mclass NavigationService {[m
+ [m
+         _publish([m
+           NavigationSnapshot([m
+[31m-            state:[m
+[31m-                NavigationState[m
+[31m-                    .recovering,[m
+[31m-            currentPosition:[m
+[31m-                _lastAcceptedFix[m
+[31m-                    ?.position,[m
+[32m+[m[32m            state: NavigationState.recovering,[m
+[32m+[m[32m            currentPosition: _lastAcceptedFix?.position,[m
+             accuracyMeters:[m
+[31m-                _lastAcceptedFix[m
+[31m-                    ?.accuracyMeters,[m
+[32m+[m[32m                _lastAcceptedFix?.accuracyMeters,[m
+             route: _route,[m
+[31m-            heading:[m
+[31m-                _latestHeading,[m
+[31m-            errorMessage:[m
+[31m-                'Compass error: $error',[m
+[32m+[m[32m            heading: _latestHeading,[m
+[32m+[m[32m            errorMessage: 'Compass error: $error',[m
+           ),[m
+         );[m
+       },[m
+[36m@@ -493,16 +471,13 @@[m [mclass NavigationService {[m
+     }[m
+ [m
+     final smoothedHeading =[m
+[31m-        _addCompassSample([m
+[31m-      rawHeading,[m
+[31m-    );[m
+[32m+[m[32m        _addCompassSample(rawHeading);[m
+ [m
+     if (smoothedHeading == null) {[m
+       return;[m
+     }[m
+ [m
+[31m-    _latestHeading =[m
+[31m-        smoothedHeading;[m
+[32m+[m[32m    _latestHeading = smoothedHeading;[m
+ [m
+     _updateNavigation([m
+       _lastAcceptedFix!,[m
+[36m@@ -519,13 +494,9 @@[m [mclass NavigationService {[m
+     bool forcePublish = false,[m
+   }) {[m
+     final normalized =[m
+[31m-        _normalizeHeading([m
+[31m-      heading,[m
+[31m-    );[m
+[32m+[m[32m        _normalizeHeading(heading);[m
+ [m
+[31m-    _headingSamples.add([m
+[31m-      normalized,[m
+[31m-    );[m
+[32m+[m[32m    _headingSamples.add(normalized);[m
+ [m
+     while (_headingSamples.length >[m
+         compassSampleCount) {[m
+[36m@@ -533,33 +504,26 @@[m [mclass NavigationService {[m
+     }[m
+ [m
+     final smoothed =[m
+[31m-        _circularMean([m
+[31m-      _headingSamples,[m
+[31m-    );[m
+[32m+[m[32m        _circularMean(_headingSamples);[m
+ [m
+     if (forcePublish ||[m
+[31m-        _lastPublishedHeading ==[m
+[31m-            null) {[m
+[31m-      _lastPublishedHeading =[m
+[31m-          smoothed;[m
+[32m+[m[32m        _lastPublishedHeading == null) {[m
+[32m+[m[32m      _lastPublishedHeading = smoothed;[m
+ [m
+       return smoothed;[m
+     }[m
+ [m
+[31m-    final change =[m
+[31m-        _angularDifference([m
+[32m+[m[32m    final change = _angularDifference([m
+       smoothed,[m
+       _lastPublishedHeading!,[m
+     );[m
+ [m
+     // Ignore small compass fluctuations.[m
+[31m-    if (change <[m
+[31m-        minimumHeadingChangeDegrees) {[m
+[32m+[m[32m    if (change < minimumHeadingChangeDegrees) {[m
+       return _lastPublishedHeading;[m
+     }[m
+ [m
+[31m-    _lastPublishedHeading =[m
+[31m-        smoothed;[m
+[32m+[m[32m    _lastPublishedHeading = smoothed;[m
+ [m
+     return smoothed;[m
+   }[m
+[36m@@ -572,21 +536,14 @@[m [mclass NavigationService {[m
+     }[m
+ [m
+     double sinSum = 0;[m
+[31m-[m
+     double cosSum = 0;[m
+ [m
+[31m-    for (final value[m
+[31m-        in values) {[m
+[32m+[m[32m    for (final value in values) {[m
+       final radians =[m
+[31m-          value *[m
+[31m-              math.pi /[m
+[31m-              180.0;[m
+[31m-[m
+[31m-      sinSum +=[m
+[31m-          math.sin(radians);[m
+[32m+[m[32m          value * math.pi / 180.0;[m
+ [m
+[31m-      cosSum +=[m
+[31m-          math.cos(radians);[m
+[32m+[m[32m      sinSum += math.sin(radians);[m
+[32m+[m[32m      cosSum += math.cos(radians);[m
+     }[m
+ [m
+     var result =[m
+[36m@@ -625,8 +582,7 @@[m [mclass NavigationService {[m
+   double _normalizeHeading([m
+     double heading,[m
+   ) {[m
+[31m-    var normalized =[m
+[31m-        heading % 360;[m
+[32m+[m[32m    var normalized = heading % 360;[m
+ [m
+     if (normalized < 0) {[m
+       normalized += 360;[m
+[36m@@ -638,8 +594,7 @@[m [mclass NavigationService {[m
+   void _resetCompassSmoothing() {[m
+     _headingSamples.clear();[m
+ [m
+[31m-    _lastPublishedHeading =[m
+[31m-        null;[m
+[32m+[m[32m    _lastPublishedHeading = null;[m
+ [m
+     _latestHeading = null;[m
+   }[m
+[36m@@ -653,12 +608,9 @@[m [mclass NavigationService {[m
+     double heading,[m
+   ) {[m
+     final route = _route;[m
+[32m+[m[32m    final destination = _destination;[m
+ [m
+[31m-    final destination =[m
+[31m-        _destination;[m
+[31m-[m
+[31m-    if (route == null ||[m
+[31m-        destination == null) {[m
+[32m+[m[32m    if (route == null || destination == null) {[m
+       return;[m
+     }[m
+ [m
+[36m@@ -667,13 +619,13 @@[m [mclass NavigationService {[m
+     // ------------------------------------------------------------[m
+ [m
+     final target =[m
+[31m-        _routeProgressService[m
+[31m-            .getNextTarget([m
+[31m-      currentPosition:[m
+[31m-          fix.position,[m
+[32m+[m[32m        _routeProgressService.getNextTarget([m
+[32m+[m[32m      currentPosition: fix.position,[m
+       route: route,[m
+[31m-      lookAheadMeters:[m
+[31m-          lookAheadMeters,[m
+[32m+[m
+[32m+[m[32m      // null tells RouteProgressService to choose[m
+[32m+[m[32m      // the appropriate look-ahead automatically.[m
+[32m+[m[32m      lookAheadMeters: lookAheadMeters,[m
+     );[m
+ [m
+     // ------------------------------------------------------------[m
+[36m@@ -681,8 +633,7 @@[m [mclass NavigationService {[m
+     // ------------------------------------------------------------[m
+ [m
+     final distanceToDestination =[m
+[31m-        _routeProgressService[m
+[31m-            .distanceBetween([m
+[32m+[m[32m        _routeProgressService.distanceBetween([m
+       fix.position,[m
+       destination,[m
+     );[m
+[36m@@ -691,18 +642,13 @@[m [mclass NavigationService {[m
+         arrivalDistanceMeters) {[m
+       _publish([m
+         NavigationSnapshot([m
+[31m-          state:[m
+[31m-              NavigationState.arrived,[m
+[31m-          currentPosition:[m
+[31m-              fix.position,[m
+[31m-          accuracyMeters:[m
+[31m-              fix.accuracyMeters,[m
+[32m+[m[32m          state: NavigationState.arrived,[m
+[32m+[m[32m          currentPosition: fix.position,[m
+[32m+[m[32m          accuracyMeters: fix.accuracyMeters,[m
+           route: route,[m
+[31m-          targetPoint:[m
+[31m-              destination,[m
+[32m+[m[32m          targetPoint: destination,[m
+           distanceFromRouteMeters:[m
+[31m-              target[m
+[31m-                  .distanceFromRouteMeters,[m
+[32m+[m[32m              target.distanceFromRouteMeters,[m
+           heading: heading,[m
+         ),[m
+       );[m
+[36m@@ -719,20 +665,17 @@[m [mclass NavigationService {[m
+     // IMPORTANT:[m
+     //[m
+     // We intentionally use the direction of the route segment,[m
+[31m-    // rather than calculating:[m
+[32m+[m[32m    // rather than calculating GPS -> target point.[m
+     //[m
+[31m-    //     GPS -> target point[m
+[31m-    //[m
+[31m-    // This prevents GPS being slightly left/right of the road[m
+[31m-    // from producing a false instruction to cross the road.[m
+[32m+[m[32m    // This prevents a small left/right GPS offset from producing[m
+[32m+[m[32m    // a false instruction to cross the road.[m
+     //[m
+     // The route itself determines the direction of travel.[m
+     // ------------------------------------------------------------[m
+ [m
+     final bearing =[m
+         target.routeBearing ??[m
+[31m-            _directionCalculator[m
+[31m-                .calculateBearing([m
+[32m+[m[32m            _directionCalculator.calculateBearing([m
+               from: fix.position,[m
+               to: target.point,[m
+             );[m
+[36m@@ -742,8 +685,7 @@[m [mclass NavigationService {[m
+     // ------------------------------------------------------------[m
+ [m
+     final relativeAngle =[m
+[31m-        _directionCalculator[m
+[31m-            .normalizeAngle([m
+[32m+[m[32m        _directionCalculator.normalizeAngle([m
+       bearing - heading,[m
+     );[m
+ [m
+[36m@@ -752,8 +694,7 @@[m [mclass NavigationService {[m
+     // ------------------------------------------------------------[m
+ [m
+     final rawDirection =[m
+[31m-        _directionCalculator[m
+[31m-            .directionFromAngle([m
+[32m+[m[32m        _directionCalculator.directionFromAngle([m
+       relativeAngle,[m
+     );[m
+ [m
+[36m@@ -762,9 +703,7 @@[m [mclass NavigationService {[m
+     // ------------------------------------------------------------[m
+ [m
+     final direction =[m
+[31m-        _stabilizeDirection([m
+[31m-      rawDirection,[m
+[31m-    );[m
+[32m+[m[32m        _stabilizeDirection(rawDirection);[m
+ [m
+     // ------------------------------------------------------------[m
+     // PUBLISH[m
+[36m@@ -772,26 +711,17 @@[m [mclass NavigationService {[m
+ [m
+     _publish([m
+       NavigationSnapshot([m
+[31m-        state:[m
+[31m-            NavigationState.navigating,[m
+[31m-        currentPosition:[m
+[31m-            fix.position,[m
+[31m-        accuracyMeters:[m
+[31m-            fix.accuracyMeters,[m
+[32m+[m[32m        state: NavigationState.navigating,[m
+[32m+[m[32m        currentPosition: fix.position,[m
+[32m+[m[32m        accuracyMeters: fix.accuracyMeters,[m
+         route: route,[m
+[31m-        targetPoint:[m
+[31m-            target.point,[m
+[32m+[m[32m        targetPoint: target.point,[m
+         distanceFromRouteMeters:[m
+[31m-            target[m
+[31m-                .distanceFromRouteMeters,[m
+[31m-        targetBearing:[m
+[31m-            bearing,[m
+[31m-        heading:[m
+[31m-            heading,[m
+[31m-        relativeAngle:[m
+[31m-            relativeAngle,[m
+[31m-        direction:[m
+[31m-            direction,[m
+[32m+[m[32m            target.distanceFromRouteMeters,[m
+[32m+[m[32m        targetBearing: bearing,[m
+[32m+[m[32m        heading: heading,[m
+[32m+[m[32m        relativeAngle: relativeAngle,[m
+[32m+[m[32m        direction: direction,[m
+       ),[m
+     );[m
+   }[m
+[36m@@ -800,45 +730,31 @@[m [mclass NavigationService {[m
+   // DIRECTION STABILITY[m
+   // ================================================================[m
+ [m
+[31m-  NavigationDirection[m
+[31m-      _stabilizeDirection([m
+[32m+[m[32m  NavigationDirection _stabilizeDirection([m
+     NavigationDirection candidate,[m
+   ) {[m
+     // First direction.[m
+[31m-    if (_confirmedDirection ==[m
+[31m-        null) {[m
+[31m-      _confirmedDirection =[m
+[31m-          candidate;[m
+[32m+[m[32m    if (_confirmedDirection == null) {[m
+[32m+[m[32m      _confirmedDirection = candidate;[m
+ [m
+[31m-      _candidateDirection =[m
+[31m-          null;[m
+[31m-[m
+[31m-      _candidateDirectionCount =[m
+[31m-          0;[m
+[32m+[m[32m      _candidateDirection = null;[m
+[32m+[m[32m      _candidateDirectionCount = 0;[m
+ [m
+       return _confirmedDirection!;[m
+     }[m
+ [m
+     // Same direction.[m
+[31m-    if (candidate ==[m
+[31m-        _confirmedDirection) {[m
+[31m-      _candidateDirection =[m
+[31m-          null;[m
+[31m-[m
+[31m-      _candidateDirectionCount =[m
+[31m-          0;[m
+[32m+[m[32m    if (candidate == _confirmedDirection) {[m
+[32m+[m[32m      _candidateDirection = null;[m
+[32m+[m[32m      _candidateDirectionCount = 0;[m
+ [m
+       return _confirmedDirection!;[m
+     }[m
+ [m
+     // New candidate.[m
+[31m-    if (_candidateDirection !=[m
+[31m-        candidate) {[m
+[31m-      _candidateDirection =[m
+[31m-          candidate;[m
+[31m-[m
+[31m-      _candidateDirectionCount =[m
+[31m-          1;[m
+[32m+[m[32m    if (_candidateDirection != candidate) {[m
+[32m+[m[32m      _candidateDirection = candidate;[m
+[32m+[m[32m      _candidateDirectionCount = 1;[m
+ [m
+       return _confirmedDirection!;[m
+     }[m
+[36m@@ -847,14 +763,10 @@[m [mclass NavigationService {[m
+ [m
+     if (_candidateDirectionCount >=[m
+         directionConfirmationSamples) {[m
+[31m-      _confirmedDirection =[m
+[31m-          _candidateDirection;[m
+[32m+[m[32m      _confirmedDirection = _candidateDirection;[m
+ [m
+[31m-      _candidateDirection =[m
+[31m-          null;[m
+[31m-[m
+[31m-      _candidateDirectionCount =[m
+[31m-          0;[m
+[32m+[m[32m      _candidateDirection = null;[m
+[32m+[m[32m      _candidateDirectionCount = 0;[m
+     }[m
+ [m
+     return _confirmedDirection!;[m
+[36m@@ -867,46 +779,30 @@[m [mclass NavigationService {[m
+   Future<void> stop() async {[m
+     _isNavigating = false;[m
+ [m
+[31m-    await _locationSubscription[m
+[31m-        ?.cancel();[m
+[31m-[m
+[31m-    _locationSubscription =[m
+[31m-        null;[m
+[31m-[m
+[31m-    await _compassSubscription[m
+[31m-        ?.cancel();[m
+[32m+[m[32m    await _locationSubscription?.cancel();[m
+[32m+[m[32m    _locationSubscription = null;[m
+ [m
+[31m-    _compassSubscription =[m
+[31m-        null;[m
+[32m+[m[32m    await _compassSubscription?.cancel();[m
+[32m+[m[32m    _compassSubscription = null;[m
+ [m
+     _gpsFilterService.reset();[m
+ [m
+[31m-    _lastAcceptedFix =[m
+[31m-        null;[m
+[31m-[m
+[31m-    _latestHeading =[m
+[31m-        null;[m
+[32m+[m[32m    _lastAcceptedFix = null;[m
+[32m+[m[32m    _latestHeading = null;[m
+ [m
+     _route = null;[m
+[31m-[m
+     _destination = null;[m
+ [m
+[31m-    _confirmedDirection =[m
+[31m-        null;[m
+[31m-[m
+[31m-    _candidateDirection =[m
+[31m-        null;[m
+[31m-[m
+[31m-    _candidateDirectionCount =[m
+[31m-        0;[m
+[32m+[m[32m    _confirmedDirection = null;[m
+[32m+[m[32m    _candidateDirection = null;[m
+[32m+[m[32m    _candidateDirectionCount = 0;[m
+ [m
+     _resetCompassSmoothing();[m
+ [m
+     if (!_isDisposed) {[m
+       _publish([m
+         const NavigationSnapshot([m
+[31m-          state:[m
+[31m-              NavigationState.stopped,[m
+[32m+[m[32m          state: NavigationState.stopped,[m
+         ),[m
+       );[m
+     }[m
+[36m@@ -919,14 +815,10 @@[m [mclass NavigationService {[m
+   void _publish([m
+     NavigationSnapshot snapshot,[m
+   ) {[m
+[31m-    _snapshot =[m
+[31m-        snapshot;[m
+[32m+[m[32m    _snapshot = snapshot;[m
+ [m
+[31m-    if (!_snapshotController[m
+[31m-        .isClosed) {[m
+[31m-      _snapshotController.add([m
+[31m-        snapshot,[m
+[31m-      );[m
+[32m+[m[32m    if (!_snapshotController.isClosed) {[m
+[32m+[m[32m      _snapshotController.add(snapshot);[m
+     }[m
+   }[m
+ [m
+[36m@@ -939,29 +831,20 @@[m [mclass NavigationService {[m
+ [m
+     _isNavigating = false;[m
+ [m
+[31m-    await _locationSubscription[m
+[31m-        ?.cancel();[m
+[31m-[m
+[31m-    await _compassSubscription[m
+[31m-        ?.cancel();[m
+[32m+[m[32m    await _locationSubscription?.cancel();[m
+[32m+[m[32m    await _compassSubscription?.cancel();[m
+ [m
+[31m-    if (!_snapshotController[m
+[31m-        .isClosed) {[m
+[32m+[m[32m    if (!_snapshotController.isClosed) {[m
+       await _snapshotController.close();[m
+     }[m
+   }[m
+ }[m
+ [m
+[31m-class NavigationFailure[m
+[31m-    implements Exception {[m
+[31m-  const NavigationFailure([m
+[31m-    this.message,[m
+[31m-  );[m
+[32m+[m[32mclass NavigationFailure implements Exception {[m
+[32m+[m[32m  const NavigationFailure(this.message);[m
+ [m
+   final String message;[m
+ [m
+   @override[m
+[31m-  String toString() =>[m
+[31m-      message;[m
+[31m-}[m
+[31m-[m
+[32m+[m[32m  String toString() => message;[m
+[32m+[m[32m}[m
+\ No newline at end of file[m

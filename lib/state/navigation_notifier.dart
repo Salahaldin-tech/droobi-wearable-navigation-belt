@@ -29,7 +29,12 @@ final navigationServiceProvider =
     directionCalculator:
         DirectionCalculator(),
 
-    lookAheadMeters: 10.0,
+    // Let RouteProgressService choose the adaptive
+    // look-ahead distance automatically.
+    //
+    // It can use shorter distances near turns instead
+    // of always forcing a fixed 10 meter target.
+    lookAheadMeters: null,
 
     arrivalDistanceMeters: 8.0,
   );

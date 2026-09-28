@@ -485,3 +485,51 @@ After that:
 So **we are NOT rebuilding Live Navigation, Search, NavigationService, RouteProgressService, or CompassService.**
 
 We're continuing from the existing implementation.
+
+
+
+>>>>>
+| Component                             | Status                         | Result                                                                                    |
+| ------------------------------------- | ------------------------------ | ----------------------------------------------------------------------------------------- |
+| **NavigationService**                 | ✅ Complete                     | Handles live navigation state, GPS, compass, route, directions, and arrival               |
+| **CompassService**                    | ✅ Improved                     | Added heading smoothing/stabilization                                                     |
+| **DirectionCalculator**               | ✅ Complete                     | Converts relative bearing into 8 navigation directions                                    |
+| **RouteProgressService**              | ✅ Complete                     | Finds position on route and selects navigation targets                                    |
+| **Adaptive look-ahead**               | ✅ Complete                     | Uses approximately **4–10 m depending on route/turn situation**, rather than a fixed 10 m |
+| **Production Live Navigation screen** | ✅ Complete                     | Real user-facing navigation screen                                                        |
+| **Direction arrows**                  | ✅ Complete                     | Center of the navigation screen                                                           |
+| **Search → Navigation**               | ✅ Complete                     | Selected search destination starts navigation                                             |
+| **Favorites → Navigation**            | ✅ Complete                     | Favorite destination starts navigation                                                    |
+| **Arrival detection**                 | ✅ Complete                     | Tested successfully                                                                       |
+| **Navigation provider/notifier**      | ✅ Complete                     | Connected to the navigation service                                                       |
+| **Hard-coded destination**            | ✅ Removed                      | Navigation uses the selected destination                                                  |
+| **Dev test dependency**               | ✅ Removed from production flow | Live Navigation is its own screen                                                         |
+| **University architecture**           | 🟡 Planned                     | Manual points/routes will be added later                                                  |
+| **BLE/Belt command behavior**         | 🟡 Planned                     | One command, then only send again when direction changes                                  |
+| **Whisper model bundling**            | ⏸                              |                                                                                           |
+
+
+.
+>>
+<
+### Current progress
+
+- ✅ NavigationService
+- ✅ Compass smoothing
+- ✅ Direction stabilization
+- ✅ RouteProgressService
+- ✅ Adaptive look-ahead (no forced 10 m)
+- ✅ Route-bearing / same-street handling
+- ✅ Production Live Navigation screen
+- ✅ Search → selected destination → Live Navigation
+- ✅ Favorites → selected destination flow
+- ✅ Navigation provider/notifier
+- ✅ Analyze clean
+- ⏳ **Next: real-world navigation test ( skip for now )**
+- ⏳ Then refine turn timing / same-street behavior( skip for now )
+
+ continue
+
+- ⏳ University manually defined routes later
+- ⏳ Belt sends **one direction command at a time**, changing only when the navigation direction changes
+- ⏳ Whisper model auto-install/package setup later

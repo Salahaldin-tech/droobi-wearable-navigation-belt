@@ -1,0 +1,1916 @@
+===== university_locations_screen.dart =====
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../models/university_location.dart';
+import '../../state/university_locations_notifier.dart';
+import '../../widgets/droobi_bottom_nav.dart';
+
+class UniversityLocationsScreen extends ConsumerStatefulWidget {
+  const UniversityLocationsScreen({super.key});
+
+  @override
+  ConsumerState<UniversityLocationsScreen> createState() =>
+      _UniversityLocationsScreenState();
+}
+
+class _UniversityLocationsScreenState
+    extends ConsumerState<UniversityLocationsScreen>
+    with SingleTickerProviderStateMixin {
+  static const Color _primaryBlue = Color(0xFF2F80ED);
+  static const Color _cardColor = Color(0xFFF5F5F5);
+  static const Color _textColor = Color(0xFF111111);
+  static const Color _secondaryText = Color(0xFF6B7280);
+
+  // Only the first items (the ones visible when the screen opens) animate.
+  static const int _maxAnimatedItems = 10;
+
+  late final AnimationController _backgroundController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _backgroundController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 10),
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Respect the system "remove animations" setting.
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
+
+    if (reduceMotion) {
+      _backgroundController.stop();
+    } else if (!_backgroundController.isAnimating) {
+      _backgroundController.repeat(reverse: true);
+    }
+  }
+
+  @override
+  void dispose() {
+    _backgroundController.dispose();
+    super.dispose();
+  }
+
+  /// Fade + small upward slide when the item first appears.
+  /// Items start slightly later one after another (stagger).
+  /// [index] is the position of the item on screen, from the top.
+  Widget _animatedItem(BuildContext context, int index, Widget child) {
+    if (index >= _maxAnimatedItems ||
+        MediaQuery.disableAnimationsOf(context)) {
+      return child;
+    }
+
+    final delayMs = index * 60;
+    final totalMs = 400 + delayMs;
+
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0, end: 1),
+      duration: Duration(milliseconds: totalMs),
+      curve: Interval(
+        delayMs / totalMs,
+        1.0,
+        curve: Curves.easeOutCubic,
+      ),
+      builder: (context, value, child) {
+        return Opacity(
+          opacity: value,
+          child: Transform.translate(
+            offset: Offset(0, 16 * (1 - value)),
+            child: child,
+          ),
+        );
+      },
+      child: child,
+    );
+  }
+
+  // ===========================================================================
+  // FIGMA DATA
+  // ===========================================================================
+
+  static const List<_UniversityItem> _colleges = [
+    _UniversityItem(
+      name: 'Faculty of Allied Medical Sciences',
+      nameAr: 'كلية العلوم الطبية المساعدة',
+      aliases: [
+        'Faculty of Allied Medical Sciences',
+        'Allied Medical Sciences',
+        'AMS',
+      ],
+    ),
+    _UniversityItem(
+      name: 'Faculty of Arts and Education',
+      nameAr: 'كلية الآداب والتربية',
+      aliases: [
+        'Faculty of Arts and Education',
+        'Faculty of Arts',
+        'Arts and Education',
+      ],
+    ),
+    _UniversityItem(
+      name: 'Faculty of Business',
+      nameAr: 'كلية الأعمال',
+      aliases: [
+        'Faculty of Business',
+        'Business',
+      ],
+    ),
+    _UniversityItem(
+      name: 'Faculty of Dentistry',
+      nameAr: 'كلية طب الأسنان',
+      aliases: [
+        'Faculty of Dentistry',
+        'Dentistry',
+        'DEN-A',
+        'DEN-B',
+      ],
+    ),
+    _UniversityItem(
+      name: 'Faculty of Engineering',
+      nameAr: 'كلية الهندسة',
+      aliases: [
+        'Faculty of Engineering',
+        'Faculty of Engineering and Information Technology',
+        'Faculty of Engineering and IT',
+        'Engineering and Information Technology',
+        'EIT',
+      ],
+    ),
+    _UniversityItem(
+      name: 'Faculty of Information Technology',
+      nameAr: 'كلية تكنولوجيا المعلومات',
+      aliases: [
+        'Faculty of Information Technology',
+        'Information Technology',
+        'IT',
+        'EIT',
+      ],
+    ),
+    _UniversityItem(
+      name: 'Faculty of Law',
+      nameAr: 'كلية القانون',
+      aliases: [
+        'Faculty of Law',
+        'Law',
+        'LAW',
+      ],
+    ),
+    _UniversityItem(
+      name: 'Faculty of Medicine',
+      nameAr: 'كلية الطب',
+      aliases: [
+        'Faculty of Medicine',
+        'Medicine',
+      ],
+    ),
+    _UniversityItem(
+      name: 'Faculty of Nursing',
+      nameAr: 'كلية التمريض',
+      aliases: [
+        'Faculty of Nursing',
+        'Nursing',
+      ],
+    ),
+    _UniversityItem(
+      name: 'Faculty of Pharmacy',
+      nameAr: 'كلية الصيدلة',
+      aliases: [
+        'Faculty of Pharmacy',
+        'Pharmacy',
+      ],
+    ),
+    _UniversityItem(
+      name: 'Faculty of Science',
+      nameAr: 'كلية العلوم',
+      aliases: [
+        'Faculty of Science',
+        'Faculty of Sciences',
+        'Science',
+        'A&S',
+      ],
+    ),
+    _UniversityItem(
+      name: 'Faculty of Sports Sciences',
+      nameAr: 'كلية علوم الرياضة',
+      aliases: [
+        'Faculty of Sports Sciences',
+        'Sports Sciences',
+      ],
+    ),
+  ];
+
+  static const List<_UniversityItem> _gates = [
+    _UniversityItem(
+      name: 'Gate 1',
+      nameAr: 'البوابة ١',
+      aliases: [
+        'Gate 1',
+        'G1',
+      ],
+    ),
+    _UniversityItem(
+      name: 'Gate 2',
+      nameAr: 'البوابة ٢',
+      aliases: [
+        'Gate 2',
+        'G2',
+      ],
+    ),
+    _UniversityItem(
+      name: 'Gate 3',
+      nameAr: 'البوابة ٣',
+      aliases: [
+        'Gate 3',
+        'G3',
+        'Gate 3 University Visitors Gate',
+      ],
+    ),
+    _UniversityItem(
+      name: 'Gate 4',
+      nameAr: 'البوابة ٤',
+      aliases: [
+        'Gate 4',
+        'G4',
+      ],
+    ),
+    _UniversityItem(
+      name: 'Gate 5',
+      nameAr: 'البوابة ٥',
+      aliases: [
+        'Gate 5',
+        'G5',
+      ],
+    ),
+  ];
+
+  static const List<_UniversityItem> _facilities = [
+    _UniversityItem(
+      name: 'Cafeteria',
+      nameAr: 'الكافتيريا',
+      aliases: [
+        'Cafeteria',
+        'Shopping Center',
+        'SC',
+      ],
+    ),
+    _UniversityItem(
+      name: 'Administration',
+      nameAr: 'الإدارة',
+      aliases: [
+        'Administration',
+        'Administrative Departments Building',
+        'AD',
+        'Presidential Building',
+        'PR',
+      ],
+    ),
+    _UniversityItem(
+      name: 'Library',
+      nameAr: 'المكتبة',
+      aliases: [
+        'Library',
+      ],
+    ),
+  ];
+
+  // ===========================================================================
+  // BUILD
+  // ===========================================================================
+
+  @override
+  Widget build(BuildContext context) {
+    final locationsAsync =
+        ref.watch(universityLocationsProvider);
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Stack(
+        children: [
+          // =====================================================================
+          // UNIVERSITY BACKGROUND
+          // =====================================================================
+
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/uni_bg.png',
+              fit: BoxFit.cover,
+              excludeFromSemantics: true,
+              errorBuilder: (
+                context,
+                error,
+                stackTrace,
+              ) {
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+
+          // =====================================================================
+          // LIGHT FOG
+          //
+          // A thin white layer (0.10) keeps the map clearly visible.
+          // =====================================================================
+
+          Positioned.fill(
+            child: Container(
+              color: Colors.white.withValues(
+                alpha: 1,
+              ),
+            ),
+          ),
+
+          // =====================================================================
+          // SOFT ANIMATED GRADIENT
+          // Very light blue and mint tints that drift slowly.
+          // =====================================================================
+
+          Positioned.fill(
+            child: IgnorePointer(
+              child: RepaintBoundary(
+                child: AnimatedBuilder(
+                  animation: _backgroundController,
+                  builder: (context, child) {
+                    final t = Curves.easeInOut.transform(
+                      _backgroundController.value,
+                    );
+
+                    return DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.lerp(
+                            Alignment.topLeft,
+                            Alignment.topRight,
+                            t,
+                          )!,
+                          end: Alignment.lerp(
+                            Alignment.bottomRight,
+                            Alignment.bottomLeft,
+                            t,
+                          )!,
+                          colors: [
+                            const Color(0xFFDCEBFF)
+                                .withValues(alpha: 0.30),
+                            Colors.white.withValues(alpha: 0.05),
+                            const Color(0xFFD9F5EA)
+                                .withValues(alpha: 0.25),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+
+          // =====================================================================
+          // CONTENT
+          // =====================================================================
+
+          SafeArea(
+            child: locationsAsync.when(
+              loading: () => const Center(
+                child: CircularProgressIndicator(
+                  color: _primaryBlue,
+                ),
+              ),
+              error: (error, _) => _buildErrorState(error),
+              data: (locations) {
+                return Column(
+                  children: [
+                    Expanded(
+                      child: _buildContent(
+                        context,
+                        locations,
+                      ),
+                    ),
+
+                    // Shared animated bottom navigation
+                    const DroobiBottomNav(
+                      currentItem: DroobiNavItem.university,
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ===========================================================================
+  // CONTENT
+  // ===========================================================================
+
+  Widget _buildContent(
+    BuildContext context,
+    List<UniversityLocation> locations,
+  ) {
+    // Position of each item from the top. Used only for the entrance
+    // animation, so the first items appear one after another.
+    int order = 0;
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(
+        24,
+        24,
+        24,
+        16,
+      ),
+      children: [
+        // -----------------------------------------------------------------------
+        // Header
+        // -----------------------------------------------------------------------
+
+        _animatedItem(
+          context,
+          order++,
+          const Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Arab American University',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w500,
+                  color: _textColor,
+                ),
+              ),
+
+              SizedBox(height: 4),
+
+              Text(
+                'الجامعة العربية الأمريكية',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: _secondaryText,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 28),
+
+        // -----------------------------------------------------------------------
+        // Colleges
+        // -----------------------------------------------------------------------
+
+        _animatedItem(
+          context,
+          order++,
+          _buildSectionHeader(
+            icon: Icons.school_outlined,
+            title: 'COLLEGES',
+          ),
+        ),
+
+        const SizedBox(height: 12),
+
+        ..._colleges.map(
+          (item) => _animatedItem(
+            context,
+            order++,
+            Padding(
+              padding: const EdgeInsets.only(
+                bottom: 8,
+              ),
+              child: _buildLocationCard(
+                context: context,
+                item: item,
+                locations: locations,
+              ),
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 16),
+
+        // -----------------------------------------------------------------------
+        // Gates
+        // -----------------------------------------------------------------------
+
+        _buildSectionHeader(
+          icon: Icons.business_outlined,
+          title: 'GATES',
+        ),
+
+        const SizedBox(height: 12),
+
+        GridView.builder(
+          shrinkWrap: true,
+          physics:
+              const NeverScrollableScrollPhysics(),
+          itemCount: _gates.length,
+          gridDelegate:
+              const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+            childAspectRatio: 2.8,
+          ),
+          itemBuilder: (
+            context,
+            index,
+          ) {
+            return _buildLocationCard(
+              context: context,
+              item: _gates[index],
+              locations: locations,
+              compact: true,
+            );
+          },
+        ),
+
+        const SizedBox(height: 28),
+
+        // -----------------------------------------------------------------------
+        // Facilities
+        // -----------------------------------------------------------------------
+
+        _buildSectionHeader(
+          icon: Icons.local_cafe_outlined,
+          title: 'FACILITIES',
+        ),
+
+        const SizedBox(height: 12),
+
+        ..._facilities.map(
+          (item) => Padding(
+            padding: const EdgeInsets.only(
+              bottom: 8,
+            ),
+            child: _buildLocationCard(
+              context: context,
+              item: item,
+              locations: locations,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ===========================================================================
+  // SECTION HEADER
+  // ===========================================================================
+
+  Widget _buildSectionHeader({
+    required IconData icon,
+    required String title,
+  }) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          size: 20,
+          color: _primaryBlue,
+        ),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: _secondaryText,
+            letterSpacing: 0.3,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ===========================================================================
+  // LOCATION CARD
+  // ===========================================================================
+
+  Widget _buildLocationCard({
+    required BuildContext context,
+    required _UniversityItem item,
+    required List<UniversityLocation> locations,
+    bool compact = false,
+  }) {
+    final location = _findLocation(
+      item,
+      locations,
+    );
+
+    final isAvailable = location != null;
+
+    return Semantics(
+      button: true,
+      enabled: isAvailable,
+      label: '${item.name}, ${item.nameAr}',
+      hint: isAvailable
+          ? 'Double tap to select this location.'
+          : 'This location is not available yet.',
+      child: Material(
+        color: _cardColor,
+        borderRadius:
+            BorderRadius.circular(10),
+        child: InkWell(
+          borderRadius:
+              BorderRadius.circular(10),
+          onTap: isAvailable
+              ? () {
+                  _handleLocationSelect(
+                    context,
+                    item,
+                    location,
+                  );
+                }
+              : () {
+                  _showUnavailableMessage(
+                    context,
+                    item,
+                  );
+                },
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: compact ? 10 : 12,
+            ),
+            child: Column(
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
+              mainAxisAlignment:
+                  MainAxisAlignment.center,
+              children: [
+                Text(
+                  item.name,
+                  maxLines: compact ? 1 : 2,
+                  overflow:
+                      TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize:
+                        compact ? 13 : 14,
+                    fontWeight:
+                        FontWeight.w500,
+                    color: isAvailable
+                        ? _textColor
+                        : _textColor.withValues(
+                            alpha: 0.55,
+                          ),
+                  ),
+                ),
+
+                const SizedBox(height: 2),
+
+                Text(
+                  item.nameAr,
+                  maxLines: 1,
+                  overflow:
+                      TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize:
+                        compact ? 11 : 12,
+                    color: isAvailable
+                        ? _secondaryText
+                        : _secondaryText.withValues(
+                            alpha: 0.65,
+                          ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ===========================================================================
+  // FIND LOCATION
+  // ===========================================================================
+
+  UniversityLocation? _findLocation(
+    _UniversityItem item,
+    List<UniversityLocation> locations,
+  ) {
+    for (final location in locations) {
+      final locationName =
+          _normalize(location.name);
+
+      for (final alias in item.aliases) {
+        final normalizedAlias =
+            _normalize(alias);
+
+        if (locationName == normalizedAlias ||
+            locationName.contains(
+              normalizedAlias,
+            ) ||
+            normalizedAlias.contains(
+              locationName,
+            )) {
+          return location;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  String _normalize(String value) {
+    return value
+        .trim()
+        .toLowerCase()
+        .replaceAll(
+          RegExp(r'[-_]+'),
+          ' ',
+        )
+        .replaceAll(
+          RegExp(r'\s+'),
+          ' ',
+        );
+  }
+
+  // ===========================================================================
+  // LOCATION SELECT
+  // ===========================================================================
+
+  void _handleLocationSelect(
+    BuildContext context,
+    _UniversityItem item,
+    UniversityLocation location,
+  ) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            'Selected ${item.name}',
+          ),
+        ),
+      );
+
+    // GPS + routing will be connected
+    // in the GPS/routing stage.
+    //
+    // The selected coordinates are available:
+    // location.latitude
+    // location.longitude
+  }
+
+  // ===========================================================================
+  // UNAVAILABLE LOCATION
+  // ===========================================================================
+
+  void _showUnavailableMessage(
+    BuildContext context,
+    _UniversityItem item,
+  ) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            '${item.name} is not available yet.',
+          ),
+        ),
+      );
+  }
+
+  // ===========================================================================
+  // ERROR STATE
+  // ===========================================================================
+
+  Widget _buildErrorState(
+    Object error,
+  ) {
+    return Center(
+      child: Padding(
+        padding:
+            const EdgeInsets.all(24),
+        child: Semantics(
+          liveRegion: true,
+          child: Column(
+            mainAxisSize:
+                MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.error_outline,
+                size: 48,
+                color:
+                    Colors.grey.shade400,
+              ),
+
+              const SizedBox(height: 16),
+
+              const Text(
+                'Could not load university locations.',
+                textAlign:
+                    TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight:
+                      FontWeight.w500,
+                  color: _textColor,
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              Text(
+                error.toString(),
+                textAlign:
+                    TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: _secondaryText,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ==============================================================================
+// UNIVERSITY ITEM
+// ==============================================================================
+
+class _UniversityItem {
+  const _UniversityItem({
+    required this.name,
+    required this.nameAr,
+    required this.aliases,
+  });
+
+  final String name;
+  final String nameAr;
+  final List<String> aliases;
+}
+===== university_location model =====
+/// A static/seeded university location, matching the
+/// universityLocations/{locationId} schema from Stage 2. Read-only
+/// from the app's perspective.
+class UniversityLocation {
+  const UniversityLocation({
+    required this.id,
+    required this.name,
+    required this.latitude,
+    required this.longitude,
+  });
+
+  final String id;
+  final String name;
+  final double latitude;
+  final double longitude;
+
+  factory UniversityLocation.fromFirestore(
+    String id,
+    Map<String, dynamic> data,
+  ) {
+    return UniversityLocation(
+      id: id,
+      name: (data['name'] as String?) ?? '',
+      latitude: (data['latitude'] as num?)?.toDouble() ?? 0,
+      longitude: (data['longitude'] as num?)?.toDouble() ?? 0,
+    );
+  }
+}
+
+===== destination model =====
+/// A resolved destination candidate, as returned by destination search.
+///
+/// This is the shared shape used by search results now, and will be
+/// reused by Favorites/University Locations in later stages since
+/// they carry the same minimal fields (per the Stage 2 data model).
+class Destination {
+  const Destination({
+    required this.name,
+    required this.latitude,
+    required this.longitude,
+    this.address,
+  });
+
+  final String name;
+  final double latitude;
+  final double longitude;
+
+  /// Formatted address, when the search provider returns one.
+  /// Nullable because not every provider/result guarantees it.
+  final String? address;
+}
+
+===== home_screen.dart =====
+import 'dart:ui' show ImageFilter;
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../core/enums/belt_connection_state.dart';
+import '../../core/enums/voice_command_state.dart';
+import '../../state/auth_state_notifier.dart';
+import '../../state/belt_connection_notifier.dart';
+import '../../state/voice_command_notifier.dart';
+import '../../widgets/connection_status_indicator.dart';
+import '../../widgets/droobi_bottom_nav.dart';
+import '../../widgets/voice_command_button.dart';
+import '../destination/destination_search_screen.dart';
+import '../favorites/favorites_screen.dart';
+import '../settings/settings_screen.dart';
+import '../university/university_locations_screen.dart';
+
+/// Droobi Home Screen.
+///
+/// Light and airy design on top of the original map background:
+/// - soft animated gradient over the map
+/// - fade/slide-in entrance for the header, search bar and belt card
+/// - frosted-glass search bar and belt card
+/// - animated belt status dot
+/// - side menu with a welcome header and slide-in animation
+///
+/// The microphone, its press-and-hold wiring, the voice-to-search
+/// navigation and the bottom navigation are unchanged.
+class HomeScreen extends ConsumerStatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen>
+    with TickerProviderStateMixin {
+  static const Color _blue = Color(0xFF2F80ED);
+  static const Color _green = Color(0xFF27AE60);
+  static const Color _grey = Color(0xFF9CA3AF);
+  static const Color _text = Color(0xFF111111);
+  static const Color _muted = Color(0xFF6B7280);
+
+  late final AnimationController _entranceController;
+  late final AnimationController _backgroundController;
+
+  late final Animation<double> _headerAnimation;
+  late final Animation<double> _searchAnimation;
+  late final Animation<double> _beltAnimation;
+
+  bool _entranceStarted = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _entranceController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
+
+    _backgroundController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 10),
+    );
+
+    _headerAnimation = CurvedAnimation(
+      parent: _entranceController,
+      curve: const Interval(0.0, 0.55, curve: Curves.easeOutCubic),
+    );
+
+    _searchAnimation = CurvedAnimation(
+      parent: _entranceController,
+      curve: const Interval(0.15, 0.70, curve: Curves.easeOutCubic),
+    );
+
+    _beltAnimation = CurvedAnimation(
+      parent: _entranceController,
+      curve: const Interval(0.30, 0.85, curve: Curves.easeOutCubic),
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Respect the system "remove animations" setting.
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
+
+    if (reduceMotion) {
+      _entranceController.value = 1.0;
+      _backgroundController.stop();
+    } else {
+      if (!_entranceStarted) {
+        _entranceStarted = true;
+        _entranceController.forward();
+      }
+
+      if (!_backgroundController.isAnimating) {
+        _backgroundController.repeat(reverse: true);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _entranceController.dispose();
+    _backgroundController.dispose();
+    super.dispose();
+  }
+
+  void _handleMicPress() {
+    ref.read(voiceCommandProvider.notifier).onMicPress();
+  }
+
+  void _handleMicRelease() {
+    ref.read(voiceCommandProvider.notifier).onMicRelease();
+  }
+
+  /// Name of the signed-in user, or an empty string if it is not known.
+  String _currentUserName() {
+    final user = ref.read(authStateProvider).value;
+    final String? rawName = user?.displayName;
+
+    return (rawName ?? '').trim();
+  }
+
+  /// Fade + small upward slide, driven by one of the entrance animations.
+  Widget _fadeSlide(Animation<double> animation, Widget child) {
+    return FadeTransition(
+      opacity: animation,
+      child: SlideTransition(
+        position: animation.drive(
+          Tween<Offset>(
+            begin: const Offset(0, 0.2),
+            end: Offset.zero,
+          ),
+        ),
+        child: child,
+      ),
+    );
+  }
+
+  /// Frosted-glass container: blurred map behind a translucent white layer.
+  Widget _glassCard({
+    required Widget child,
+    double radius = 12,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(radius),
+        boxShadow: const [
+          BoxShadow(
+            blurRadius: 16,
+            offset: Offset(0, 6),
+            color: Color(0x14000000),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(radius),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.68),
+              borderRadius: BorderRadius.circular(radius),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.75),
+              ),
+            ),
+            child: child,
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final connectionAsync = ref.watch(beltConnectionStateProvider);
+    final beltService = ref.watch(beltConnectionServiceProvider);
+
+    final beltState =
+        connectionAsync.value ?? beltService.currentState;
+
+    final isBeltConnected =
+        beltState == BeltConnectionState.connected;
+
+    final voiceState = ref.watch(voiceCommandProvider);
+
+    // ------------------------------------------------------------------
+    // VOICE RESULT -> DESTINATION SEARCH SCREEN
+    //
+    // The notifier runs the search when the 2.5 second confirmation
+    // window ends (phase: recognized -> processing). At that moment the
+    // Destination Search screen is opened so the user sees the same
+    // query and results as if they had typed the text themselves.
+    // ------------------------------------------------------------------
+    ref.listen<VoiceCommandState>(voiceCommandProvider, (previous, next) {
+      final searchStarted =
+          previous?.phase == VoiceCommandPhase.recognized &&
+              next.phase == VoiceCommandPhase.processing;
+
+      if (!searchStarted) {
+        return;
+      }
+
+      // Do nothing if another screen is already on top of Home.
+      if (ModalRoute.of(context)?.isCurrent != true) {
+        return;
+      }
+
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => const DestinationSearchScreen(),
+        ),
+      );
+    });
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Stack(
+        children: [
+          // ================================================================
+          // MAP BACKGROUND
+          // ================================================================
+
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/home_bg.png',
+              fit: BoxFit.cover,
+              excludeFromSemantics: true,
+              errorBuilder: (
+                  context,
+                  error,
+                  stackTrace,
+                  ) {
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+
+          // ================================================================
+          // WHITE OVERLAY
+          // Keeps the map visible but subtle.
+          // ================================================================
+
+          Positioned.fill(
+            child: Container(
+              color: Colors.white.withValues(
+                alpha: 0.10,
+              ),
+            ),
+          ),
+
+          // ================================================================
+          // SOFT ANIMATED GRADIENT
+          // Very light blue and mint tints that drift slowly.
+          // ================================================================
+
+          Positioned.fill(
+            child: IgnorePointer(
+              child: RepaintBoundary(
+                child: AnimatedBuilder(
+                  animation: _backgroundController,
+                  builder: (context, child) {
+                    final t = Curves.easeInOut.transform(
+                      _backgroundController.value,
+                    );
+
+                    return DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.lerp(
+                            Alignment.topLeft,
+                            Alignment.topRight,
+                            t,
+                          )!,
+                          end: Alignment.lerp(
+                            Alignment.bottomRight,
+                            Alignment.bottomLeft,
+                            t,
+                          )!,
+                          colors: [
+                            const Color(0xFFDCEBFF)
+                                .withValues(alpha: 0.55),
+                            Colors.white.withValues(alpha: 0.10),
+                            const Color(0xFFD9F5EA)
+                                .withValues(alpha: 0.45),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+
+          // ================================================================
+          // HOME UI
+          // ================================================================
+
+          SafeArea(
+            child: Column(
+              children: [
+                // ==========================================================
+                // HEADER
+                // ==========================================================
+
+                _fadeSlide(
+                  _headerAnimation,
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      24,
+                      20,
+                      24,
+                      16,
+                    ),
+                    child: Row(
+                      mainAxisAlignment:
+                      MainAxisAlignment.spaceBetween,
+                      children: [
+                        // --------------------------------------------------
+                        // APP NAME
+                        // --------------------------------------------------
+
+                        const Text(
+                          'Droobi',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w500,
+                            color: _text,
+                          ),
+                        ),
+
+                        // --------------------------------------------------
+                        // MENU BUTTON
+                        // --------------------------------------------------
+
+                        Semantics(
+                          button: true,
+                          label: 'Open menu',
+                          child: Material(
+                            color: Colors.white,
+                            borderRadius:
+                            BorderRadius.circular(10),
+                            elevation: 3,
+                            child: InkWell(
+                              borderRadius:
+                              BorderRadius.circular(10),
+                              onTap: () {
+                                _showMenu(context);
+                              },
+                              child: const SizedBox(
+                                width: 48,
+                                height: 48,
+                                child: Icon(
+                                  Icons.menu,
+                                  size: 24,
+                                  color: _text,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // ==========================================================
+                // SEARCH DESTINATION (frosted glass)
+                // ==========================================================
+
+                _fadeSlide(
+                  _searchAnimation,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                    ),
+                    child: Semantics(
+                      button: true,
+                      label: 'Search destination',
+                      hint: 'Open destination search',
+                      child: _glassCard(
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius:
+                            BorderRadius.circular(12),
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                  const DestinationSearchScreen(),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              height: 52,
+                              padding:
+                              const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              child: const Row(
+                                children: [
+                                  Icon(
+                                    Icons.search,
+                                    size: 22,
+                                    color: Color(0xFF777777),
+                                  ),
+                                  SizedBox(width: 12),
+                                  Text(
+                                    'Search destination...',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Color(0xFF666666),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // ==========================================================
+                // BELT CONNECTION STATUS (frosted glass + animated dot)
+                // ==========================================================
+
+                _fadeSlide(
+                  _beltAnimation,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                    ),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: _glassCard(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Align(
+                                  alignment:
+                                  Alignment.centerLeft,
+                                  child: ConnectionStatusIndicator(
+                                    state: beltState,
+                                  ),
+                                ),
+                              ),
+
+                              const SizedBox(width: 12),
+
+                              // Decorative: the indicator above already
+                              // describes the state to screen readers.
+                              ExcludeSemantics(
+                                child: _StatusDot(
+                                  color: isBeltConnected
+                                      ? _green
+                                      : _grey,
+                                  pulse: isBeltConnected,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                // ==========================================================
+                // MAIN CONTENT
+                // ==========================================================
+
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment:
+                    MainAxisAlignment.center,
+                    children: [
+                      // ----------------------------------------------------
+                      // MICROPHONE
+                      // ----------------------------------------------------
+
+                      VoiceCommandButton(
+                        state: voiceState,
+                        onPressStart: () {
+                          _handleMicPress();
+                        },
+                        onPressEnd: () {
+                          _handleMicRelease();
+                        },
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // ----------------------------------------------------
+                      // RECOGNIZED TEXT
+                      // ----------------------------------------------------
+
+                      if (voiceState.phase ==
+                          VoiceCommandPhase.recognized)
+                        Padding(
+                          padding:
+                          const EdgeInsets.symmetric(
+                            horizontal: 24,
+                          ),
+                          child: Text(
+                            'Heard: "${voiceState.recognizedText}"',
+                            textAlign: TextAlign.center,
+                            style:
+                            Theme.of(context)
+                                .textTheme
+                                .titleMedium,
+                          ),
+                        ),
+
+                      // ----------------------------------------------------
+                      // ERROR
+                      // ----------------------------------------------------
+
+                      if (voiceState.phase ==
+                          VoiceCommandPhase.error)
+                        Padding(
+                          padding:
+                          const EdgeInsets.symmetric(
+                            horizontal: 24,
+                          ),
+                          child: Text(
+                            voiceState.errorMessage ?? '',
+                            textAlign: TextAlign.center,
+                            style:
+                            const TextStyle(
+                              color: Colors.red,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+
+                // ==========================================================
+                // SHARED BOTTOM NAVIGATION
+                // ==========================================================
+
+                const DroobiBottomNav(
+                  currentItem:
+                  DroobiNavItem.home,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ===========================================================================
+  // SIDE MENU
+  // ===========================================================================
+
+  void _showMenu(BuildContext context) {
+    final userName = _currentUserName();
+
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Close menu',
+      barrierColor: Colors.black.withValues(
+        alpha: 0.50,
+      ),
+      transitionDuration: const Duration(milliseconds: 300),
+      transitionBuilder: (
+          context,
+          animation,
+          secondaryAnimation,
+          child,
+          ) {
+        // Slide in from the left instead of the default fade.
+        return SlideTransition(
+          position: animation
+              .drive(CurveTween(curve: Curves.easeOutCubic))
+              .drive(
+            Tween<Offset>(
+              begin: const Offset(-1, 0),
+              end: Offset.zero,
+            ),
+          ),
+          child: child,
+        );
+      },
+      pageBuilder: (
+          context,
+          animation,
+          secondaryAnimation,
+          ) {
+        final topInset = MediaQuery.of(context).padding.top;
+
+        return Align(
+          alignment: Alignment.centerLeft,
+          child: Material(
+            color: Colors.white,
+            elevation: 12,
+            clipBehavior: Clip.antiAlias,
+            borderRadius: const BorderRadius.horizontal(
+              right: Radius.circular(24),
+            ),
+            child: SizedBox(
+              width: 300,
+              height: double.infinity,
+              child: Column(
+                children: [
+                  // ========================================================
+                  // MENU HEADER: logo + welcome
+                  // ========================================================
+
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.fromLTRB(
+                      24,
+                      topInset + 20,
+                      12,
+                      24,
+                    ),
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Color(0xFFEAF3FF),
+                          Color(0xFFDDF3EA),
+                        ],
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment:
+                      CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment:
+                          MainAxisAlignment.spaceBetween,
+                          children: [
+                            Container(
+                              width: 56,
+                              height: 56,
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius:
+                                BorderRadius.circular(16),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    blurRadius: 12,
+                                    offset: Offset(0, 4),
+                                    color: Color(0x18000000),
+                                  ),
+                                ],
+                              ),
+                              child: Image.asset(
+                                'assets/images/app_logo.png',
+                                fit: BoxFit.contain,
+                                excludeFromSemantics: true,
+                                errorBuilder: (
+                                    context,
+                                    error,
+                                    stackTrace,
+                                    ) {
+                                  return const Icon(
+                                    Icons.explore,
+                                    color: _blue,
+                                  );
+                                },
+                              ),
+                            ),
+                            IconButton(
+                              tooltip: 'Close menu',
+                              onPressed: () {
+                                Navigator.of(
+                                  context,
+                                ).pop();
+                              },
+                              icon: const Icon(
+                                Icons.close,
+                                color: Color(0xFF555555),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 18),
+
+                        if (userName.isNotEmpty) ...[
+                          const Text(
+                            'Welcome,',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: _muted,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            userName,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w600,
+                              color: _text,
+                            ),
+                          ),
+                        ] else
+                          const Text(
+                            'Welcome to Droobi',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
+                              color: _text,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+
+                  // ========================================================
+                  // MENU ITEMS
+                  // ========================================================
+
+                  Expanded(
+                    child: ListView(
+                      padding: const EdgeInsets.fromLTRB(
+                        16,
+                        16,
+                        16,
+                        16,
+                      ),
+                      children: [
+                        // ==================================================
+                        // HOME
+                        // ==================================================
+
+                        _MenuItem(
+                          icon: Icons.home,
+                          label: 'Home',
+                          active: true,
+                          onTap: () {
+                            Navigator.of(
+                              context,
+                            ).pop();
+                          },
+                        ),
+
+                        // ==================================================
+                        // FAVORITES
+                        // ==================================================
+
+                        _MenuItem(
+                          icon: Icons.star,
+                          label: 'Favorites',
+                          onTap: () {
+                            Navigator.of(
+                              context,
+                            ).pop();
+
+                            Navigator.of(
+                              context,
+                            ).push(
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                const FavoritesScreen(),
+                              ),
+                            );
+                          },
+                        ),
+
+                        // ==================================================
+                        // UNIVERSITY
+                        // ==================================================
+
+                        _MenuItem(
+                          icon: Icons.school,
+                          label: 'University',
+                          onTap: () {
+                            Navigator.of(
+                              context,
+                            ).pop();
+
+                            Navigator.of(
+                              context,
+                            ).push(
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                const UniversityLocationsScreen(),
+                              ),
+                            );
+                          },
+                        ),
+
+                        // ==================================================
+                        // SETTINGS
+                        // ==================================================
+
+                        _MenuItem(
+                          icon: Icons.settings,
+                          label: 'Settings',
+                          onTap: () {
+                            Navigator.of(
+                              context,
+                            ).pop();
+
+                            Navigator.of(
+                              context,
+                            ).push(
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                const SettingsScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ============================================================================
+// BELT STATUS DOT
+// A small dot; when [pulse] is true a soft ring expands and fades around it.
+// ============================================================================
+
+class _StatusDot extends StatefulWidget {
+  const _StatusDot({
+    required this.color,
+    required this.pulse,
+  });
+
+  final Color color;
+  final bool pulse;
+
+  @override
+  State<_StatusDot> createState() => _StatusDotState();
+}
+
+class _StatusDotState extends State<_StatusDot>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1600),
+  );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _sync();
+  }
+
+  @override
+  void didUpdateWidget(covariant _StatusDot oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _sync();
+  }
+
+  void _sync() {
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
+
+    if (widget.pulse && !reduceMotion) {
+      if (!_controller.isAnimating) {
+        _controller.repeat();
+      }
+    } else {
+      _controller.stop();
+      _controller.value = 0;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 22,
+      height: 22,
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          final t = _controller.value;
+
+          return Stack(
+            alignment: Alignment.center,
+            children: [
+              if (widget.pulse)
+                Container(
+                  width: 10 + 12 * t,
+                  height: 10 + 12 * t,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: widget.color.withValues(
+                      alpha: 0.35 * (1 - t),
+                    ),
+                  ),
+                ),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                width: 10,
+                height: 10,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: widget.color,
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+// ============================================================================
+// SIDE MENU ITEM
+// ============================================================================
+
+class _MenuItem extends StatelessWidget {
+  const _MenuItem({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.active = false,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    const blue = Color(0xFF2F80ED);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Semantics(
+        button: true,
+        selected: active,
+        label: label,
+        child: Material(
+          color: active
+              ? blue.withValues(alpha: 0.08)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 15,
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    icon,
+                    size: 22,
+                    color: blue,
+                  ),
+                  const SizedBox(width: 14),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: active
+                          ? FontWeight.w600
+                          : FontWeight.w500,
+                      color: active
+                          ? blue
+                          : const Color(0xFF111111),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

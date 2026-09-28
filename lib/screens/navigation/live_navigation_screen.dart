@@ -1,11 +1,14 @@
+
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/lat_lon.dart';
 import '../../models/navigation_direction.dart';
 import '../../services/navigation/navigation_service.dart';
+import '../../state/belt_connection_notifier.dart';
 import '../../state/navigation_notifier.dart';
 
 class LiveNavigationScreen extends ConsumerStatefulWidget {
@@ -40,10 +43,6 @@ class _LiveNavigationScreenState
       _startNavigation();
     });
   }
-
-  // ================================================================
-  // START
-  // ================================================================
 
   Future<void> _startNavigation() async {
     if (_starting) {
@@ -103,10 +102,6 @@ class _LiveNavigationScreenState
     }
   }
 
-  // ================================================================
-  // STOP
-  // ================================================================
-
   Future<void> _stopNavigation() async {
     final navigationService =
         ref.read(navigationServiceProvider);
@@ -120,10 +115,6 @@ class _LiveNavigationScreenState
     Navigator.of(context).pop();
   }
 
-  // ================================================================
-  // BACK
-  // ================================================================
-
   Future<bool> _handleBack() async {
     final navigationService =
         ref.read(navigationServiceProvider);
@@ -132,10 +123,6 @@ class _LiveNavigationScreenState
 
     return true;
   }
-
-  // ================================================================
-  // DIRECTION ICON
-  // ================================================================
 
   IconData _directionIcon(
     NavigationDirection? direction,
@@ -170,10 +157,6 @@ class _LiveNavigationScreenState
     }
   }
 
-  // ================================================================
-  // DIRECTION TEXT
-  // ================================================================
-
   String _directionText(
     NavigationDirection? direction,
   ) {
@@ -207,10 +190,6 @@ class _LiveNavigationScreenState
     }
   }
 
-  // ================================================================
-  // STATE TEXT
-  // ================================================================
-
   String _stateText(NavigationState state) {
     switch (state) {
       case NavigationState.idle:
@@ -239,10 +218,6 @@ class _LiveNavigationScreenState
     }
   }
 
-  // ================================================================
-  // DISTANCE
-  // ================================================================
-
   String _formatDistance(double? distance) {
     if (distance == null) {
       return '--';
@@ -257,12 +232,12 @@ class _LiveNavigationScreenState
     return '${kilometers.toStringAsFixed(1)} km';
   }
 
-  // ================================================================
-  // BUILD
-  // ================================================================
-
   @override
   Widget build(BuildContext context) {
+    ref.watch(beltNavigationBridgeProvider);
+
+    
+
     final direction = _snapshot.direction;
 
     final isArrived =
@@ -312,9 +287,7 @@ class _LiveNavigationScreenState
             child: Column(
               children: [
                 _buildStatusCard(),
-
                 const SizedBox(height: 18),
-
                 Expanded(
                   child: _buildNavigationContent(
                     direction: direction,
@@ -323,9 +296,7 @@ class _LiveNavigationScreenState
                     isStarting: isStarting,
                   ),
                 ),
-
                 const SizedBox(height: 18),
-
                 _buildBottomControls(
                   isArrived: isArrived,
                 ),
@@ -337,15 +308,11 @@ class _LiveNavigationScreenState
     );
   }
 
-  // ================================================================
-  // STATUS CARD
-  // ================================================================
-
   Widget _buildStatusCard() {
     final distance =
         _formatDistance(
-          _snapshot.distanceFromRouteMeters,
-        );
+      _snapshot.distanceFromRouteMeters,
+    );
 
     final state =
         _stateText(_snapshot.state);
@@ -374,9 +341,7 @@ class _LiveNavigationScreenState
               color: Colors.blue.shade700,
             ),
           ),
-
           const SizedBox(width: 14),
-
           Expanded(
             child: Column(
               crossAxisAlignment:
@@ -389,9 +354,7 @@ class _LiveNavigationScreenState
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-
                 const SizedBox(height: 4),
-
                 Text(
                   'Route distance: $distance',
                   style: TextStyle(
@@ -402,7 +365,6 @@ class _LiveNavigationScreenState
               ],
             ),
           ),
-
           if (_snapshot.accuracyMeters != null)
             Text(
               'GPS\n±${_snapshot.accuracyMeters!.round()} m',
@@ -416,10 +378,6 @@ class _LiveNavigationScreenState
       ),
     );
   }
-
-  // ================================================================
-  // NAVIGATION CONTENT
-  // ================================================================
 
   Widget _buildNavigationContent({
     required NavigationDirection? direction,
@@ -447,10 +405,6 @@ class _LiveNavigationScreenState
     );
   }
 
-  // ================================================================
-  // DIRECTION STATE
-  // ================================================================
-
   Widget _buildDirectionState({
     required NavigationDirection? direction,
     required bool isNavigating,
@@ -472,9 +426,7 @@ class _LiveNavigationScreenState
             color: Colors.grey.shade600,
           ),
         ),
-
         const SizedBox(height: 24),
-
         AnimatedSwitcher(
           duration: const Duration(
             milliseconds: 300,
@@ -512,9 +464,7 @@ class _LiveNavigationScreenState
             ),
           ),
         ),
-
         const SizedBox(height: 24),
-
         AnimatedSwitcher(
           duration: const Duration(
             milliseconds: 250,
@@ -529,9 +479,7 @@ class _LiveNavigationScreenState
             ),
           ),
         ),
-
         const SizedBox(height: 12),
-
         if (_snapshot.relativeAngle != null)
           Text(
             'Direction angle: '
@@ -541,9 +489,7 @@ class _LiveNavigationScreenState
               color: Colors.grey.shade600,
             ),
           ),
-
         const SizedBox(height: 8),
-
         if (_snapshot.heading != null)
           Text(
             'Heading: '
@@ -557,99 +503,28 @@ class _LiveNavigationScreenState
     );
   }
 
-  // ================================================================
-  // LOADING
-  // ================================================================
-
   Widget _buildLoadingState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment:
-            MainAxisAlignment.center,
-        children: [
-          const SizedBox(
-            width: 58,
-            height: 58,
-            child: CircularProgressIndicator(
-              strokeWidth: 5,
-            ),
-          ),
-
-          const SizedBox(height: 28),
-
-          Text(
-            _snapshot.state ==
-                    NavigationState.recovering
-                ? 'Recovering navigation...'
-                : 'Preparing navigation...',
-            style: const TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-
-          const SizedBox(height: 10),
-
-          Text(
-            'Getting your position and route.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 15,
-              color: Colors.grey.shade600,
-            ),
-          ),
-        ],
-      ),
+    return const Center(
+      child: CircularProgressIndicator(),
     );
   }
-
-  // ================================================================
-  // ARRIVED
-  // ================================================================
 
   Widget _buildArrivedState() {
     return Center(
       child: Column(
-        mainAxisAlignment:
-            MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            width: 190,
-            height: 190,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.green.shade50,
-              border: Border.all(
-                color: Colors.green.shade200,
-                width: 3,
-              ),
-            ),
-            child: Icon(
-              Icons.check,
-              size: 120,
-              color: Colors.green.shade600,
-            ),
+          Icon(
+            Icons.check_circle,
+            size: 100,
+            color: Colors.green,
           ),
-
-          const SizedBox(height: 28),
-
+          const SizedBox(height: 24),
           const Text(
-            'ARRIVED',
+            'You have arrived',
             style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1.5,
-            ),
-          ),
-
-          const SizedBox(height: 10),
-
-          Text(
-            'You have reached your destination.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey.shade600,
+              fontSize: 28,
+              fontWeight: FontWeight.w800,
             ),
           ),
         ],
@@ -657,50 +532,26 @@ class _LiveNavigationScreenState
     );
   }
 
-  // ================================================================
-  // ERROR
-  // ================================================================
-
   Widget _buildErrorState() {
     return Center(
-      child: SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
         child: Column(
-          mainAxisAlignment:
-              MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               Icons.error_outline,
-              size: 82,
-              color: Colors.red.shade400,
+              size: 80,
+              color: Colors.red,
             ),
-
-            const SizedBox(height: 22),
-
-            const Text(
-              'Navigation Error',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
+            const SizedBox(height: 20),
             Text(
-              _errorMessage ?? 'Unknown error.',
+              _errorMessage ?? 'Navigation error',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 15,
-                color: Colors.grey.shade700,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
               ),
-            ),
-
-            const SizedBox(height: 24),
-
-            ElevatedButton.icon(
-              onPressed: _startNavigation,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Try Again'),
             ),
           ],
         ),
@@ -708,55 +559,36 @@ class _LiveNavigationScreenState
     );
   }
 
-  // ================================================================
-  // BOTTOM CONTROLS
-  // ================================================================
-
   Widget _buildBottomControls({
     required bool isArrived,
   }) {
+    if (isArrived) {
+      return SizedBox(
+        width: double.infinity,
+        child: ElevatedButton(
+          onPressed: _stopNavigation,
+          child: const Text('DONE'),
+        ),
+      );
+    }
+
     return SizedBox(
       width: double.infinity,
-      height: 56,
-      child: ElevatedButton.icon(
-        onPressed: isArrived
-            ? () {
-                Navigator.of(context).pop();
-              }
-            : _stopNavigation,
-        icon: Icon(
-          isArrived
-              ? Icons.check
-              : Icons.stop_circle_outlined,
-        ),
-        label: Text(
-          isArrived
-              ? 'DONE'
-              : 'STOP NAVIGATION',
-        ),
+      child: ElevatedButton(
+        onPressed: _stopNavigation,
         style: ElevatedButton.styleFrom(
-          backgroundColor:
-              isArrived
-                  ? Colors.green.shade600
-                  : Colors.red.shade600,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
+          backgroundColor: Colors.red.shade50,
+          foregroundColor: Colors.red.shade700,
         ),
+        child: const Text('STOP NAVIGATION'),
       ),
     );
   }
 
-  // ================================================================
-  // DISPOSE
-  // ================================================================
-
   @override
   void dispose() {
     _navigationSubscription?.cancel();
-
     super.dispose();
   }
 }
+
