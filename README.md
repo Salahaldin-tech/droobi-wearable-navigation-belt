@@ -1,666 +1,432 @@
+<div align="center">
+
 # 🦯 Droobi
 
-### Wearable Navigation System for Visually Impaired Users
+### *Feel the way. Don't look for it.*
 
-<p align="center">
-  <strong>Navigate independently. Move confidently.</strong>
-</p>
+**A voice + GPS + haptic navigation system for visually impaired users.**
+A Flutter app that talks, listens, and drives a vibrating ESP32 belt, so the phone can stay in your pocket.
 
-<p align="center">
-  Droobi is a Flutter-based accessibility navigation application designed to help visually impaired users navigate their surroundings through voice guidance, GPS-based routing, and a future wearable haptic navigation belt powered by ESP32.
-</p>
-
-<p align="center">
+<br>
 
 ![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?style=for-the-badge&logo=flutter&logoColor=white)
 ![Dart](https://img.shields.io/badge/Dart-3.x-0175C2?style=for-the-badge&logo=dart&logoColor=white)
-![Firebase](https://img.shields.io/badge/Firebase-Backend-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)
-![ESP32](https://img.shields.io/badge/ESP32-Wearable-000000?style=for-the-badge&logo=espressif&logoColor=white)
-![OSM](https://img.shields.io/badge/OpenStreetMap-Search-7EBC6F?style=for-the-badge&logo=openstreetmap&logoColor=white)
+![Firebase](https://img.shields.io/badge/Firebase-Auth%20%2B%20Firestore-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)
+![ESP32](https://img.shields.io/badge/ESP32-BLE%20Belt-E7352C?style=for-the-badge&logo=espressif&logoColor=white)
+![OSM](https://img.shields.io/badge/OpenStreetMap-Nominatim-7EBC6F?style=for-the-badge&logo=openstreetmap&logoColor=white)
+![Status](https://img.shields.io/badge/status-app%20done%20%7C%20belt%20in%20progress-2F80ED?style=for-the-badge)
 
-</p>
+<br>
 
----
+[**The Idea**](#-the-idea) •
+[**Features**](#-features) •
+[**How It Works**](#-how-it-works) •
+[**The Belt**](#-the-belt) •
+[**Quick Start**](#-quick-start) •
+[**Roadmap**](#%EF%B8%8F-roadmap)
 
-## 📖 Overview
-
-**Droobi** is an accessibility-focused navigation application developed as part of the **Navigation Belt for Visually Impaired Users** project.
-
-The system combines:
-
-- 📍 GPS positioning
-- 🗺️ Route calculation
-- 🔎 Destination search
-- 🎙️ Local voice input
-- 🔊 Text-to-speech feedback
-- 🧭 Device orientation
-- 📡 Bluetooth Low Energy communication
-- 🦯 A future wearable haptic navigation belt
-
-The mobile application acts as the main navigation engine while the wearable belt is designed to communicate directional instructions through vibration.
-
-### The idea
-
-Instead of requiring a visually impaired user to continuously look at a phone screen, Droobi is designed around **audio and haptic interaction**.
-
-```text
-                ┌─────────────────────┐
-                │       DROOBI        │
-                │    Flutter App      │
-                └──────────┬──────────┘
-                           │
-             ┌─────────────┼─────────────┐
-             │             │             │
-             ▼             ▼             ▼
-          🎙️ Voice      📍 GPS       🗺️ Routing
-             │             │             │
-             └─────────────┼─────────────┘
-                           │
-                           ▼
-                  Navigation Command
-                           │
-                           ▼
-                    Bluetooth LE
-                           │
-                           ▼
-                ┌─────────────────────┐
-                │    Droobi Belt      │
-                │       ESP32         │
-                └──────────┬──────────┘
-                           │
-                 ┌─────────┼─────────┐
-                 ▼         ▼         ▼
-               Left      Forward    Right
-              Vibration  Vibration  Vibration
-```
+</div>
 
 ---
 
-# ✨ Features
+## 💡 The Idea
 
-## 🗺️ Intelligent Destination Search
+Most navigation apps assume you can look at a screen. **Droobi doesn't.**
 
-Users can search for destinations using the application's search system.
+Instead of a map, Droobi gives you three things you can actually use while walking:
 
-The current implementation uses:
+| 🎙️ Talk to it | 🔊 Hear it | 📳 Feel it |
+|:---:|:---:|:---:|
+| Say your destination in **Arabic or English**. Speech recognition runs **on-device**. | Turn-by-turn **spoken guidance** in your language. | A **belt with vibration motors** buzzes left, right, front, or back, so you always know which way to go. |
 
-- OpenStreetMap
-- Nominatim
-- Palestine-specific search
-- City-based search boundaries
-- Persistent city selection
-
-Supported cities currently include:
-
-### West Bank
-
-- Ramallah
-- East Jerusalem
-- Hebron
-- Nablus
-- Jenin
-- Bethlehem
-- Jericho
-- Tulkarm
-- Qalqilya
-- Tubas
-- Salfit
-
-### Gaza Strip
-
-- Gaza City
-- Khan Yunis
-- Rafah
-- Jabalia
-- Deir al-Balah
+> **Built as a graduation project** at the Arab American University (Faculty of Engineering), combining mobile development, embedded systems, BLE, and accessibility.
 
 ---
 
-## 🎙️ Voice Input
+## ✨ Features
 
-Droobi is designed for hands-free interaction.
+<table>
+<tr>
+<td width="50%" valign="top">
 
-The application uses **local Whisper-based speech recognition** instead of relying on a cloud speech-to-text service.
+### 🗺️ Destination Search
+- OpenStreetMap + **Nominatim**
+- Palestine-focused search
+- City-bounded results for accuracy
+- Your selected city is **remembered**
 
-This provides the foundation for:
+</td>
+<td width="50%" valign="top">
 
-- Arabic voice commands
-- English voice commands
-- Destination input
-- Accessibility-focused interaction
+### 🎙️ Offline Voice Input
+- **Whisper (whisper.cpp)** running locally
+- No cloud speech-to-text
+- Arabic + English commands
+- Hands-free destination entry
 
----
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
 
-## 🔊 Voice Feedback
+### 🔊 Bilingual Voice Feedback
+- Text-to-Speech in **English and Arabic**
+- Switch language any time from Settings
 
-Droobi uses Text-to-Speech to provide navigation and accessibility feedback.
+</td>
+<td width="50%" valign="top">
 
-The application supports:
+### 🧭 Heading-Aware Guidance
+- GPS position + compass heading
+- Compares *where you face* with *where the route goes*
+- Outputs a clear Forward / Left / Right / Back
 
-- English
-- Arabic
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
 
-The user can switch the voice language from Settings.
+### 📡 BLE Belt Link
+- Flutter ⇄ ESP32 over Bluetooth Low Energy
+- Live connection status in the UI
+- Interface-based service layer, swappable and testable
 
----
+</td>
+<td width="50%" valign="top">
 
-## 📍 GPS Navigation
+### 🔐 Accounts & Roles
+- Firebase Auth + Firestore profiles
+- `user` / `admin` roles
+- Security rules block self-promotion to admin
+- Admin-only **Dev Test Menu**
 
-The application uses the device's GPS to determine the user's current location.
+</td>
+</tr>
+</table>
 
-The navigation system is designed to:
+### 📍 Supported Cities
 
-1. Obtain the user's location.
-2. Search for the destination.
-3. Calculate a route.
-4. Determine the required direction.
-5. Provide navigation instructions.
-6. Send directional information to the wearable belt.
-
----
-
-## 🧭 Direction & Orientation
-
-Droobi uses the device's orientation information to determine the user's heading.
-
-The navigation logic compares:
-
-```text
-Current Heading
-       +
-Required Route Bearing
-       ↓
-Navigation Direction
-       ↓
-Forward / Left / Right / Back
-```
-
-This allows the system to transform geographic route information into understandable directional instructions.
-
----
-
-# 📡 Wearable Navigation Belt
-
-The future hardware component of the project is a wearable navigation belt built around an **ESP32**.
-
-The belt is designed to provide directional information through vibration rather than visual information.
-
-### Hardware concept
-
-```text
-             ┌───────────────────┐
-             │       ESP32       │
-             └─────────┬─────────┘
-                       │
-          ┌────────────┼────────────┐
-          │            │            │
-          ▼            ▼            ▼
-       Left Motor   Front Motor   Right Motor
-          │            │            │
-          └────────────┼────────────┘
-                       │
-                  Back Motor
-```
-
-The motors are positioned around the belt so the user can interpret vibration direction.
-
-### Current hardware direction
-
-- ESP32
-- BLE communication
-- ERM vibration motors
-- LiPo battery
-- TP4056 charging module
-- Motor driver/transistor control circuitry
-
-The ESP32 operates at **3.3V logic**, and the design does not require a boost converter for the ESP32 itself.
-
----
-
-# 🔗 Bluetooth Communication
-
-Droobi uses **Bluetooth Low Energy (BLE)** for communication between the Flutter application and the future navigation belt.
-
-Current communication architecture:
-
-```text
-Flutter App
-    │
-    │ BLE
-    ▼
-ESP32
-    │
-    ▼
-Motor Control
-    │
-    ├── Left
-    ├── Right
-    ├── Front
-    └── Back
-```
-
-The mobile application generates a navigation command and sends it through BLE.
-
----
-
-# 🔐 Authentication & User Management
-
-Droobi uses Firebase Authentication for user accounts.
-
-User profiles are stored in Cloud Firestore.
-
-```text
-Firebase Authentication
-          │
-          ▼
-        User UID
-          │
-          ▼
-    users/{uid}
-          │
-     ┌────┴────┐
-     │         │
-   user      admin
-```
-
-The application includes role-based access for developer functionality.
-
-### User
-
-Regular users have access to the normal application functionality.
-
-### Admin
-
-Administrators can access the **Developer / Dev Test Menu**.
-
-The application also uses Firestore Security Rules to prevent users from changing their own role to `admin`.
-
----
-
-# ⚙️ Technology Stack
-
-| Category | Technology |
+| 🏔️ West Bank | 🌊 Gaza Strip |
 |---|---|
-| Mobile Framework | Flutter |
-| Language | Dart |
-| State Management | Riverpod |
-| Authentication | Firebase Authentication |
-| Database | Cloud Firestore |
-| Destination Search | OpenStreetMap / Nominatim |
-| Routing | OSRM |
-| Location | Geolocator |
-| Orientation | Flutter Compass |
-| Voice Recognition | Whisper / whisper.cpp |
-| Text-to-Speech | Flutter TTS |
-| Bluetooth | Flutter Blue Plus |
-| Wearable MCU | ESP32 |
-| Version Control | Git / GitHub |
+| Ramallah · East Jerusalem · Hebron · Nablus · Jenin · Bethlehem · Jericho · Tulkarm · Qalqilya · Tubas · Salfit | Gaza City · Khan Yunis · Rafah · Jabalia · Deir al-Balah |
 
 ---
 
-# 🏗️ Application Architecture
+## 🧠 How It Works
 
-Droobi follows a layered architecture designed to keep the UI separated from services and application logic.
+### The big picture
+
+```mermaid
+flowchart LR
+    U([🧑 User]) -->|voice| V[🎙️ Whisper<br/>on-device STT]
+    V --> S[🔎 Nominatim<br/>destination search]
+    S --> R[🗺️ OSRM<br/>route]
+    G[📍 GPS] --> N
+    C[🧭 Compass] --> N
+    R --> N{{🎯 Navigation<br/>engine}}
+    N -->|spoken| T[🔊 TTS]
+    N -->|command| B[📡 BLE]
+    B --> E[⚡ ESP32]
+    E --> M[📳 Motors]
+    T --> U
+    M --> U
+
+    style N fill:#2F80ED,color:#fff,stroke:#2F80ED
+    style E fill:#E7352C,color:#fff,stroke:#E7352C
+```
+
+### The core trick: heading vs. bearing
+
+The app never tells you "go north." It tells you **which way to turn from where you're facing right now**.
+
+```mermaid
+flowchart LR
+    A[📍 Current position] --> D[Compute route bearing]
+    R[🗺️ Next route point] --> D
+    H[🧭 Device heading] --> X[Δ = bearing − heading]
+    D --> X
+    X --> Q{Δ angle}
+    Q -->|small| F[⬆️ Forward]
+    Q -->|left| L[⬅️ Left]
+    Q -->|right| RT[➡️ Right]
+    Q -->|large| BK[⬇️ Back / turn around]
+```
+
+### One navigation session, step by step
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant App as 📱 Droobi
+    participant OSM as 🔎 Nominatim
+    participant OSRM as 🗺️ OSRM
+    participant Belt as 📡 ESP32 Belt
+
+    User->>App: "Take me to the university"
+    App->>OSM: search (city-bounded)
+    OSM-->>App: destination
+    App->>OSRM: route(GPS → destination)
+    OSRM-->>App: path
+    loop every position / heading update
+        App->>App: bearing − heading → direction
+        App-->>User: 🔊 spoken instruction
+        App->>Belt: 📳 direction command (BLE)
+        Belt-->>User: vibration on the matching side
+    end
+```
+
+---
+
+## 🦯 The Belt
+
+The belt turns directions into something you can feel. Four vibration motors sit around the waist, so **the side that buzzes is the way you go**.
+
+```
+              FRONT
+          ┌─────────────┐
+          │   ● motor   │
+   LEFT   │             │   RIGHT
+  ● motor │    ESP32    │ ● motor
+          │             │
+          │   ● motor   │
+          └─────────────┘
+              BACK
+```
+
+| Vibration | Meaning |
+|:---:|---|
+| ⬆️ Front | Keep going straight |
+| ⬅️ Left | Turn left |
+| ➡️ Right | Turn right |
+| ⬇️ Back | Wrong way, turn around |
+
+### Hardware
+
+| Part | Role |
+|---|---|
+| **ESP32** | Brain + BLE radio (3.3 V logic, no boost converter needed for the MCU) |
+| **ERM vibration motors** | Directional haptic output |
+| **Transistor / driver stage** | Switches motors safely from GPIO |
+| **LiPo battery** | Portable power |
+| **TP4056** | USB charging |
+
+### BLE command protocol (draft)
+
+> 🚧 Not finalized. This is the working proposal while the firmware is being written.
+
+| Byte | Command |
+|:---:|---|
+| `0x00` | Stop / all motors off |
+| `0x01` | Forward |
+| `0x02` | Left |
+| `0x03` | Right |
+| `0x04` | Back |
+
+---
+
+## 🏗️ Architecture
+
+Clean layers: the UI never talks to hardware or the network directly.
+
+```mermaid
+flowchart TB
+    subgraph UI[🎨 Presentation]
+        S1[screens/]
+        W1[widgets/]
+    end
+    subgraph ST[🧩 State · Riverpod]
+        N1[auth_state_notifier]
+        N2[belt_connection_notifier]
+        N3[destination_search_notifier]
+        N4[voice_language_notifier]
+    end
+    subgraph SV[⚙️ Services · behind interfaces]
+        B1[ble/]
+        B2[firebase/]
+        B3[search/]
+        B4[voice/]
+        B5[accessibility/]
+    end
+    subgraph EX[🌍 External]
+        X1[(Firestore)]
+        X2[(Nominatim)]
+        X3[(OSRM)]
+        X4[ESP32 Belt]
+    end
+    UI --> ST --> SV
+    B1 --> X4
+    B2 --> X1
+    B3 --> X2
+    B3 --> X3
+```
+
+<details>
+<summary><b>📁 Folder structure</b></summary>
 
 ```text
 lib/
-│
 ├── core/
 │   └── enums/
-│
 ├── models/
 │   ├── app_user.dart
 │   └── destination.dart
-│
 ├── screens/
 │   ├── auth/
 │   ├── home/
 │   ├── settings/
 │   └── test/
-│
 ├── services/
 │   ├── ble/
 │   ├── firebase/
 │   ├── search/
 │   ├── voice/
 │   └── accessibility/
-│
 ├── state/
 │   ├── auth_state_notifier.dart
 │   ├── belt_connection_notifier.dart
 │   ├── destination_search_notifier.dart
 │   └── voice_language_notifier.dart
-│
 └── widgets/
     ├── connection_status_indicator.dart
     └── droobi_bottom_nav.dart
 ```
 
-The project isolates external services behind interfaces where appropriate, allowing components to be replaced without changing the rest of the application.
+</details>
+
+### ⚙️ Tech Stack
+
+| Layer | Tech |
+|---|---|
+| App | Flutter · Dart |
+| State | Riverpod |
+| Auth & DB | Firebase Authentication · Cloud Firestore |
+| Search | OpenStreetMap / Nominatim |
+| Routing | OSRM |
+| Location & heading | Geolocator · Flutter Compass |
+| Voice in | Whisper / whisper.cpp (on-device) |
+| Voice out | Flutter TTS |
+| Bluetooth | Flutter Blue Plus |
+| Wearable | ESP32 |
 
 ---
 
-# 🔄 Navigation Flow
+## 🎨 Design Principles
 
-```text
-                  User
-                   │
-                   ▼
-            Voice / Search
-                   │
-                   ▼
-          Destination Selection
-                   │
-                   ▼
-             GPS Location
-                   │
-                   ▼
-              OSRM Routing
-                   │
-                   ▼
-           Route Calculation
-                   │
-                   ▼
-          Bearing Calculation
-                   │
-                   ▼
-          Direction Decision
-                   │
-          ┌────────┼────────┐
-          ▼        ▼        ▼
-        Left    Forward   Right
-          │        │        │
-          └────────┼────────┘
-                   ▼
-                BLE
-                   │
-                   ▼
-                ESP32
-                   │
-                   ▼
-            Haptic Feedback
-```
+Built for people who can't rely on a screen, so every choice follows from that:
+
+- 🎯 **Audio and haptics first**, visuals second
+- 👆 **Large touch targets**, minimal clutter
+- 🔤 **High contrast and readability** (primary color `#2F80ED`)
+- 📶 **Always-visible belt connection status**
+- 🌍 **Arabic and English as equals**
 
 ---
 
-# 🎨 User Interface
+## 📱 Screenshots
 
-Droobi follows a clean and accessibility-focused interface.
+> 📌 Drop your images into `assets/screenshots/`.
 
-The UI focuses on:
-
-- Large interactive elements
-- Minimal visual clutter
-- Clear navigation
-- Voice interaction
-- High readability
-- Simple settings
-- Clear belt connection status
-
-Primary application color:
-
-```text
-#2F80ED
-```
+| Login | Home | Search | Settings | Navigation |
+|:---:|:---:|:---:|:---:|:---:|
+| <img src="assets/screenshots/login.png" width="160"> | <img src="assets/screenshots/home.png" width="160"> | <img src="assets/screenshots/search.png" width="160"> | <img src="assets/screenshots/settings.png" width="160"> | <img src="assets/screenshots/navigation.png" width="160"> |
 
 ---
 
-# 📱 Screenshots
+## 🚀 Quick Start
 
-> Add your screenshots to `assets/screenshots/` and update the paths below.
-
-### Login
-
-<p align="center">
-  <img src="assets/screenshots/login.png" width="250">
-</p>
-
-### Home
-
-<p align="center">
-  <img src="assets/screenshots/home.png" width="250">
-</p>
-
-### Destination Search
-
-<p align="center">
-  <img src="assets/screenshots/search.png" width="250">
-</p>
-
-### Settings
-
-<p align="center">
-  <img src="assets/screenshots/settings.png" width="250">
-</p>
-
-### Navigation
-
-<p align="center">
-  <img src="assets/screenshots/navigation.png" width="250">
-</p>
-
----
-
-# 🚀 Getting Started
-
-## Requirements
-
-Before running Droobi, install:
-
-- Flutter SDK
-- Dart SDK
-- Android Studio
-- Android SDK
-- Git
-- A physical Android device or emulator
-
-Verify Flutter:
+**You'll need:** Flutter SDK, Android Studio + Android SDK, Git, and a physical Android device (recommended for GPS, compass, and BLE).
 
 ```bash
+# 1. Check your setup
 flutter doctor
-```
 
----
-
-## 📥 Clone the Repository
-
-```bash
+# 2. Clone
 git clone https://github.com/Salahaldin-tech/droobi-wearable-navigation-belt.git
-```
-
-```bash
 cd droobi-wearable-navigation-belt
-```
 
----
-
-## 📦 Install Dependencies
-
-```bash
+# 3. Install dependencies
 flutter pub get
-```
 
----
-
-## 🔥 Firebase Configuration
-
-The project requires Firebase Authentication and Cloud Firestore.
-
-Configure Firebase for your Flutter project using the appropriate Firebase configuration files for your development environment.
-
-Required services include:
-
-- Firebase Authentication
-- Cloud Firestore
-
-The Firestore database contains user profiles under:
-
-```text
-users/{uid}
-```
-
-and shared university location data under:
-
-```text
-universityLocations/{universityId}
-```
-
----
-
-# ▶️ Run the Application
-
-Connect an Android device or start an emulator.
-
-Then:
-
-```bash
+# 4. Run (device connected or emulator started)
 flutter run
 ```
 
----
+### 🔥 Firebase setup
 
-# 🧪 Developer Tools
+Enable **Authentication** and **Cloud Firestore** for your project and add the Firebase config files for your platform.
 
-Administrators can access:
+| Collection | Purpose |
+|---|---|
+| `users/{uid}` | User profile + role (`user` / `admin`) |
+| `universityLocations/{universityId}` | Shared university location data |
 
-```text
-Settings
-   ↓
-Developer
-   ↓
-Dev Test Menu
+### 🧪 Developer tools
+
+Admins get a hidden testing hub for routing, BLE, and other components:
+
 ```
-
-The Developer section is hidden from normal users.
-
-The developer tools are intended for testing navigation, routing, BLE, and other application components during development.
-
----
-
-# 🦯 Project Goal
-
-The ultimate goal of Droobi is to create a navigation system that allows visually impaired users to move through their environment with greater independence.
-
-Instead of relying primarily on a visual map interface, the system combines:
-
-**Voice + GPS + Direction + Haptic Feedback**
-
-into one navigation experience.
-
-```text
-          DROOBI
-             │
-     ┌───────┼───────┐
-     │       │       │
-   Voice    GPS    Haptic
-     │       │       │
-     └───────┼───────┘
-             │
-       Independent
-        Navigation
+Settings → Developer → Dev Test Menu
 ```
 
 ---
 
-# 🛣️ Roadmap
+## 🛣️ Roadmap
 
-## Mobile Application
+```mermaid
+gantt
+    title Droobi progress
+    dateFormat  YYYY-MM-DD
+    axisFormat  %b
+    section 📱 App
+    Foundation, auth, search, routing, voice, TTS, BLE layer :done, a1, 2026-01-01, 120d
+    section 🦯 Belt
+    Hardware architecture + motor layout :done, b1, 2026-04-01, 60d
+    ESP32 firmware + motor control       :active, b2, 2026-06-01, 60d
+    BLE protocol + prototype + testing   :b3, after b2, 60d
+```
 
-- [x] Flutter application foundation
-- [x] Firebase Authentication
-- [x] Firestore user profiles
+### 📱 Mobile app: ✅ core complete
+
+- [x] Flutter foundation
+- [x] Firebase Auth + Firestore profiles
 - [x] Role-based admin access
-- [x] Destination search
-- [x] City selection
-- [x] OpenStreetMap / Nominatim integration
-- [x] GPS location
-- [x] Routing integration
-- [x] Voice input foundation
-- [x] Text-to-Speech
+- [x] Destination search + city selection (OSM / Nominatim)
+- [x] GPS location + OSRM routing
+- [x] Voice input (Whisper) + Text-to-Speech
 - [x] BLE communication layer
-- [x] Settings
-- [x] Developer testing menu
+- [x] Settings + Developer test menu
 
-## Wearable Belt
+### 🦯 Wearable belt: 🔨 in progress
 
 - [x] ESP32 hardware architecture
 - [x] BLE communication design
 - [x] Motor layout design
 - [ ] ESP32 firmware
-- [ ] Motor control implementation
+- [ ] Motor control
 - [ ] Complete BLE command protocol
 - [ ] Physical belt prototype
 - [ ] Hardware integration testing
 - [ ] Navigation accuracy testing
 
----
+### 🔭 What's next
 
-# 🔬 Future Improvements
-
-Future development may include:
-
-- Improved GPS filtering
-- More accurate heading estimation
-- Better route-following logic
+- Better GPS filtering and heading estimation
+- Smarter route-following logic
 - More robust BLE reconnection
-- Advanced vibration patterns
-- Additional accessibility features
-- Improved Arabic voice interaction
-- Hardware testing with visually impaired users
+- Richer vibration patterns
 - Battery optimization
-- Navigation safety improvements
+- Better Arabic voice interaction
+- **Testing with visually impaired users** and safety improvements
 
 ---
 
-# 📂 Project Structure
+## 🤝 Contributing
 
-```text
-droobi/
-│
-├── android/
-├── assets/
-├── ios/
-├── lib/
-│   ├── core/
-│   ├── models/
-│   ├── screens/
-│   ├── services/
-│   ├── state/
-│   └── widgets/
-│
-├── test/
-├── pubspec.yaml
-├── analysis_options.yaml
-└── README.md
-```
-
----
-
-# 🤝 Contributing
-
-Contributions, suggestions, and improvements are welcome.
-
-If you would like to contribute:
-
-```bash
-git clone https://github.com/Salahaldin-tech/droobi-wearable-navigation-belt.git
-```
-
-Create a feature branch:
+Ideas, bug reports, and PRs are welcome.
 
 ```bash
 git checkout -b feature/your-feature
-```
-
-Commit your changes:
-
-```bash
 git commit -m "Add your feature"
-```
-
-Push the branch:
-
-```bash
 git push origin feature/your-feature
 ```
 
@@ -668,32 +434,18 @@ Then open a Pull Request.
 
 ---
 
-# 👨‍💻 Development
+## 📜 License
 
-Droobi is being developed as a graduation project focused on combining:
-
-**Software Engineering + Mobile Development + Accessibility + Embedded Systems + BLE + Navigation**
-
-The project brings together a Flutter mobile application and a future ESP32-based wearable device into one navigation ecosystem.
+Developed as an academic / graduation project. If you want to reuse, distribute, or commercially deploy it, please contact the authors first.
 
 ---
 
-# 📜 License
-
-This project is currently developed as an academic/graduation project.
-
-If you plan to reuse, distribute, or commercially deploy the project, please contact the project authors first.
-
----
-
-<p align="center">
+<div align="center">
 
 ### 🦯 Droobi
 
-**Technology designed to make navigation more accessible.**
+**Technology that helps you find your way, without needing to see it.**
 
-</p>
+Built with Flutter • Firebase • OpenStreetMap • ESP32 • BLE
 
-<p align="center">
-  Built with Flutter • Firebase • OpenStreetMap • ESP32 • BLE
-</p>
+</div>
