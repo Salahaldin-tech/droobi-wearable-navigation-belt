@@ -446,13 +446,7 @@ class _UniversityLocationsScreenState
 
               SizedBox(height: 4),
 
-              Text(
-                'الجامعة العربية الأمريكية',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: _secondaryText,
-                ),
-              ),
+              
             ],
           ),
         ),

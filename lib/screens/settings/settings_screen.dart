@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../core/enums/belt_connection_state.dart';
 import '../../core/enums/voice_language.dart';
 import '../../state/auth_state_notifier.dart';
 import '../../state/belt_connection_notifier.dart';
+import '../../state/destination_search_notifier.dart';
 import '../../state/voice_language_notifier.dart';
 import '../../widgets/connection_status_indicator.dart';
 import '../../widgets/droobi_bottom_nav.dart';
@@ -13,7 +15,6 @@ class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   static const Color _blue = Color(0xFF2F80ED);
-  static const Color _green = Color(0xFF27AE60);
   static const Color _red = Color(0xFFEB5757);
   static const Color _text = Color(0xFF111111);
   static const Color _muted = Color(0xFF6B7280);
@@ -29,13 +30,23 @@ class SettingsScreen extends ConsumerWidget {
       beltConnectionServiceProvider,
     );
 
-    // Use the actual state from the existing BLE system.
     final state =
         connectionAsync.value ?? beltService.currentState;
 
     final voiceLanguage = ref.watch(
       voiceLanguageProvider,
     );
+
+    final searchState = ref.watch(
+      destinationSearchProvider,
+    );
+
+    final currentUser = ref.watch(authStateProvider).maybeWhen(
+          data: (user) => user,
+          orElse: () => null,
+        );
+
+    final isAdmin = currentUser?.isAdmin ?? false;
 
     final isConnected =
         state == BeltConnectionState.connected;
@@ -45,10 +56,6 @@ class SettingsScreen extends ConsumerWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // ============================================================
-            // CONTENT
-            // ============================================================
-
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(
@@ -58,10 +65,6 @@ class SettingsScreen extends ConsumerWidget {
                   16,
                 ),
                 children: [
-                  // ========================================================
-                  // HEADER
-                  // ========================================================
-
                   const Text(
                     'Settings',
                     style: TextStyle(
@@ -73,20 +76,9 @@ class SettingsScreen extends ConsumerWidget {
 
                   const SizedBox(height: 4),
 
-                  const Text(
-                    'الإعدادات',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: _muted,
-                    ),
-                  ),
-
                   const SizedBox(height: 28),
 
-                  // ========================================================
-                  // DEVICE
-                  // ========================================================
-
+                  // Device
                   _sectionLabel('DEVICE'),
 
                   const SizedBox(height: 10),
@@ -99,32 +91,7 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                     child: Column(
                       children: [
-                        // --------------------------------------------------
-                        // DEVICE HEADER
-                        // --------------------------------------------------
-
                         const SizedBox(height: 14),
-
-                        // --------------------------------------------------
-                        // REAL BLE STATUS
-                        // --------------------------------------------------
-                        //
-                        // IMPORTANT:
-                        // This is the existing status widget.
-                        // It receives the actual BeltConnectionState.
-                        //
-                        // So if the BLE service changes:
-                        //
-                        // disconnected
-                        //      ↓
-                        // scanning
-                        //      ↓
-                        // connecting
-                        //      ↓
-                        // connected
-                        //
-                        // this widget reflects that state.
-                        // --------------------------------------------------
 
                         Align(
                           alignment: Alignment.centerLeft,
@@ -134,10 +101,6 @@ class SettingsScreen extends ConsumerWidget {
                         ),
 
                         const SizedBox(height: 14),
-
-                        // --------------------------------------------------
-                        // ACTION BUTTON
-                        // --------------------------------------------------
 
                         SizedBox(
                           width: double.infinity,
@@ -162,16 +125,13 @@ class SettingsScreen extends ConsumerWidget {
                                   : 'Connect / Reconnect Belt',
                             ),
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: isConnected
-                                  ? _red
-                                  : _blue,
+                              foregroundColor:
+                                  isConnected ? _red : _blue,
                               side: BorderSide(
                                 color: (isConnected
                                         ? _red
                                         : _blue)
-                                    .withValues(
-                                  alpha: 0.35,
-                                ),
+                                    .withValues(alpha: 0.35),
                               ),
                               shape: RoundedRectangleBorder(
                                 borderRadius:
@@ -186,10 +146,7 @@ class SettingsScreen extends ConsumerWidget {
 
                   const SizedBox(height: 28),
 
-                  // ========================================================
-                  // VOICE LANGUAGE
-                  // ========================================================
-
+                  // Voice language
                   _sectionLabel('VOICE LANGUAGE'),
 
                   const SizedBox(height: 10),
@@ -228,9 +185,7 @@ class SettingsScreen extends ConsumerWidget {
                             borderRadius:
                                 BorderRadius.circular(10),
                             border: Border.all(
-                              color: const Color(
-                                0xFFE5E7EB,
-                              ),
+                              color: const Color(0xFFE5E7EB),
                             ),
                           ),
                           child: Row(
@@ -240,8 +195,7 @@ class SettingsScreen extends ConsumerWidget {
                                 label: 'EN',
                                 selected:
                                     voiceLanguage ==
-                                        VoiceLanguage
-                                            .english,
+                                        VoiceLanguage.english,
                                 onPressed: () {
                                   ref
                                       .read(
@@ -249,8 +203,7 @@ class SettingsScreen extends ConsumerWidget {
                                             .notifier,
                                       )
                                       .setLanguage(
-                                        VoiceLanguage
-                                            .english,
+                                        VoiceLanguage.english,
                                       );
                                 },
                               ),
@@ -259,8 +212,7 @@ class SettingsScreen extends ConsumerWidget {
                                 label: 'AR',
                                 selected:
                                     voiceLanguage ==
-                                        VoiceLanguage
-                                            .arabic,
+                                        VoiceLanguage.arabic,
                                 onPressed: () {
                                   ref
                                       .read(
@@ -268,8 +220,7 @@ class SettingsScreen extends ConsumerWidget {
                                             .notifier,
                                       )
                                       .setLanguage(
-                                        VoiceLanguage
-                                            .arabic,
+                                        VoiceLanguage.arabic,
                                       );
                                 },
                               ),
@@ -282,10 +233,94 @@ class SettingsScreen extends ConsumerWidget {
 
                   const SizedBox(height: 28),
 
-                  // ========================================================
-                  // ACCOUNT
-                  // ========================================================
+                  // Search city
+                  _sectionLabel('SEARCH CITY'),
 
+                  const SizedBox(height: 10),
+
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: _card,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.location_city_outlined,
+                          size: 22,
+                          color: _muted,
+                        ),
+
+                        const SizedBox(width: 12),
+
+                        const Expanded(
+                          child: Text(
+                            'Search City',
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: _text,
+                            ),
+                          ),
+                        ),
+
+                        Container(
+                          height: 42,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius:
+                                BorderRadius.circular(10),
+                            border: Border.all(
+                              color: const Color(0xFFE5E7EB),
+                            ),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              value: searchState.selectedCity,
+                              icon: const Icon(
+                                Icons.keyboard_arrow_down,
+                                size: 20,
+                                color: _muted,
+                              ),
+                              borderRadius:
+                                  BorderRadius.circular(10),
+                              items: searchCities.map(
+                                (city) {
+                                  return DropdownMenuItem<String>(
+                                    value: city,
+                                    child: Text(
+                                      city,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: _text,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ).toList(),
+                              onChanged: (city) {
+                                if (city == null) return;
+
+                                ref
+                                    .read(
+                                      destinationSearchProvider
+                                          .notifier,
+                                    )
+                                    .setCity(city);
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 28),
+
+                  // Account
                   _sectionLabel('ACCOUNT'),
 
                   const SizedBox(height: 10),
@@ -301,20 +336,12 @@ class SettingsScreen extends ConsumerWidget {
                         borderRadius:
                             BorderRadius.circular(12),
                         onTap: () async {
-                          // Sign out only. The auth-gated app root watches
-                          // authStateProvider and shows the sign-in screen
-                          // by itself, so no SignInScreen is pushed here.
                           await ref
                               .read(authServiceProvider)
                               .signOut();
 
                           if (!context.mounted) return;
 
-                          // Remove the screens pushed on top of the root
-                          // (this Settings screen, etc.) so the root, which
-                          // now shows the sign-in screen, becomes visible.
-                          // The root itself stays in the navigator, so the
-                          // next login is handled by the auth state again.
                           Navigator.of(context).popUntil(
                             (route) => route.isFirst,
                           );
@@ -345,75 +372,72 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                   ),
 
-                  const SizedBox(height: 28),
+                  if (isAdmin) ...[
+                    const SizedBox(height: 28),
 
-                  // ========================================================
-                  // DEVELOPER
-                  // ========================================================
+                    // Developer tools
+                    _sectionLabel('DEVELOPER'),
 
-                  _sectionLabel('DEVELOPER'),
+                    const SizedBox(height: 10),
 
-                  const SizedBox(height: 10),
-
-                  Container(
-                    decoration: BoxDecoration(
-                      color: _card,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
+                    Container(
+                      decoration: BoxDecoration(
+                        color: _card,
                         borderRadius:
                             BorderRadius.circular(12),
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  const DevTestMenu(),
-                            ),
-                          );
-                        },
-                        child: const Padding(
-                          padding: EdgeInsets.all(16),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.build_outlined,
-                                size: 21,
-                                color: _muted,
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius:
+                              BorderRadius.circular(12),
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    const DevTestMenu(),
                               ),
+                            );
+                          },
+                          child: const Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.build_outlined,
+                                  size: 21,
+                                  color: _muted,
+                                ),
 
-                              SizedBox(width: 12),
+                                SizedBox(width: 12),
 
-                              Expanded(
-                                child: Text(
-                                  'Dev Test Menu',
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    color: _text,
+                                Expanded(
+                                  child: Text(
+                                    'Dev Test Menu',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      color: _text,
+                                    ),
                                   ),
                                 ),
-                              ),
 
-                              Icon(
-                                Icons.chevron_right,
-                                size: 20,
-                                color:
-                                    Color(0xFF9CA3AF),
-                              ),
-                            ],
+                                Icon(
+                                  Icons.chevron_right,
+                                  size: 20,
+                                  color:
+                                      Color(0xFF9CA3AF),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
+                  ],
 
                   const SizedBox(height: 16),
 
-                  // ========================================================
-                  // APP INFO
-                  // ========================================================
-
+                  // App info
                   const Padding(
                     padding: EdgeInsets.symmetric(
                       vertical: 18,
@@ -431,7 +455,7 @@ class SettingsScreen extends ConsumerWidget {
                         SizedBox(height: 4),
 
                         Text(
-                          'دروبي -  ',
+                          'دروبي',
                           style: TextStyle(
                             fontSize: 14,
                             color: Color(0xFF9CA3AF),
@@ -444,14 +468,6 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
 
-            // ============================================================
-            // BOTTOM NAVIGATION
-            // ============================================================
-            //
-            // Exactly like the University screen:
-            // no outer horizontal padding.
-            // ============================================================
-
             const DroobiBottomNav(
               currentItem: DroobiNavItem.settings,
             ),
@@ -460,10 +476,6 @@ class SettingsScreen extends ConsumerWidget {
       ),
     );
   }
-
-  // ========================================================================
-  // SECTION LABEL
-  // ========================================================================
 
   Widget _sectionLabel(String text) {
     return Text(
@@ -477,10 +489,6 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  // ========================================================================
-  // LANGUAGE BUTTON
-  // ========================================================================
-
   Widget _languageButton({
     required String label,
     required bool selected,
@@ -489,33 +497,25 @@ class SettingsScreen extends ConsumerWidget {
     return Semantics(
       button: true,
       selected: selected,
-      label: label == 'EN'
-          ? 'English'
-          : 'العربية',
+      label: label == 'EN' ? 'English' : 'العربية',
       child: GestureDetector(
         onTap: onPressed,
         child: AnimatedContainer(
-          duration:
-              const Duration(milliseconds: 160),
+          duration: const Duration(milliseconds: 160),
           curve: Curves.easeOut,
           width: 48,
           height: 32,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: selected
-                ? _blue
-                : Colors.white,
-            borderRadius:
-                BorderRadius.circular(7),
+            color: selected ? _blue : Colors.white,
+            borderRadius: BorderRadius.circular(7),
           ),
           child: Text(
             label,
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w500,
-              color: selected
-                  ? Colors.white
-                  : _text,
+              color: selected ? Colors.white : _text,
             ),
           ),
         ),

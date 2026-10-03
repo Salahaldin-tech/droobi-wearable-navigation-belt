@@ -37,7 +37,11 @@ class GooglePlacesSearchService implements DestinationSearchService {
   final http.Client _client;
 
   @override
-  Future<List<Destination>> searchDestinations(String query) async {
+  @override
+Future<List<Destination>> searchDestinations(
+  String query, {
+  String? city,
+}) async {
     final trimmed = query.trim();
     if (trimmed.isEmpty) {
       return const [];

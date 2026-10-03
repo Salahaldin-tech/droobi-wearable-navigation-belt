@@ -6,22 +6,6 @@ import 'package:http/http.dart' as http;
 import '../../models/destination.dart';
 import 'destination_search_service.dart';
 
-/// TEMPORARY substitute for [GooglePlacesSearchService], used only
-/// because Google Cloud billing setup is currently blocked on the
-/// developer's account (unrelated to this project's code). This
-/// implementation is otherwise a drop-in replacement - it satisfies
-/// the exact same [DestinationSearchService] interface, so nothing
-/// outside lib/services/search/ and the provider wiring needed to
-/// change.
-///
-/// REVERT PLAN: once Google Cloud billing works, switch
-/// destinationSearchServiceProvider back to GooglePlacesSearchService
-/// (see lib/state/destination_search_notifier.dart). This file can
-/// stay in the project afterward as an optional fallback, or be
-/// deleted - your call at that point.
-///
-/// Uses the Geoapify Geocoding API (free tier, API key required but
-/// no billing/card needed): https://api.geoapify.com/v1/geocode/search
 class GeoapifySearchService implements DestinationSearchService {
   GeoapifySearchService({
     required String apiKey,
@@ -35,7 +19,11 @@ class GeoapifySearchService implements DestinationSearchService {
   final http.Client _client;
 
   @override
-  Future<List<Destination>> searchDestinations(String query) async {
+  @override
+Future<List<Destination>> searchDestinations(
+  String query, {
+  String? city,
+}) async {
     final trimmed = query.trim();
     if (trimmed.isEmpty) {
       return const [];

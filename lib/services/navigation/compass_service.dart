@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter_compass/flutter_compass.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class CompassService {
   Stream<double> get headingStream {
@@ -58,7 +57,3 @@ class CompassFailure implements Exception {
   @override
   String toString() => message;
 }
-
-final compassServiceProvider = Provider<CompassService>((ref) {
-  return CompassService();
-});

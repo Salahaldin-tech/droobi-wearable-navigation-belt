@@ -1,25 +1,28 @@
-/// Minimal user model, matching the users/{uid} Firestore schema
-/// agreed in Stage 2. Only fields required for system functionality
-/// are included, per the project's privacy requirement (Stage 1 §8).
 class AppUser {
   const AppUser({
     required this.uid,
     required this.displayName,
     required this.createdAt,
+    this.role = 'user',
   });
 
   final String uid;
   final String displayName;
   final DateTime createdAt;
+  final String role;
 
-  factory AppUser.fromFirestore(String uid, Map<String, dynamic> data) {
+  bool get isAdmin => role == 'admin';
+
+  factory AppUser.fromFirestore(
+    String uid,
+    Map<String, dynamic> data,
+  ) {
     final rawCreatedAt = data['createdAt'];
+
     final DateTime createdAt = switch (rawCreatedAt) {
       DateTime dt => dt,
-      // Firestore Timestamps arrive as objects with a toDate() method.
-      // Kept loosely typed here so this model file doesn't need to
-      // import cloud_firestore directly.
-      _ when rawCreatedAt != null && rawCreatedAt.runtimeType.toString() == 'Timestamp' =>
+      _ when rawCreatedAt != null &&
+              rawCreatedAt.runtimeType.toString() == 'Timestamp' =>
         (rawCreatedAt as dynamic).toDate() as DateTime,
       _ => DateTime.now(),
     };
@@ -28,6 +31,7 @@ class AppUser {
       uid: uid,
       displayName: (data['displayName'] as String?) ?? '',
       createdAt: createdAt,
+      role: (data['role'] as String?) ?? 'user',
     );
   }
 
@@ -35,6 +39,7 @@ class AppUser {
     return {
       'displayName': displayName,
       'createdAt': createdAt,
+      'role': role,
     };
   }
 }

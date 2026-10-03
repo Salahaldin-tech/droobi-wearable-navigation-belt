@@ -286,13 +286,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
                                 ),
                               ),
                               SizedBox(height: 4),
-                              Text(
-                                'المفضلة',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: _secondaryText,
-                                ),
-                              ),
+                             
                             ],
                           ),
                         ),

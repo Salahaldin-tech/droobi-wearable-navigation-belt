@@ -1,0 +1,755 @@
+===== destination_search_screen.dart =====
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../models/destination.dart';
+import '../../models/lat_lon.dart';
+import '../../screens/navigation/live_navigation_screen.dart';
+import '../../state/destination_search_notifier.dart';
+import '../../state/favorites_notifier.dart';
+
+/// Real Destination Search screen.
+///
+/// Search results can be:
+/// - Added to Favorites
+/// - Selected as the destination for Live Navigation
+class DestinationSearchScreen extends ConsumerStatefulWidget {
+  const DestinationSearchScreen({super.key});
+
+  @override
+  ConsumerState<DestinationSearchScreen> createState() =>
+      _DestinationSearchScreenState();
+}
+
+class _DestinationSearchScreenState
+    extends ConsumerState<DestinationSearchScreen> {
+  final _controller = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+
+    // If the voice flow already produced a recognized
+    // and confirmed query, prefill it and search immediately.
+    final existingQuery =
+        ref.read(destinationSearchProvider).query;
+
+    if (existingQuery.isNotEmpty) {
+      _controller.text = existingQuery;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  // ================================================================
+  // SEARCH
+  // ================================================================
+
+  void _runSearch() {
+    final query = _controller.text;
+
+    if (query.trim().isEmpty) {
+      return;
+    }
+
+    ref
+        .read(destinationSearchProvider.notifier)
+        .search(query);
+  }
+
+  // ================================================================
+  // ADD TO FAVORITES
+  // ================================================================
+
+  Future<void> _addToFavorites(
+    Destination destination,
+  ) async {
+    final labelController =
+        TextEditingController(
+      text: destination.name,
+    );
+
+    final label = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Add to Favorites'),
+        content: Semantics(
+          textField: true,
+          label: 'Favorite label',
+          child: TextField(
+            controller: labelController,
+            decoration: const InputDecoration(
+              labelText: 'Label',
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(
+                labelController.text,
+              );
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+
+    labelController.dispose();
+
+    if (label == null || label.trim().isEmpty) {
+      return;
+    }
+
+    await ref
+        .read(favoritesActionsProvider)
+        .addFavorite(
+          label: label.trim(),
+          destination: destination,
+        );
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Added "$label" to Favorites',
+          ),
+        ),
+      );
+    }
+  }
+
+  // ================================================================
+  // OPEN LIVE NAVIGATION
+  // ================================================================
+
+  void _openLiveNavigation(
+    Destination destination,
+  ) {
+    final latLon = LatLon(
+      latitude: destination.latitude,
+      longitude: destination.longitude,
+    );
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => LiveNavigationScreen(
+          destination: latLon,
+        ),
+      ),
+    );
+  }
+
+  // ================================================================
+  // BUILD
+  // ================================================================
+
+  @override
+  Widget build(BuildContext context) {
+    final state =
+        ref.watch(destinationSearchProvider);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'Search Destination',
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment:
+              CrossAxisAlignment.stretch,
+          children: [
+            // --------------------------------------------------------
+            // SEARCH BAR
+            // --------------------------------------------------------
+
+            Row(
+              children: [
+                Expanded(
+                  child: Semantics(
+                    textField: true,
+                    label: 'Search destination',
+                    child: TextField(
+                      controller: _controller,
+                      decoration:
+                          const InputDecoration(
+                        labelText:
+                            'Where do you want to go?',
+                        border:
+                            OutlineInputBorder(),
+                      ),
+                      onSubmitted: (_) =>
+                          _runSearch(),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(width: 12),
+
+                Semantics(
+                  button: true,
+                  label: 'Search',
+                  child: ElevatedButton(
+                    onPressed: state.isLoading
+                        ? null
+                        : _runSearch,
+                    child: const Text('Search'),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 12),
+
+            // --------------------------------------------------------
+            // LOADING
+            // --------------------------------------------------------
+
+            if (state.isLoading)
+              const LinearProgressIndicator(),
+
+            // --------------------------------------------------------
+            // ERROR
+            // --------------------------------------------------------
+
+            if (state.errorMessage != null)
+              Semantics(
+                liveRegion: true,
+                child: Padding(
+                  padding:
+                      const EdgeInsets.only(top: 8),
+                  child: Text(
+                    state.errorMessage!,
+                    style: const TextStyle(
+                      color: Colors.red,
+                    ),
+                  ),
+                ),
+              ),
+
+            // --------------------------------------------------------
+            // NO RESULTS
+            // --------------------------------------------------------
+
+            if (!state.isLoading &&
+                state.errorMessage == null &&
+                state.results.isEmpty &&
+                state.query.isNotEmpty)
+              const Padding(
+                padding:
+                    EdgeInsets.only(top: 16),
+                child: Text(
+                  'No results found.',
+                ),
+              ),
+
+            const SizedBox(height: 8),
+
+            // --------------------------------------------------------
+            // RESULTS
+            // --------------------------------------------------------
+
+            Expanded(
+              child: ListView.separated(
+                itemCount:
+                    state.results.length,
+                separatorBuilder:
+                    (_, __) =>
+                        const Divider(),
+                itemBuilder:
+                    (context, index) {
+                  final destination =
+                      state.results[index];
+
+                  return ListTile(
+                    leading: const Icon(
+                      Icons.location_on_outlined,
+                    ),
+
+                    title: Text(
+                      destination.name,
+                    ),
+
+                    subtitle: Text(
+                      destination.address ?? '',
+                    ),
+
+                    trailing: Semantics(
+                      button: true,
+                      label:
+                          'Add ${destination.name} '
+                          'to Favorites',
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.star_border,
+                        ),
+                        onPressed: () =>
+                            _addToFavorites(
+                          destination,
+                        ),
+                      ),
+                    ),
+
+                    // ------------------------------------------------
+                    // SELECT DESTINATION
+                    // ------------------------------------------------
+                    //
+                    // Instead of returning the destination to
+                    // another screen, the real production flow now
+                    // opens Live Navigation directly.
+                    //
+                    onTap: () =>
+                        _openLiveNavigation(
+                      destination,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+===== destination_search_service.dart =====
+import '../../models/destination.dart';
+
+/// Accessible, user-facing search error categories - mirrors the
+/// AuthFailure pattern from Stage 6 so failures are always plain
+/// messages, never raw HTTP/API exceptions, by the time they reach
+/// the UI or a future FeedbackService announcement.
+enum DestinationSearchErrorType {
+  networkError,
+  noResults,
+  apiError,
+  unknown,
+}
+
+class DestinationSearchFailure implements Exception {
+  const DestinationSearchFailure(this.type, this.message);
+
+  final DestinationSearchErrorType type;
+  final String message;
+
+  @override
+  String toString() => message;
+}
+
+/// Abstract interface for resolving a free-text destination query
+/// into candidate destinations. The rest of the app depends only on
+/// this interface, never on the underlying search provider directly -
+/// consistent with the "interfaces over concrete implementations"
+/// rule used for BLE and Auth in earlier stages.
+abstract class DestinationSearchService {
+  /// Resolves [query] (typed or voice-transcribed text) into a list
+  /// of candidate destinations. Returns an empty list if nothing
+  /// matched - never throws for "no results", only for actual
+  /// network/API failures (see [DestinationSearchFailure]).
+  Future<List<Destination>> searchDestinations(String query);
+}
+
+===== geoapify_search_service.dart =====
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:http/http.dart' as http;
+
+import '../../models/destination.dart';
+import 'destination_search_service.dart';
+
+/// TEMPORARY substitute for [GooglePlacesSearchService], used only
+/// because Google Cloud billing setup is currently blocked on the
+/// developer's account (unrelated to this project's code). This
+/// implementation is otherwise a drop-in replacement - it satisfies
+/// the exact same [DestinationSearchService] interface, so nothing
+/// outside lib/services/search/ and the provider wiring needed to
+/// change.
+///
+/// REVERT PLAN: once Google Cloud billing works, switch
+/// destinationSearchServiceProvider back to GooglePlacesSearchService
+/// (see lib/state/destination_search_notifier.dart). This file can
+/// stay in the project afterward as an optional fallback, or be
+/// deleted - your call at that point.
+///
+/// Uses the Geoapify Geocoding API (free tier, API key required but
+/// no billing/card needed): https://api.geoapify.com/v1/geocode/search
+class GeoapifySearchService implements DestinationSearchService {
+  GeoapifySearchService({
+    required String apiKey,
+    http.Client? httpClient,
+  })  : _apiKey = apiKey,
+        _client = httpClient ?? http.Client();
+
+  static const String _endpoint = 'https://api.geoapify.com/v1/geocode/search';
+
+  final String _apiKey;
+  final http.Client _client;
+
+  @override
+  Future<List<Destination>> searchDestinations(String query) async {
+    final trimmed = query.trim();
+    if (trimmed.isEmpty) {
+      return const [];
+    }
+
+    final uri = Uri.parse(_endpoint).replace(queryParameters: {
+      'text': trimmed,
+      'format': 'geojson',
+      'limit': '10',
+      'apiKey': _apiKey,
+    });
+
+    late final http.Response response;
+    try {
+      response = await _client.get(uri).timeout(const Duration(seconds: 10));
+    } on SocketException {
+      throw const DestinationSearchFailure(
+        DestinationSearchErrorType.networkError,
+        'Network error while searching. Please check your connection and try again.',
+      );
+    } on Exception {
+      throw const DestinationSearchFailure(
+        DestinationSearchErrorType.networkError,
+        'Could not reach the search service. Please try again.',
+      );
+    }
+
+    if (response.statusCode != 200) {
+      throw DestinationSearchFailure(
+        DestinationSearchErrorType.apiError,
+        'Destination search failed (status ${response.statusCode}). Please try again.',
+      );
+    }
+
+    final Map<String, dynamic> body;
+    try {
+      body = jsonDecode(response.body) as Map<String, dynamic>;
+    } on FormatException {
+      throw const DestinationSearchFailure(
+        DestinationSearchErrorType.apiError,
+        'Received an unexpected response from the search service.',
+      );
+    }
+
+    final features = body['features'] as List<dynamic>?;
+    if (features == null || features.isEmpty) {
+      return const [];
+    }
+
+    return features
+        .map((feature) => _toDestination(feature as Map<String, dynamic>))
+        .whereType<Destination>()
+        .toList();
+  }
+
+  /// Converts a single Geoapify GeoJSON feature into a [Destination].
+  /// Returns null (and skips the entry) if required fields are missing.
+  Destination? _toDestination(Map<String, dynamic> feature) {
+    final properties = feature['properties'] as Map<String, dynamic>?;
+    if (properties == null) return null;
+
+    final latitude = (properties['lat'] as num?)?.toDouble();
+    final longitude = (properties['lon'] as num?)?.toDouble();
+    if (latitude == null || longitude == null) {
+      return null;
+    }
+
+    final formatted = properties['formatted'] as String?;
+    final name = (properties['name'] as String?) ?? formatted ?? 'Unnamed place';
+
+    return Destination(
+      name: name,
+      latitude: latitude,
+      longitude: longitude,
+      address: formatted,
+    );
+  }
+}
+
+===== nominatim_search_service.dart =====
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:http/http.dart' as http;
+
+import '../../models/destination.dart';
+import 'destination_search_service.dart';
+
+/// Destination search implementation using the public
+/// OpenStreetMap Nominatim search service.
+///
+/// Results are restricted to Palestine using `countrycodes=ps`.
+class NominatimSearchService implements DestinationSearchService {
+  NominatimSearchService({
+    http.Client? httpClient,
+  }) : _client = httpClient ?? http.Client();
+
+  static const String _endpoint =
+      'https://nominatim.openstreetmap.org/search';
+
+  final http.Client _client;
+
+  @override
+  Future<List<Destination>> searchDestinations(String query) async {
+    final trimmed = query.trim();
+
+    if (trimmed.isEmpty) {
+      return const [];
+    }
+
+    final uri = Uri.parse(_endpoint).replace(
+      queryParameters: {
+        'q': trimmed,
+        'format': 'jsonv2',
+        'limit': '10',
+        'countrycodes': 'ps',
+        'addressdetails': '1',
+        'accept-language': 'en,ar',
+      },
+    );
+
+    late final http.Response response;
+
+    try {
+      response = await _client.get(
+        uri,
+        headers: {
+          'User-Agent': 'Droobi/1.0 (Navigation Belt Project)',
+          'Accept': 'application/json',
+        },
+      ).timeout(const Duration(seconds: 10));
+    } on SocketException {
+      throw const DestinationSearchFailure(
+        DestinationSearchErrorType.networkError,
+        'Network error while searching. Please check your connection and try again.',
+      );
+    } on Exception {
+      throw const DestinationSearchFailure(
+        DestinationSearchErrorType.networkError,
+        'Could not reach the search service. Please try again.',
+      );
+    }
+
+    if (response.statusCode != 200) {
+      throw DestinationSearchFailure(
+        DestinationSearchErrorType.apiError,
+        'Destination search failed (status ${response.statusCode}). Please try again.',
+      );
+    }
+
+    final List<dynamic> results;
+
+    try {
+      results = jsonDecode(response.body) as List<dynamic>;
+    } on FormatException {
+      throw const DestinationSearchFailure(
+        DestinationSearchErrorType.apiError,
+        'Received an unexpected response from the search service.',
+      );
+    }
+
+    if (results.isEmpty) {
+      return const [];
+    }
+
+    return results
+        .map((result) {
+          if (result is! Map<String, dynamic>) {
+            return null;
+          }
+
+          return _toDestination(result);
+        })
+        .whereType<Destination>()
+        .toList();
+  }
+
+  Destination? _toDestination(Map<String, dynamic> result) {
+    final latitude = double.tryParse(result['lat']?.toString() ?? '');
+    final longitude = double.tryParse(result['lon']?.toString() ?? '');
+
+    if (latitude == null || longitude == null) {
+      return null;
+    }
+
+    final displayName = result['display_name'] as String?;
+    final name = result['name'] as String?;
+
+    final resolvedName =
+        (name != null && name.trim().isNotEmpty)
+            ? name.trim()
+            : _fallbackName(displayName);
+
+    return Destination(
+      name: resolvedName,
+      latitude: latitude,
+      longitude: longitude,
+      address: displayName,
+    );
+  }
+
+  String _fallbackName(String? displayName) {
+    if (displayName == null || displayName.trim().isEmpty) {
+      return 'Unnamed place';
+    }
+
+    return displayName.split(',').first.trim();
+  }
+}
+===== destination_search_notifier.dart =====
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../models/destination.dart';
+import '../services/search/destination_search_service.dart';
+import '../services/search/nominatim_search_service.dart';
+
+/// ===========================================================
+/// DESTINATION SEARCH PROVIDER
+/// ===========================================================
+///
+/// The app uses Nominatim / OpenStreetMap for destination search.
+///
+/// NominatimSearchService implements the same
+/// DestinationSearchService interface used by the rest of the app,
+/// so the UI and the search state do not need to know which provider
+/// is being used.
+///
+/// Search results are restricted to Palestine by the
+/// Nominatim service using:
+///
+///   countrycodes=ps
+///
+/// No API key or Google/Geoapify billing is required for this setup.
+/// ===========================================================
+
+/// The single DestinationSearchService instance for the app.
+///
+/// Everywhere else should depend only on [DestinationSearchService]
+/// through this provider. This keeps the search provider swappable
+/// without changing the UI or the rest of the application.
+final destinationSearchServiceProvider =
+    Provider<DestinationSearchService>((ref) {
+  return NominatimSearchService();
+});
+
+/// Search state for the Destination Search screen and the future
+/// voice destination flow feeding into the same pipeline.
+class DestinationSearchState {
+  const DestinationSearchState({
+    this.query = '',
+    this.results = const [],
+    this.isLoading = false,
+    this.errorMessage,
+  });
+
+  final String query;
+  final List<Destination> results;
+  final bool isLoading;
+  final String? errorMessage;
+
+  DestinationSearchState copyWith({
+    String? query,
+    List<Destination>? results,
+    bool? isLoading,
+    String? errorMessage,
+    bool clearError = false,
+  }) {
+    return DestinationSearchState(
+      query: query ?? this.query,
+      results: results ?? this.results,
+      isLoading: isLoading ?? this.isLoading,
+      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+    );
+  }
+}
+
+/// Handles destination search requests and exposes the current
+/// search state to the UI.
+class DestinationSearchNotifier
+    extends StateNotifier<DestinationSearchState> {
+  DestinationSearchNotifier(this._service)
+      : super(const DestinationSearchState());
+
+  final DestinationSearchService _service;
+
+  Future<void> search(String query) async {
+    state = state.copyWith(
+      query: query,
+      isLoading: true,
+      clearError: true,
+    );
+
+    try {
+      final results = await _service.searchDestinations(query);
+
+      state = state.copyWith(
+        results: results,
+        isLoading: false,
+        clearError: true,
+      );
+    } on Exception catch (e) {
+      // DestinationSearchFailure exposes a plain-language message
+      // through Exception.toString(), so it is safe to surface
+      // directly to the UI.
+      state = state.copyWith(
+        isLoading: false,
+        results: const [],
+        errorMessage: e.toString(),
+      );
+    }
+  }
+
+  /// Clears the current search query, results, loading state,
+  /// and error message.
+  void clear() {
+    state = const DestinationSearchState();
+  }
+}
+
+/// Main provider consumed by the Destination Search UI.
+final destinationSearchProvider = StateNotifierProvider<
+    DestinationSearchNotifier,
+    DestinationSearchState>((ref) {
+  final service = ref.watch(destinationSearchServiceProvider);
+
+  return DestinationSearchNotifier(service);
+});
+===== destination.dart =====
+/// A resolved destination candidate, as returned by destination search.
+///
+/// This is the shared shape used by search results now, and will be
+/// reused by Favorites/University Locations in later stages since
+/// they carry the same minimal fields (per the Stage 2 data model).
+class Destination {
+  const Destination({
+    required this.name,
+    required this.latitude,
+    required this.longitude,
+    this.address,
+  });
+
+  final String name;
+  final double latitude;
+  final double longitude;
+
+  /// Formatted address, when the search provider returns one.
+  /// Nullable because not every provider/result guarantees it.
+  final String? address;
+}
