@@ -182,11 +182,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final connectionAsync = ref.watch(beltConnectionStateProvider);
     final beltService = ref.watch(beltConnectionServiceProvider);
 
-    final beltState =
-        connectionAsync.value ?? beltService.currentState;
+    final beltState = connectionAsync.value ?? beltService.currentState;
 
-    final isBeltConnected =
-        beltState == BeltConnectionState.connected;
+    final isBeltConnected = beltState == BeltConnectionState.connected;
 
     final voiceState = ref.watch(voiceCommandProvider);
 
@@ -199,9 +197,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     // query and results as if they had typed the text themselves.
     // ------------------------------------------------------------------
     ref.listen<VoiceCommandState>(voiceCommandProvider, (previous, next) {
-      final searchStarted =
-          previous?.phase == VoiceCommandPhase.recognized &&
-              next.phase == VoiceCommandPhase.processing;
+      final searchStarted = previous?.phase == VoiceCommandPhase.recognized &&
+          next.phase == VoiceCommandPhase.processing;
 
       if (!searchStarted) {
         return;
@@ -233,10 +230,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               fit: BoxFit.cover,
               excludeFromSemantics: true,
               errorBuilder: (
-                  context,
-                  error,
-                  stackTrace,
-                  ) {
+                context,
+                error,
+                stackTrace,
+              ) {
                 return const SizedBox.shrink();
               },
             ),
@@ -284,11 +281,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                             t,
                           )!,
                           colors: [
-                            const Color(0xFFDCEBFF)
-                                .withValues(alpha: 0.55),
+                            const Color(0xFFDCEBFF).withValues(alpha: 0.55),
                             Colors.white.withValues(alpha: 0.10),
-                            const Color(0xFFD9F5EA)
-                                .withValues(alpha: 0.45),
+                            const Color(0xFFD9F5EA).withValues(alpha: 0.45),
                           ],
                         ),
                       ),
@@ -320,8 +315,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       16,
                     ),
                     child: Row(
-                      mainAxisAlignment:
-                      MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         // --------------------------------------------------
                         // APP NAME
@@ -345,12 +339,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           label: 'Open menu',
                           child: Material(
                             color: Colors.white,
-                            borderRadius:
-                            BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(10),
                             elevation: 3,
                             child: InkWell(
-                              borderRadius:
-                              BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(10),
                               onTap: () {
                                 _showMenu(context);
                               },
@@ -389,20 +381,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         child: Material(
                           color: Colors.transparent,
                           child: InkWell(
-                            borderRadius:
-                            BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(12),
                             onTap: () {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
                                   builder: (_) =>
-                                  const DestinationSearchScreen(),
+                                      const DestinationSearchScreen(),
                                 ),
                               );
                             },
                             child: Container(
                               height: 52,
-                              padding:
-                              const EdgeInsets.symmetric(
+                              padding: const EdgeInsets.symmetric(
                                 horizontal: 16,
                               ),
                               child: const Row(
@@ -451,8 +441,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                             children: [
                               Expanded(
                                 child: Align(
-                                  alignment:
-                                  Alignment.centerLeft,
+                                  alignment: Alignment.centerLeft,
                                   child: ConnectionStatusIndicator(
                                     state: beltState,
                                   ),
@@ -465,9 +454,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                               // describes the state to screen readers.
                               ExcludeSemantics(
                                 child: _StatusDot(
-                                  color: isBeltConnected
-                                      ? _green
-                                      : _grey,
+                                  color: isBeltConnected ? _green : _grey,
                                   pulse: isBeltConnected,
                                 ),
                               ),
@@ -485,8 +472,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
                 Expanded(
                   child: Column(
-                    mainAxisAlignment:
-                    MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       // ----------------------------------------------------
                       // MICROPHONE
@@ -508,20 +494,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       // RECOGNIZED TEXT
                       // ----------------------------------------------------
 
-                      if (voiceState.phase ==
-                          VoiceCommandPhase.recognized)
+                      if (voiceState.phase == VoiceCommandPhase.recognized)
                         Padding(
-                          padding:
-                          const EdgeInsets.symmetric(
+                          padding: const EdgeInsets.symmetric(
                             horizontal: 24,
                           ),
                           child: Text(
                             'Heard: "${voiceState.recognizedText}"',
                             textAlign: TextAlign.center,
-                            style:
-                            Theme.of(context)
-                                .textTheme
-                                .titleMedium,
+                            style: Theme.of(context).textTheme.titleMedium,
                           ),
                         ),
 
@@ -529,18 +510,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       // ERROR
                       // ----------------------------------------------------
 
-                      if (voiceState.phase ==
-                          VoiceCommandPhase.error)
+                      if (voiceState.phase == VoiceCommandPhase.error)
                         Padding(
-                          padding:
-                          const EdgeInsets.symmetric(
+                          padding: const EdgeInsets.symmetric(
                             horizontal: 24,
                           ),
                           child: Text(
                             voiceState.errorMessage ?? '',
                             textAlign: TextAlign.center,
-                            style:
-                            const TextStyle(
+                            style: const TextStyle(
                               color: Colors.red,
                               fontSize: 14,
                             ),
@@ -555,8 +533,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 // ==========================================================
 
                 const DroobiBottomNav(
-                  currentItem:
-                  DroobiNavItem.home,
+                  currentItem: DroobiNavItem.home,
                 ),
               ],
             ),
@@ -582,29 +559,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       ),
       transitionDuration: const Duration(milliseconds: 300),
       transitionBuilder: (
-          context,
-          animation,
-          secondaryAnimation,
-          child,
-          ) {
+        context,
+        animation,
+        secondaryAnimation,
+        child,
+      ) {
         // Slide in from the left instead of the default fade.
         return SlideTransition(
-          position: animation
-              .drive(CurveTween(curve: Curves.easeOutCubic))
-              .drive(
-            Tween<Offset>(
-              begin: const Offset(-1, 0),
-              end: Offset.zero,
-            ),
-          ),
+          position:
+              animation.drive(CurveTween(curve: Curves.easeOutCubic)).drive(
+                    Tween<Offset>(
+                      begin: const Offset(-1, 0),
+                      end: Offset.zero,
+                    ),
+                  ),
           child: child,
         );
       },
       pageBuilder: (
-          context,
-          animation,
-          secondaryAnimation,
-          ) {
+        context,
+        animation,
+        secondaryAnimation,
+      ) {
         final topInset = MediaQuery.of(context).padding.top;
 
         return Align(
@@ -644,12 +620,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       ),
                     ),
                     child: Column(
-                      crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
-                          mainAxisAlignment:
-                          MainAxisAlignment.spaceBetween,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Container(
                               width: 56,
@@ -657,8 +631,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
                                 color: Colors.white,
-                                borderRadius:
-                                BorderRadius.circular(16),
+                                borderRadius: BorderRadius.circular(16),
                                 boxShadow: const [
                                   BoxShadow(
                                     blurRadius: 12,
@@ -672,10 +645,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                 fit: BoxFit.contain,
                                 excludeFromSemantics: true,
                                 errorBuilder: (
-                                    context,
-                                    error,
-                                    stackTrace,
-                                    ) {
+                                  context,
+                                  error,
+                                  stackTrace,
+                                ) {
                                   return const Icon(
                                     Icons.explore,
                                     color: _blue,
@@ -697,9 +670,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                             ),
                           ],
                         ),
-
                         const SizedBox(height: 18),
-
                         if (userName.isNotEmpty) ...[
                           const Text(
                             'Welcome,',
@@ -776,8 +747,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                               context,
                             ).push(
                               MaterialPageRoute(
-                                builder: (_) =>
-                                const FavoritesScreen(),
+                                builder: (_) => const FavoritesScreen(),
                               ),
                             );
                           },
@@ -800,7 +770,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                             ).push(
                               MaterialPageRoute(
                                 builder: (_) =>
-                                const UniversityLocationsScreen(),
+                                    const UniversityLocationsScreen(),
                               ),
                             );
                           },
@@ -822,15 +792,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                               context,
                             ).push(
                               MaterialPageRoute(
-                                builder: (_) =>
-                                const SettingsScreen(),
+                                builder: (_) => const SettingsScreen(),
                               ),
                             );
                           },
-                        ),
+                        )
                       ],
                     ),
                   ),
+
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      left: 15,
+                      bottom: 30,
+                    ),
+                    child: _MenuItem(
+                      icon: Icons.info_outline,
+                      label: 'About Us',
+                      onTap: () {
+                        
+                      },
+                    ),
+                  ),
+                  
                 ],
               ),
             ),
@@ -966,9 +950,7 @@ class _MenuItem extends StatelessWidget {
         selected: active,
         label: label,
         child: Material(
-          color: active
-              ? blue.withValues(alpha: 0.08)
-              : Colors.transparent,
+          color: active ? blue.withValues(alpha: 0.08) : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
           child: InkWell(
             onTap: onTap,
@@ -991,12 +973,8 @@ class _MenuItem extends StatelessWidget {
                     label,
                     style: TextStyle(
                       fontSize: 15,
-                      fontWeight: active
-                          ? FontWeight.w600
-                          : FontWeight.w500,
-                      color: active
-                          ? blue
-                          : const Color(0xFF111111),
+                      fontWeight: active ? FontWeight.w600 : FontWeight.w500,
+                      color: active ? blue : const Color(0xFF111111),
                     ),
                   ),
                 ],
