@@ -137,6 +137,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: _AuthTheme.pageBackground,
       body: Stack(
         children: [
@@ -173,7 +174,6 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
               children: [
                 _Header(onLoginTap: _isSubmitting ? null : _goToLogin),
                 Expanded(
-                  flex: 28,
                   child: Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -198,29 +198,26 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     ),
                   ),
                 ),
-                Expanded(
-                  flex: 72,
-                  child: _SignUpPanel(
-                    nameController: _nameController,
-                    emailController: _emailController,
-                    passwordController: _passwordController,
-                    confirmPasswordController: _confirmPasswordController,
-                    isSubmitting: _isSubmitting,
-                    obscurePassword: _obscurePassword,
-                    obscureConfirmPassword: _obscureConfirmPassword,
-                    errorMessage: _errorMessage,
-                    onTogglePasswordVisibility: () {
-                      setState(() => _obscurePassword = !_obscurePassword);
-                    },
-                    onToggleConfirmPasswordVisibility: () {
-                      setState(() => _obscureConfirmPassword = !_obscureConfirmPassword);
-                    },
-                    onSubmit: _isSubmitting ? null : _submit,
-                    onConfirmSubmitted: (_) {
-                      if (!_isSubmitting) _submit();
-                    },
-                    onLoginTap: _isSubmitting ? null : _goToLogin,
-                  ),
+                _SignUpPanel(
+                  nameController: _nameController,
+                  emailController: _emailController,
+                  passwordController: _passwordController,
+                  confirmPasswordController: _confirmPasswordController,
+                  isSubmitting: _isSubmitting,
+                  obscurePassword: _obscurePassword,
+                  obscureConfirmPassword: _obscureConfirmPassword,
+                  errorMessage: _errorMessage,
+                  onTogglePasswordVisibility: () {
+                    setState(() => _obscurePassword = !_obscurePassword);
+                  },
+                  onToggleConfirmPasswordVisibility: () {
+                    setState(() => _obscureConfirmPassword = !_obscureConfirmPassword);
+                  },
+                  onSubmit: _isSubmitting ? null : _submit,
+                  onConfirmSubmitted: (_) {
+                    if (!_isSubmitting) _submit();
+                  },
+                  onLoginTap: _isSubmitting ? null : _goToLogin,
                 ),
               ],
             ),
@@ -385,9 +382,10 @@ class _SignUpPanel extends StatelessWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
         boxShadow: _AuthTheme.panelShadow,
       ),
-      child: SingleChildScrollView(
+      child: Padding(
         padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Drag indicator

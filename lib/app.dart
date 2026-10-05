@@ -17,6 +17,7 @@ class DroobiApp extends ConsumerWidget {
     final authState = ref.watch(authStateProvider);
 
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Droobi',
       theme: AccessibleTheme.theme,
       home: authState.when(
