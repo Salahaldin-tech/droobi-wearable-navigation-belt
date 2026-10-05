@@ -15,6 +15,7 @@ import '../destination/destination_search_screen.dart';
 import '../favorites/favorites_screen.dart';
 import '../settings/settings_screen.dart';
 import '../university/university_locations_screen.dart';
+import 'AboutUsScreen.dart';
 
 /// Droobi Home Screen.
 ///
@@ -810,8 +811,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       icon: Icons.info_outline,
                       label: 'About Us',
                       onTap: () {
-                        
-                      },
+                            Navigator.of(
+                              context,
+                            ).pop();
+
+                            Navigator.of(
+                              context,
+                            ).push(
+                              MaterialPageRoute(
+                                builder: (_) => const AboutUsScreen(),
+                              ),
+                            );
+                          },
                     ),
                   ),
                   
