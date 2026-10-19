@@ -6,6 +6,7 @@ import '../../models/lat_lon.dart';
 import '../../screens/navigation/live_navigation_screen.dart';
 import '../../state/destination_search_notifier.dart';
 import '../../state/favorites_notifier.dart';
+import '../../widgets/page_help_button.dart';
 
 // ---------------------------------------------------------------------------
 // THEME
@@ -173,13 +174,38 @@ class _DestinationSearchScreenState
         backgroundColor: _AppTheme.background,
         elevation: 0,
         centerTitle: false,
-        title: const Text(
-          'Search Destination',
-          style: TextStyle(
-            color: _AppTheme.textPrimary,
-            fontWeight: FontWeight.w700,
-            fontSize: 20,
-          ),
+        title: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Search Destination',
+              style: TextStyle(
+                color: _AppTheme.textPrimary,
+                fontWeight: FontWeight.w700,
+                fontSize: 20,
+              ),
+            ),
+            SizedBox(width: 4),
+            PageHelpButton(
+              title: 'Search Destination',
+              titleAr: 'البحث عن وجهة',
+              description:
+                  'Enter a destination name and tap Search. Choose a result to save it to Favorites or use it for live navigation.',
+              descriptionAr:
+                  'أدخل اسم الوجهة واضغط على بحث. اختر إحدى النتائج لحفظها في المفضلة أو استخدامها في الملاحة المباشرة.',
+              tips: [
+                'Use a clear place or campus location name.',
+                'If you arrived here from voice search, check the recognized text before searching.',
+                'A destination must be selected from results before navigation can begin.',
+              ],
+              tipsAr: [
+                'اكتب اسم مكان أو موقع داخل الجامعة بوضوح.',
+                'إذا وصلت إلى هنا من البحث الصوتي، راجع النص الذي تم التعرّف عليه قبل البحث.',
+                'يجب اختيار وجهة من النتائج قبل بدء الملاحة.',
+              ],
+              color: _AppTheme.accent,
+            ),
+          ],
         ),
         iconTheme: const IconThemeData(color: _AppTheme.textPrimary),
       ),
