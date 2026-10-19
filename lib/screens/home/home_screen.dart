@@ -14,6 +14,7 @@ import '../../state/auth_state_notifier.dart';
 import '../../state/belt_connection_notifier.dart';
 import '../../state/voice_command_notifier.dart';
 import '../../widgets/connection_status_indicator.dart';
+import '../../widgets/page_help_button.dart';
 import '../../widgets/droobi_bottom_nav.dart';
 import '../../widgets/voice_command_button.dart';
 import '../destination/destination_search_screen.dart';
@@ -471,13 +472,38 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         // APP NAME
                         // --------------------------------------------------
 
-                        const Text(
-                          'Droobi',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w500,
-                            color: _text,
-                          ),
+                        const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Droobi',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w500,
+                                color: _text,
+                              ),
+                            ),
+                            SizedBox(width: 4),
+                            PageHelpButton(
+                              title: 'Home',
+                              titleAr: 'الرئيسية',
+                              description:
+                                  'Use the microphone to search for a destination. Check the belt status card to see whether your navigation belt is connected.',
+                              descriptionAr:
+                                  'استخدم الميكروفون للبحث عن وجهة. راقب بطاقة حالة الحزام لمعرفة ما إذا كان حزام الملاحة متصلًا.',
+                              tips: [
+                                'Press and hold the microphone and speak your destination.',
+                                'Open the menu to access University, Favorites, Settings, and About Us.',
+                                'The belt provides directional vibration only when it is connected and navigation is active.',
+                              ],
+                              tipsAr: [
+                                'اضغط مطولًا على الميكروفون واذكر وجهتك.',
+                                'افتح القائمة للوصول إلى الجامعة والمفضلة والإعدادات ومن نحن.',
+                                'يوفّر الحزام اهتزازات اتجاهية عند اتصاله وتشغيل الملاحة.',
+                              ],
+                              color: _blue,
+                            ),
+                          ],
                         ),
 
                         // --------------------------------------------------
