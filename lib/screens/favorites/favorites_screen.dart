@@ -431,17 +431,21 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
                                     title: 'Favorites',
                                     titleAr: 'المفضلة',
                                     description:
-                                        'Save places you visit often so you can find them again and start navigation more quickly.',
+                'Favorites stores places for quick access. Saved places appear as cards in the list; if there are none, the page shows “No Favorites yet.”',
                                     descriptionAr:
-                                        'احفظ الأماكن التي تزورها كثيرًا لتجدها لاحقًا وتبدأ الملاحة إليها بسرعة.',
+                'تحتفظ المفضلة بالأماكن للوصول إليها بسرعة. تظهر الأماكن المحفوظة على شكل بطاقات في القائمة؛ وإذا لم توجد أماكن فستظهر رسالة «لا توجد مفضلة بعد».',
                                     tips: [
-                                      'Use the add button to search for a place or save your current location.',
-                                      'Select a saved place to start navigation, or use its menu to remove it.',
-                                    ],
-                                    tipsAr: [
-                                      'استخدم زر الإضافة للبحث عن مكان أو حفظ موقعك الحالي.',
-                                      'اختر مكانًا محفوظًا لبدء الملاحة، أو استخدم قائمته لإزالته.',
-                                    ],
+                'Tap the add (+) button to reveal the add options. Choose the option to search for a place, or choose the current-location option to save where you are.',
+                'When saving your current location, enter a label such as Home, Work, or School in the dialog, then tap Save. The new place appears as a card in Favorites.',
+                'Tap a saved place card to start navigation to it. Use the options/menu on that card to remove the place; a confirmation message appears after it is removed.',
+                'To add a place by searching, choose the search option, find the destination, then use the save-to-Favorites action on its result.',
+              ],
+              tipsAr: [
+                'اضغط زر الإضافة (+) لإظهار خيارات الإضافة. اختر البحث عن مكان، أو اختر خيار الموقع الحالي لحفظ مكانك الآن.',
+                'عند حفظ موقعك الحالي، اكتب اسمًا مثل المنزل أو العمل أو الجامعة في النافذة، ثم اضغط حفظ. سيظهر المكان الجديد كبطاقة في المفضلة.',
+                'اضغط بطاقة المكان المحفوظ لبدء الملاحة إليه. استخدم خيارات/قائمة البطاقة لإزالة المكان؛ وستظهر رسالة بعد إزالته.',
+                'لإضافة مكان عبر البحث، اختر خيار البحث، وابحث عن الوجهة، ثم استخدم خيار حفظها في المفضلة ضمن النتيجة.',
+              ],
                                     color: _primaryBlue,
                                   ),
                                 ],
