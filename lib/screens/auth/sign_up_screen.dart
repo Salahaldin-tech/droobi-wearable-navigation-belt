@@ -310,19 +310,21 @@ class _Header extends StatelessWidget {
                     title: 'Create Account',
                     titleAr: 'إنشاء حساب',
                     description:
-                        'Create an account to use Droobi. Enter the requested details and submit the form to register.',
+                'Use this screen to create a Droobi account. The form fields run from Full Name to Email, Password, and Confirm Password; the eye icons show or hide each password.',
                     descriptionAr:
-                        'أنشئ حسابًا لاستخدام دروبي. أدخل البيانات المطلوبة ثم أرسل النموذج للتسجيل.',
+                'استخدم هذه الشاشة لإنشاء حساب دروبي. تتدرج الحقول من الاسم الكامل إلى البريد الإلكتروني وكلمة المرور وتأكيد كلمة المرور؛ وتُظهر رموز العين كلمات المرور أو تخفيها.',
                     tips: [
-                      'Use an email address you can access.',
-                      'Review your details before submitting the form.',
-                      'If you already have an account, use the Login option.',
-                    ],
-                    tipsAr: [
-                      'استخدم بريدًا إلكترونيًا يمكنك الوصول إليه.',
-                      'راجع بياناتك قبل إرسال النموذج.',
-                      'إذا كان لديك حساب بالفعل، استخدم خيار تسجيل الدخول.',
-                    ],
+                'Enter your name in Full Name, then enter an accessible email address in Email.',
+                'Enter a password, then type the same password in Confirm Password. Use the eye icons at the right side of the password fields to check what you typed.',
+                'Tap Sign Up at the bottom of the form. If the passwords do not match or registration fails, an error appears on the form; correct the details and try again.',
+                'After successful registration, Droobi returns you to the Login screen so you can sign in with the new account.',
+              ],
+              tipsAr: [
+                'أدخل اسمك في حقل الاسم الكامل، ثم بريدًا إلكترونيًا يمكنك الوصول إليه في حقل البريد الإلكتروني.',
+                'أدخل كلمة مرور، ثم اكتب كلمة المرور نفسها في حقل تأكيد كلمة المرور. استخدم رموز العين على يمين حقول كلمة المرور لمراجعة ما كتبته.',
+                'اضغط Sign Up أسفل النموذج. إذا لم تتطابق كلمتا المرور أو فشل التسجيل، فستظهر رسالة خطأ في النموذج؛ صحح البيانات وأعد المحاولة.',
+                'بعد نجاح التسجيل، يعيدك دروبي إلى شاشة تسجيل الدخول لتدخل باستخدام الحساب الجديد.',
+              ],
                   ),
                 ],
               ),
