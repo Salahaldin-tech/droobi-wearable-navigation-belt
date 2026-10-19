@@ -6,6 +6,7 @@ import '../../models/lat_lon.dart';
 import '../../screens/navigation/live_navigation_screen.dart';
 import '../../state/destination_search_notifier.dart';
 import '../../state/favorites_notifier.dart';
+import '../../widgets/page_help_button.dart';
 
 // ---------------------------------------------------------------------------
 // THEME
@@ -173,13 +174,40 @@ class _DestinationSearchScreenState
         backgroundColor: _AppTheme.background,
         elevation: 0,
         centerTitle: false,
-        title: const Text(
-          'Search Destination',
-          style: TextStyle(
-            color: _AppTheme.textPrimary,
-            fontWeight: FontWeight.w700,
-            fontSize: 20,
-          ),
+        title: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Search Destination',
+              style: TextStyle(
+                color: _AppTheme.textPrimary,
+                fontWeight: FontWeight.w700,
+                fontSize: 20,
+              ),
+            ),
+            SizedBox(width: 4),
+            PageHelpButton(
+              title: 'Search Destination',
+              titleAr: 'البحث عن وجهة',
+              description:
+                'The search field and Search button are side by side near the top. Loading or error messages appear underneath, and matching destinations are shown below as a vertically scrolling list of full-width rows.',
+              descriptionAr:
+                'يوجد حقل البحث وزر Search بجانب بعضهما قرب أعلى الشاشة. تظهر رسائل التحميل أو الخطأ تحتهما، ثم تظهر الوجهات المطابقة أسفل ذلك في قائمة عمودية من صفوف بعرض الصفحة.',
+              tips: [
+                  'Near the top of the page, tap the “Where do you want to go?” field on the left and type a destination. If you arrived from voice search, check the recognized words in this field.',
+                  'Tap the Search button immediately to the right of the field, or submit the keyboard. A loading bar or an error/no-results message may appear below the search row.',
+                  'Browse the matching results in the vertical list below the messages. Each row shows a location-pin icon on the left, the place name and optional address in the middle, and a star icon on the far right. Tap the row itself to open Live Navigation; tap the star to save it to Favorites.',
+                  'If no results appear, edit the field at the top and press Search again.',
+                ],
+              tipsAr: [
+                  'قرب أعلى الصفحة، اضغط حقل “Where do you want to go?” الموجود على اليسار واكتب الوجهة. إذا وصلت من البحث الصوتي، راجع الكلمات التي تم التعرف عليها داخل الحقل.',
+                  'اضغط زر Search الموجود مباشرة على يمين الحقل، أو أرسل البحث من لوحة المفاتيح. قد يظهر شريط تحميل أو رسالة خطأ/عدم وجود نتائج أسفل صف البحث.',
+                  'تصفح النتائج المطابقة في القائمة العمودية أسفل الرسائل. يحتوي كل صف على رمز موقع يسارًا، واسم المكان وعنوانه إن توفر في الوسط، ورمز نجمة في أقصى اليمين. اضغط الصف نفسه لفتح الملاحة المباشرة، أو اضغط النجمة لحفظ المكان في المفضلة.',
+                  'إذا لم تظهر نتائج، عدّل النص في الحقل أعلى الصفحة واضغط Search مرة أخرى.',
+                ],
+              color: _AppTheme.accent,
+            ),
+          ],
         ),
         iconTheme: const IconThemeData(color: _AppTheme.textPrimary),
       ),

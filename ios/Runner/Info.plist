@@ -24,6 +24,12 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Droobi uses your location to determine your position and provide navigation guidance.</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Droobi uses Bluetooth to connect to the wearable navigation belt.</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>Droobi uses Bluetooth to connect to the wearable navigation belt.</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>

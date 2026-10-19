@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/university_location.dart';
 import '../../state/university_locations_notifier.dart';
 import '../../widgets/droobi_bottom_nav.dart';
+import '../../widgets/page_help_button.dart';
 
 class UniversityLocationsScreen extends ConsumerStatefulWidget {
   const UniversityLocationsScreen({super.key});
@@ -500,13 +501,38 @@ class _UniversityLocationsScreenState
           ),
         ),
         SizedBox(height: 4),
-        Text(
-          'Arab American University',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            color: _textColor,
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Arab American University',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: _textColor,
+                ),
+              ),
+            ),
+            PageHelpButton(
+              title: 'University',
+              titleAr: 'الجامعة',
+              description:
+                'The page is arranged from top to bottom: the campus title, a search field, a horizontally scrolling row of category filters, then campus location cards in a two-column grid. The bottom navigation bar stays at the bottom.',
+              descriptionAr:
+                'ترتيب الصفحة من الأعلى للأسفل: عنوان الجامعة، ثم حقل البحث، ثم صف أفقي قابل للتمرير لأزرار التصنيفات، وبعده بطاقات مواقع الجامعة ضمن شبكة من عمودين. يبقى شريط التنقل في الأسفل.',
+              tips: [
+                  'Near the top, tap the search field labeled “Search buildings, gates, facilities” and type a name. Matching locations remain in the grid below; if none match, a “No matches” message appears.',
+                  'Directly below the search field, swipe the category chips left or right and tap Colleges, Gates, or Facilities. The selected chip turns blue and the grid refreshes.',
+                  'Below the filters, browse the campus cards arranged in two columns. Tap a card to select that location; if the location is available, the app opens its next location/navigation action. Unavailable locations show an unavailable message.',
+                ],
+              tipsAr: [
+                  'قرب أعلى الشاشة، اضغط حقل “Search buildings, gates, facilities” واكتب اسمًا. تبقى المواقع المطابقة في الشبكة أسفل الحقل؛ وإذا لم توجد نتائج تظهر رسالة “No matches”.',
+                  'أسفل حقل البحث مباشرة، مرّر أزرار التصنيفات أفقيًا يمينًا أو يسارًا، ثم اضغط Colleges أو Gates أو Facilities. يتحول التصنيف المحدد إلى الأزرق وتتحدث الشبكة.',
+                  'أسفل التصنيفات، تصفح بطاقات مواقع الجامعة المرتبة في عمودين. اضغط بطاقة لاختيار الموقع؛ إذا كان متاحًا يفتح التطبيق إجراء الموقع أو الملاحة التالي، وإذا لم يكن متاحًا تظهر رسالة توضح ذلك.',
+                ],
+              color: _primaryBlue,
+            ),
+          ],
         ),
       ],
     );

@@ -9,6 +9,7 @@ import '../../state/destination_search_notifier.dart';
 import '../../state/voice_language_notifier.dart';
 import '../../widgets/connection_status_indicator.dart';
 import '../../widgets/droobi_bottom_nav.dart';
+import '../../widgets/page_help_button.dart';
 import '../test/dev_test_menu.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -65,13 +66,40 @@ class SettingsScreen extends ConsumerWidget {
                   16,
                 ),
                 children: [
-                  const Text(
-                    'Settings',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w500,
-                      color: _text,
-                    ),
+                  const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Settings',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w500,
+                          color: _text,
+                        ),
+                      ),
+                      SizedBox(width: 4),
+                      PageHelpButton(
+                        title: 'Settings',
+                        titleAr: 'الإعدادات',
+                        description:
+                'Settings is a vertically scrolling page. Its sections appear one below another in this order: Device, Voice Language, Search City, and Account.',
+                        descriptionAr:
+                'صفحة الإعدادات قابلة للتمرير عموديًا. تظهر أقسامها واحدًا تحت الآخر بهذا الترتيب: Device ثم Voice Language ثم Search City ثم Account.',
+                        tips: [
+                  'Near the top, find the Device section and read the connection status. Tap Connect / Reconnect Belt in the full-width button beneath the status; when connected, the button changes to Disconnect Belt.',
+                  'Scroll down to Voice Language. On the right side of this section, tap EN or AR; the selected language option is highlighted.',
+                  'Scroll farther down to Search City. Tap the dropdown control on the right, choose a city from the menu, and the selected city is shown in the control.',
+                  'Scroll to the Account section near the bottom and tap Log Out to end the session. If location or Bluetooth permission is denied, open the phone’s system Settings, enable the permission, and return to Droobi.',
+                ],
+              tipsAr: [
+                  'قرب أعلى الشاشة، ابحث عن قسم Device واقرأ حالة الاتصال. اضغط زر Connect / Reconnect Belt العريض أسفل الحالة؛ وعند الاتصال يتغير اسمه إلى Disconnect Belt.',
+                  'مرّر إلى أسفل حتى قسم Voice Language. في الجهة اليمنى من القسم، اضغط EN أو AR؛ ويظهر خيار اللغة المحدد بشكل مميز.',
+                  'واصل التمرير إلى قسم Search City. اضغط القائمة المنسدلة على اليمين، واختر مدينة من القائمة؛ وستظهر المدينة المحددة داخل عنصر الاختيار.',
+                  'مرّر إلى قسم Account قرب الأسفل واضغط Log Out لإنهاء الجلسة. إذا رُفض إذن الموقع أو البلوتوث، افتح إعدادات الهاتف، وفعّل الإذن، ثم ارجع إلى دروبي.',
+                ],
+                        color: _blue,
+                      ),
+                    ],
                   ),
 
                   const SizedBox(height: 4),

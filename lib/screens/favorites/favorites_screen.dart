@@ -8,6 +8,7 @@ import '../../services/location/location_service.dart';
 import '../../state/favorites_notifier.dart';
 import '../../state/location_notifier.dart';
 import '../../widgets/droobi_bottom_nav.dart';
+import '../../widgets/page_help_button.dart';
 import '../destination/destination_search_screen.dart';
 import '../navigation/live_navigation_screen.dart';
 
@@ -414,13 +415,40 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                'Favorites',
-                                style: TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w500,
-                                  color: _textColor,
-                                ),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Text(
+                                    'Favorites',
+                                    style: TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.w500,
+                                      color: _textColor,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  PageHelpButton(
+                                    title: 'Favorites',
+                                    titleAr: 'المفضلة',
+                                    description:
+                'The page title is near the top-left. Saved places appear below it as a vertically scrolling list of full-width cards, one card per row. The blue + button floats near the bottom-right.',
+                                    descriptionAr:
+                'عنوان الصفحة قرب أعلى اليسار. تظهر الأماكن المحفوظة أسفله في قائمة عمودية قابلة للتمرير، على شكل بطاقات بعرض الصفحة، بطاقة واحدة في كل صف. يطفو زر + الأزرق قرب أسفل اليمين.',
+                                    tips: [
+                  'Tap the blue + button near the bottom-right. Two option cards appear directly above it: Search Location and Add Current Location.',
+                  'Tap Search Location in the options above the + button. The destination search page opens; its results appear as vertical rows. Tap the star icon at the right end of a result row to save that place, then complete the label dialog if shown.',
+                  'Tap Add Current Location in the options above the + button. A dialog appears in the center; enter a label in its text field and tap Save at the bottom of the dialog. The saved place appears as a new card in the vertical list.',
+                  'Tap a saved-place card in the list to open Live Navigation. To remove one, tap the trash-can icon on the right side of that card; the card disappears from the list.',
+                ],
+              tipsAr: [
+                  'اضغط زر + الأزرق قرب أسفل يمين الشاشة. سيظهر فوقه مباشرة خياران على شكل بطاقتين: Search Location وAdd Current Location.',
+                  'اضغط Search Location في الخيارات فوق زر +. ستفتح شاشة البحث عن وجهة وتظهر نتائجها على شكل صفوف عمودية. اضغط رمز النجمة في أقصى يمين صف النتيجة لحفظ المكان، ثم أكمل نافذة التسمية إن ظهرت.',
+                  'اضغط Add Current Location في الخيارات فوق زر +. ستظهر نافذة في منتصف الشاشة؛ اكتب اسمًا في حقل النص واضغط Save أسفل النافذة. يظهر المكان المحفوظ كبطاقة جديدة في القائمة العمودية.',
+                  'اضغط بطاقة المكان المحفوظ ضمن القائمة لفتح الملاحة المباشرة إليه. ولحذفه، اضغط رمز سلة المهملات الموجود على يمين البطاقة؛ فتختفي البطاقة من القائمة.',
+                ],
+                                    color: _primaryBlue,
+                                  ),
+                                ],
                               ),
                               SizedBox(height: 4),
                             ],

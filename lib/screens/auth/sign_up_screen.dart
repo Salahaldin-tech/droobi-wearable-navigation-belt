@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../services/firebase/auth_service.dart';
 import '../../state/auth_state_notifier.dart';
+import '../../widgets/page_help_button.dart';
 import 'sign_in_screen.dart';
 
 // ---------------------------------------------------------------------------
@@ -293,13 +294,39 @@ class _Header extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 4),
-              Text(
-                'Sign Up',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                  color: _AuthTheme.textSecondary,
-                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Sign Up',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                      color: _AuthTheme.textSecondary,
+                    ),
+                  ),
+                  SizedBox(width: 4),
+                  PageHelpButton(
+                    title: 'Create Account',
+                    titleAr: 'إنشاء حساب',
+                    description:
+                'The Droobi/Sign Up heading is at the top-left, and a Login pill is at the top-right. The registration form appears below, with Full Name, Email, Password, and Confirm Password stacked vertically; the Sign Up button is below the fields.',
+                    descriptionAr:
+                'يظهر عنوان Droobi/Sign Up أعلى اليسار، ويوجد زر Login أعلى اليمين. يظهر نموذج التسجيل أسفلهما، وحقول Full Name وEmail وPassword وConfirm Password مرتبة عموديًا، ثم زر Sign Up أسفل الحقول.',
+                    tips: [
+                  'In the form below the header, tap Full Name and type your name, then tap Email directly below it and enter an email address you can access.',
+                  'Continue down the form to Password and Confirm Password. Tap the eye icon on the right side of either password field to show or hide what you typed.',
+                  'Tap the Sign Up button below the form fields. If an error appears beside or below the form, correct the information and try again. After successful registration, Droobi returns you to Login.',
+                  'If you already have an account, tap the Login pill at the top-right to return to the sign-in screen.',
+                ],
+              tipsAr: [
+                  'في النموذج أسفل العنوان، اضغط Full Name واكتب اسمك، ثم اضغط Email الموجود تحته مباشرة وأدخل بريدًا يمكنك الوصول إليه.',
+                  'تابع إلى أسفل النموذج حتى Password وConfirm Password. اضغط رمز العين على يمين أي من حقلي كلمة المرور لإظهار النص أو إخفائه.',
+                  'اضغط زر Sign Up أسفل حقول النموذج. إذا ظهر خطأ بجانب النموذج أو تحته، صحح البيانات وأعد المحاولة. بعد نجاح التسجيل، يعيدك دروبي إلى Login.',
+                  'إذا كان لديك حساب بالفعل، اضغط زر Login أعلى يمين الشاشة للعودة إلى تسجيل الدخول.',
+                ],
+                  ),
+                ],
               ),
             ],
           ),

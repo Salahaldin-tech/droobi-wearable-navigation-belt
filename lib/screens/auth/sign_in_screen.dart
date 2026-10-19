@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../services/firebase/auth_service.dart';
 import '../../state/auth_state_notifier.dart';
+import '../../widgets/page_help_button.dart';
 import 'sign_up_screen.dart';
 
 // ---------------------------------------------------------------------------
@@ -263,13 +264,37 @@ class _Header extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 4),
-              Text(
-                'Login',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                  color: _AuthTheme.textSecondary,
-                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Login',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                      color: _AuthTheme.textSecondary,
+                    ),
+                  ),
+                  SizedBox(width: 4),
+                  PageHelpButton(
+                    title: 'Sign In',
+                    titleAr: 'تسجيل الدخول',
+                    description:
+                'The Droobi/Login heading is at the top-left, the Sign Up pill is at the top-right, and the sign-in form is in a panel below. The Email and Password fields are stacked vertically; the Login button is below them.',
+                    descriptionAr:
+                'يظهر عنوان Droobi/Login أعلى اليسار، وزر Sign Up أعلى اليمين، ونموذج تسجيل الدخول في لوحة أسفلهما. حقلا Email وPassword مرتبان عموديًا، وزر Login أسفلهما.',
+                    tips: [
+                  'In the form panel below the header, tap the Email field and type your registered email. The Password field is directly below it; tap it and enter your password.',
+                  'Inside the Password field, tap the eye icon on the right to show or hide the password. Then tap the Login button below the fields to submit.',
+                  'If an error message appears near the form, read it and check the details and internet connection before retrying. To create an account, tap the Sign Up pill in the top-right corner.',
+                ],
+              tipsAr: [
+                  'في لوحة النموذج أسفل العنوان، اضغط حقل Email واكتب بريدك المسجل. يوجد حقل Password تحته مباشرة؛ اضغطه وأدخل كلمة المرور.',
+                  'داخل حقل Password، اضغط رمز العين الموجود على اليمين لإظهار كلمة المرور أو إخفائها. ثم اضغط زر Login أسفل الحقول للإرسال.',
+                  'إذا ظهرت رسالة خطأ قرب النموذج، اقرأها وتحقق من البيانات واتصال الإنترنت قبل إعادة المحاولة. لإنشاء حساب، اضغط زر Sign Up أعلى يمين الشاشة.',
+                ],
+                  ),
+                ],
               ),
             ],
           ),

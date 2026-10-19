@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/lat_lon.dart';
 import '../../models/navigation_direction.dart';
 import '../../services/navigation/navigation_service.dart';
+import '../../widgets/page_help_button.dart';
 import '../../state/belt_connection_notifier.dart';
 import '../../state/navigation_notifier.dart';
 
@@ -268,11 +269,36 @@ class _LiveNavigationScreenState
           elevation: 0,
           backgroundColor: Colors.white,
           foregroundColor: Colors.black,
-          title: const Text(
-            'Live Navigation',
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-            ),
+          title: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Live Navigation',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              SizedBox(width: 4),
+              PageHelpButton(
+                title: 'Live Navigation',
+                titleAr: 'الملاحة المباشرة',
+                description:
+                'A status card appears near the top. The main guidance is centered in the middle of the screen, with a large direction arrow and instruction text. A full-width action button sits at the bottom.',
+                descriptionAr:
+                'تظهر بطاقة الحالة قرب أعلى الشاشة. وتظهر الإرشادات الرئيسية في منتصف الشاشة، مع سهم اتجاه كبير ونص يوضح الاتجاه. يوجد زر إجراء بعرض الشاشة في الأسفل.',
+                tips: [
+                  'At the top, read the status card to check whether navigation is starting, active, or complete. The main direction arrow and instruction appear in the center; the distance/heading information may appear around the instruction.',
+                  'Follow the large arrow and direction text in the center, and use the belt’s vibration cues if the belt is connected. If a status/error message appears instead, resolve the stated issue before relying on guidance.',
+                  'At the bottom, tap STOP NAVIGATION to stop before arrival. When the arrival state is shown, the bottom button changes to DONE; tap DONE to finish and leave the navigation screen.',
+                ],
+              tipsAr: [
+                  'في أعلى الشاشة، اقرأ بطاقة الحالة لمعرفة ما إذا كانت الملاحة تبدأ أو نشطة أو مكتملة. يظهر سهم الاتجاه الكبير ونص الإرشاد في المنتصف، وقد تظهر معلومات المسافة أو الاتجاه حول النص.',
+                  'اتبع السهم الكبير ونص الاتجاه في منتصف الشاشة، واستخدم اهتزازات الحزام إذا كان متصلًا. إذا ظهرت رسالة حالة أو خطأ بدلًا من الإرشادات، عالج المشكلة المذكورة قبل الاعتماد على الملاحة.',
+                  'في أسفل الشاشة، اضغط STOP NAVIGATION لإيقاف الملاحة قبل الوصول. عند ظهور حالة الوصول يتغير الزر السفلي إلى DONE؛ اضغط DONE لإنهاء الملاحة ومغادرة الشاشة.',
+                ],
+                color: Color(0xFF2F80ED),
+              ),
+            ],
           ),
           centerTitle: true,
         ),

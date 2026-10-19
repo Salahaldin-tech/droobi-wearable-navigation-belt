@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../widgets/page_help_button.dart';
+
 class AboutUsScreen extends StatelessWidget {
   const AboutUsScreen({super.key});
 
@@ -25,7 +27,33 @@ class AboutUsScreen extends StatelessWidget {
       child: Theme(
         data: base.copyWith(colorScheme: cs),
         child: Scaffold(
-          appBar: AppBar(title: Text(s.title)),
+          appBar: AppBar(
+            title: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(s.title),
+                const SizedBox(width: 4),
+                const PageHelpButton(
+                  title: 'About Us',
+                  titleAr: 'من نحن',
+                  description:
+                'The page has a top app bar with the page title and help button. Its content scrolls vertically: a centered logo and app name first, then the description, then feature cards in a single column, followed by the team section and project details.',
+                  descriptionAr:
+                'تحتوي الصفحة على شريط علوي فيه العنوان وزر المساعدة. يتحرك المحتوى عموديًا: يظهر الشعار واسم التطبيق في المنتصف أولًا، ثم الوصف، ثم بطاقات الميزات في عمود واحد، وبعدها قسم الفريق وتفاصيل المشروع.',
+                  tips: [
+                  'Swipe up on the page to scroll down through the content. The logo and Droobi name are near the top; the description appears below them.',
+                  'Continue scrolling to see feature cards stacked vertically, one card per row, then the Team section and member cards.',
+                  'If the View on GitHub button appears near the project links toward the lower part of the page, tap it to open the repository in your browser. Use Back to return to Droobi.',
+                ],
+              tipsAr: [
+                  'مرّر بإصبعك إلى الأعلى على الصفحة للانتقال إلى أسفل المحتوى. يظهر الشعار واسم Droobi قرب الأعلى، ويظهر الوصف أسفلهما.',
+                  'واصل التمرير لرؤية بطاقات الميزات المتراصة عموديًا، بطاقة واحدة في كل صف، ثم قسم Team وبطاقات أعضاء الفريق.',
+                  'إذا ظهر زر View on GitHub قرب روابط المشروع في الجزء السفلي، اضغطه لفتح المستودع في المتصفح. استخدم الرجوع للعودة إلى دروبي.',
+                ],
+                ),
+              ],
+            ),
+          ),
           body: ListView(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
             children: [
