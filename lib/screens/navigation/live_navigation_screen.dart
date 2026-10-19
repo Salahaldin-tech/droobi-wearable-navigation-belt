@@ -283,19 +283,19 @@ class _LiveNavigationScreenState
                 title: 'Live Navigation',
                 titleAr: 'الملاحة المباشرة',
                 description:
-                    'This screen shows the current navigation state and the available route controls. Follow the belt’s vibration cues only while the belt is connected and navigation is active.',
+                'This screen is for guidance to the selected destination. The status card shows the current navigation state, the central area shows the current guidance, and the bottom button ends navigation or confirms arrival.',
                 descriptionAr:
-                    'تعرض هذه الصفحة حالة الملاحة الحالية وأدوات التحكم بالمسار. اتبع إشارات اهتزاز الحزام فقط عندما يكون متصلًا والملاحة نشطة.',
+                'هذه الشاشة لإرشادك إلى الوجهة المحددة. تعرض بطاقة الحالة وضع الملاحة الحالي، وتعرض المنطقة الوسطى الإرشاد الحالي، وينهي الزر السفلي الملاحة أو يؤكد الوصول.',
                 tips: [
-                  'Check the status shown on this page before relying on vibration guidance.',
-                  'If location or Bluetooth is unavailable, stop and resolve the issue before continuing.',
-                  'Use the on-screen controls to pause, resume, or end navigation when available.',
-                ],
-                tipsAr: [
-                  'تحقق من الحالة المعروضة قبل الاعتماد على إرشادات الاهتزاز.',
-                  'إذا تعذّر الموقع أو البلوتوث، توقّف وحل المشكلة قبل المتابعة.',
-                  'استخدم أدوات التحكم الظاهرة لإيقاف الملاحة مؤقتًا أو استئنافها أو إنهائها عند توفرها.',
-                ],
+                'Read the status card near the top to check whether navigation is starting, active, or complete. Check the distance and guidance shown on the screen as they update.',
+                'If the belt is connected, use its vibration cues together with the on-screen direction. If the belt or location service is unavailable, resolve the connection/permission issue before relying on guidance.',
+                'When you reach the destination, use the bottom button labeled DONE if it appears. To stop before arrival, use STOP NAVIGATION; the screen then closes or returns to the previous page.',
+              ],
+              tipsAr: [
+                'اقرأ بطاقة الحالة قرب أعلى الشاشة لمعرفة ما إذا كانت الملاحة قيد البدء أو نشطة أو مكتملة. راقب المسافة والإرشادات المعروضة أثناء تحديثها.',
+                'إذا كان الحزام متصلًا، استخدم إشارات الاهتزاز مع الاتجاه الظاهر على الشاشة. إذا تعذر الحزام أو الموقع، عالج مشكلة الاتصال أو الإذن قبل الاعتماد على الإرشادات.',
+                'عند الوصول إلى الوجهة، اضغط DONE في أسفل الشاشة إذا ظهر. ولإيقاف الملاحة قبل الوصول، اضغط STOP NAVIGATION؛ ثم تُغلق الشاشة أو تعود إلى الصفحة السابقة.',
+              ],
                 color: Color(0xFF2F80ED),
               ),
             ],
