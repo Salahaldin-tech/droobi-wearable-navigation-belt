@@ -280,17 +280,19 @@ class _Header extends StatelessWidget {
                     title: 'Sign In',
                     titleAr: 'تسجيل الدخول',
                     description:
-                        'Sign in with your account to access Droobi navigation features. If you do not have an account, use the Sign Up option.',
+                'Use this screen to sign in to an existing Droobi account. The email and password fields are in the form panel; the eye icon reveals or hides the password.',
                     descriptionAr:
-                        'سجّل الدخول إلى حسابك لاستخدام ميزات الملاحة في دروبي. إذا لم يكن لديك حساب، استخدم خيار إنشاء حساب.',
+                'استخدم هذه الشاشة لتسجيل الدخول إلى حساب دروبي موجود. يوجد حقلا البريد الإلكتروني وكلمة المرور في لوحة النموذج؛ ويُظهر رمز العين كلمة المرور أو يخفيها.',
                     tips: [
-                      'Enter the email address and password registered to your account.',
-                      'If sign-in fails, check your credentials and internet connection.',
-                    ],
-                    tipsAr: [
-                      'أدخل البريد الإلكتروني وكلمة المرور المسجلين لحسابك.',
-                      'إذا تعذّر تسجيل الدخول، تحقّق من بياناتك واتصال الإنترنت.',
-                    ],
+                'Tap Email and enter the email address registered to your account. Tap Password and enter your password.',
+                'Tap the eye icon inside the Password field to show or hide the password, then tap Login to submit the form. Wait for the app to process the sign-in.',
+                'If an error message appears, read it, check the email/password and internet connection, then try again. If you do not have an account, tap Sign Up in the top area to open account creation.',
+              ],
+              tipsAr: [
+                'اضغط حقل البريد الإلكتروني وأدخل البريد المسجل لحسابك. ثم اضغط حقل كلمة المرور وأدخلها.',
+                'اضغط رمز العين داخل حقل كلمة المرور لإظهارها أو إخفائها، ثم اضغط Login لإرسال النموذج. انتظر حتى يعالج التطبيق تسجيل الدخول.',
+                'إذا ظهرت رسالة خطأ، اقرأها وتحقق من البريد وكلمة المرور واتصال الإنترنت ثم أعد المحاولة. إذا لم يكن لديك حساب، اضغط Sign Up في أعلى الشاشة لفتح إنشاء حساب.',
+              ],
                   ),
                 ],
               ),
