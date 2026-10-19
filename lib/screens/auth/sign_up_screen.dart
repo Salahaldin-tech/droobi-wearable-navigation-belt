@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../services/firebase/auth_service.dart';
 import '../../state/auth_state_notifier.dart';
+import '../../widgets/page_help_button.dart';
 import 'sign_in_screen.dart';
 
 // ---------------------------------------------------------------------------
@@ -293,13 +294,37 @@ class _Header extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 4),
-              Text(
-                'Sign Up',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                  color: _AuthTheme.textSecondary,
-                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Sign Up',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                      color: _AuthTheme.textSecondary,
+                    ),
+                  ),
+                  SizedBox(width: 4),
+                  PageHelpButton(
+                    title: 'Create Account',
+                    titleAr: 'إنشاء حساب',
+                    description:
+                        'Create an account to use Droobi. Enter the requested details and submit the form to register.',
+                    descriptionAr:
+                        'أنشئ حسابًا لاستخدام دروبي. أدخل البيانات المطلوبة ثم أرسل النموذج للتسجيل.',
+                    tips: [
+                      'Use an email address you can access.',
+                      'Review your details before submitting the form.',
+                      'If you already have an account, use the Login option.',
+                    ],
+                    tipsAr: [
+                      'استخدم بريدًا إلكترونيًا يمكنك الوصول إليه.',
+                      'راجع بياناتك قبل إرسال النموذج.',
+                      'إذا كان لديك حساب بالفعل، استخدم خيار تسجيل الدخول.',
+                    ],
+                  ),
+                ],
               ),
             ],
           ),
