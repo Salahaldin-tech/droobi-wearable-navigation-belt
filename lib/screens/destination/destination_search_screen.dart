@@ -196,13 +196,13 @@ class _DestinationSearchScreenState
               tips: [
                 'Tap “Where do you want to go?” and type a destination name. If you arrived from voice search, check that the recognized words are correct.',
                 'Tap Search beside the field, or submit the keyboard. A loading indicator may appear while Droobi searches; matching results are shown underneath.',
-                'Choose the correct result. Use the available action to save it to Favorites or start Live Navigation; navigation opens the Live Navigation screen for the selected destination.',
+                'Tap a result row to open Live Navigation immediately for that destination. To save it instead, tap the star icon on the right side of the result; a label dialog appears, then tap Save.',
                 'If no matching result appears, check the spelling or try a more specific place name and search again.',
               ],
               tipsAr: [
                 'اضغط حقل «إلى أين تريد الذهاب؟» واكتب اسم الوجهة. إذا وصلت من البحث الصوتي، تأكد من صحة الكلمات التي تم التعرّف عليها.',
                 'اضغط زر بحث بجانب الحقل أو أرسل البحث من لوحة المفاتيح. قد يظهر مؤشر تحميل أثناء البحث، ثم تظهر النتائج المطابقة أسفل الحقل.',
-                'اختر النتيجة الصحيحة. استخدم الإجراء المتاح لحفظها في المفضلة أو بدء الملاحة المباشرة؛ وستفتح شاشة الملاحة المباشرة للوجهة المختارة.',
+                'اضغط صف النتيجة لفتح الملاحة المباشرة فورًا إلى الوجهة. ولحفظها بدلًا من ذلك، اضغط رمز النجمة على يمين النتيجة؛ ستظهر نافذة لتسمية المكان ثم اضغط Save.',
                 'إذا لم تظهر نتيجة مطابقة، راجع الإملاء أو جرّب اسم مكان أكثر تحديدًا ثم ابحث مجددًا.',
               ],
               color: _AppTheme.accent,
