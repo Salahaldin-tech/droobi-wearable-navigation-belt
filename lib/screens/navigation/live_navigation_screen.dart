@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/lat_lon.dart';
 import '../../models/navigation_direction.dart';
 import '../../services/navigation/navigation_service.dart';
+import '../../widgets/page_help_button.dart';
 import '../../state/belt_connection_notifier.dart';
 import '../../state/navigation_notifier.dart';
 
@@ -268,11 +269,36 @@ class _LiveNavigationScreenState
           elevation: 0,
           backgroundColor: Colors.white,
           foregroundColor: Colors.black,
-          title: const Text(
-            'Live Navigation',
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-            ),
+          title: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Live Navigation',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              SizedBox(width: 4),
+              PageHelpButton(
+                title: 'Live Navigation',
+                titleAr: 'الملاحة المباشرة',
+                description:
+                    'This screen shows the current navigation state and the available route controls. Follow the belt’s vibration cues only while the belt is connected and navigation is active.',
+                descriptionAr:
+                    'تعرض هذه الصفحة حالة الملاحة الحالية وأدوات التحكم بالمسار. اتبع إشارات اهتزاز الحزام فقط عندما يكون متصلًا والملاحة نشطة.',
+                tips: [
+                  'Check the status shown on this page before relying on vibration guidance.',
+                  'If location or Bluetooth is unavailable, stop and resolve the issue before continuing.',
+                  'Use the on-screen controls to pause, resume, or end navigation when available.',
+                ],
+                tipsAr: [
+                  'تحقق من الحالة المعروضة قبل الاعتماد على إرشادات الاهتزاز.',
+                  'إذا تعذّر الموقع أو البلوتوث، توقّف وحل المشكلة قبل المتابعة.',
+                  'استخدم أدوات التحكم الظاهرة لإيقاف الملاحة مؤقتًا أو استئنافها أو إنهائها عند توفرها.',
+                ],
+                color: Color(0xFF2F80ED),
+              ),
+            ],
           ),
           centerTitle: true,
         ),
