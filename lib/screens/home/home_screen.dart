@@ -488,19 +488,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                               title: 'Home',
                               titleAr: 'الرئيسية',
                               description:
-                                  'Use the microphone to search for a destination. Check the belt status card to see whether your navigation belt is connected.',
+                'This is the Home screen. The microphone starts voice search, the destination search area opens text search, the menu opens other sections, and the belt card shows connection status.',
                               descriptionAr:
-                                  'استخدم الميكروفون للبحث عن وجهة. راقب بطاقة حالة الحزام لمعرفة ما إذا كان حزام الملاحة متصلًا.',
+                'هذه هي الصفحة الرئيسية. يبدأ الميكروفون البحث الصوتي، ويفتح حقل الوجهة البحث النصي، وتفتح القائمة بقية الأقسام، وتعرض بطاقة الحزام حالة الاتصال.',
                               tips: [
-                                'Press and hold the microphone and speak your destination.',
-                                'Open the menu to access University, Favorites, Settings, and About Us.',
-                                'The belt provides directional vibration only when it is connected and navigation is active.',
-                              ],
-                              tipsAr: [
-                                'اضغط مطولًا على الميكروفون واذكر وجهتك.',
-                                'افتح القائمة للوصول إلى الجامعة والمفضلة والإعدادات ومن نحن.',
-                                'يوفّر الحزام اهتزازات اتجاهية عند اتصاله وتشغيل الملاحة.',
-                              ],
+                'Press and hold the microphone, say the destination, then release it. Check the recognized destination on the search screen before choosing a result.',
+                'Tap the destination search area to type a place name, then press Search. Results appear on the destination search screen; choose the matching result to continue.',
+                'Tap the ☰ menu button at the top-right to open the side menu. Choose University, Favorites, Settings, or About Us; the selected section opens next.',
+                'Check the belt status card on Home. Connect the belt in Settings before expecting directional vibration during live navigation.',
+              ],
+              tipsAr: [
+                'اضغط مطولًا على الميكروفون، واذكر الوجهة، ثم ارفع إصبعك. راجع النص الذي تم التعرّف عليه في شاشة البحث قبل اختيار نتيجة.',
+                'اضغط على حقل البحث عن وجهة لكتابة اسم المكان، ثم اضغط بحث. ستظهر النتائج في شاشة البحث؛ اختر النتيجة المطابقة للمتابعة.',
+                'اضغط زر القائمة ☰ أعلى اليمين لفتح القائمة الجانبية. اختر الجامعة أو المفضلة أو الإعدادات أو من نحن؛ وسيفتح القسم الذي اخترته.',
+                'تحقق من بطاقة حالة الحزام في الصفحة الرئيسية. صِل الحزام من الإعدادات قبل الاعتماد على الاهتزازات الاتجاهية أثناء الملاحة المباشرة.',
+              ],
                               color: _blue,
                             ),
                           ],
