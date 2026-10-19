@@ -1,4 +1,9 @@
 import 'dart:ui' show ImageFilter;
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -52,9 +57,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
   bool _entranceStarted = false;
 
+  static const String _welcomeCompletedKey = 'droobi_welcome_completed_v1';
+  bool _welcomeCheckStarted = false;
+
   @override
   void initState() {
     super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _showWelcomeDialogIfNeeded();
+    });
 
     _entranceController = AnimationController(
       vsync: this,
@@ -109,6 +121,143 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     _entranceController.dispose();
     _backgroundController.dispose();
     super.dispose();
+  }
+
+  Future<void> _showWelcomeDialogIfNeeded() async {
+    if (_welcomeCheckStarted) return;
+    _welcomeCheckStarted = true;
+
+    final preferences = await SharedPreferences.getInstance();
+    if (!mounted || preferences.getBool(_welcomeCompletedKey) == true) {
+      return;
+    }
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return AlertDialog(
+          icon: const Icon(
+            Icons.accessibility_new_rounded,
+            color: _blue,
+            size: 34,
+          ),
+          title: const Text(
+            'Welcome to Droobi!',
+            textAlign: TextAlign.center,
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                _WelcomeFeature(
+                  icon: Icons.mic_none_rounded,
+                  title: 'Voice Search',
+                  description:
+                      'Use the microphone to search for a destination, such as a university college, gate, or facility.',
+                ),
+                SizedBox(height: 16),
+                _WelcomeFeature(
+                  icon: Icons.vibration_rounded,
+                  title: 'Smart Navigation Belt',
+                  description:
+                      'When the belt is connected and navigation is running, vibration signals can help guide you.',
+                ),
+                SizedBox(height: 16),
+                _WelcomeFeature(
+                  icon: Icons.help_outline_rounded,
+                  title: 'Help on Every Page',
+                  description:
+                      'Look for the (?) help button at the top of a page to hear how that page and its options work.',
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'To use navigation, Droobi will next ask for location and Bluetooth access. Your phone may also ask you to turn these services on.',
+                  style: TextStyle(fontSize: 13, height: 1.4),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: () async {
+                  await preferences.setBool(_welcomeCompletedKey, true);
+                  if (!dialogContext.mounted) return;
+                  Navigator.of(dialogContext).pop();
+                  await _requestStartupPermissions();
+                },
+                style: FilledButton.styleFrom(
+                  backgroundColor: _blue,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size.fromHeight(48),
+                ),
+                child: const Text("Let's Get Started"),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Requests the permissions needed for location-based navigation and BLE.
+  /// The OS remains responsible for granting permissions and enabling services.
+  Future<void> _requestStartupPermissions() async {
+    // Request location permission first.
+    try {
+      var locationPermission = await Geolocator.checkPermission();
+      if (locationPermission == LocationPermission.denied) {
+        locationPermission = await Geolocator.requestPermission();
+      }
+    } catch (_) {
+      // Keep startup resilient if the platform permission API is unavailable.
+    }
+
+    // Request Android 12+ BLE runtime permissions. On iOS, a short BLE scan
+    // triggers Apple's Bluetooth authorization prompt when one is needed.
+    try {
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        await Permission.bluetoothScan.request();
+        await Permission.bluetoothConnect.request();
+      } else if (defaultTargetPlatform == TargetPlatform.iOS) {
+        await FlutterBluePlus.startScan(
+          timeout: const Duration(seconds: 1),
+        );
+        await Future.delayed(const Duration(milliseconds: 1100));
+        await FlutterBluePlus.stopScan();
+      }
+    } catch (_) {
+      try {
+        await FlutterBluePlus.stopScan();
+      } catch (_) {
+        // Ignore cleanup errors if Bluetooth is unavailable.
+      }
+    }
+
+    // Android can show a system confirmation to turn Bluetooth on.
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      try {
+        final adapterState = await FlutterBluePlus.adapterState.first;
+        if (adapterState != BluetoothAdapterState.on) {
+          await FlutterBluePlus.turnOn();
+        }
+      } catch (_) {
+        // The user may deny the request or the device may not support BLE.
+      }
+    }
+
+    // Location permission does not automatically enable the device's GPS.
+    // If the service is off, send the user to the OS location settings.
+    try {
+      if (!await Geolocator.isLocationServiceEnabled()) {
+        await Geolocator.openLocationSettings();
+      }
+    } catch (_) {
+      // Do not block access to Home if settings cannot be opened.
+    }
   }
 
   void _handleMicPress() {
@@ -840,6 +989,50 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 // BELT STATUS DOT
 // A small dot; when [pulse] is true a soft ring expands and fades around it.
 // ============================================================================
+
+class _WelcomeFeature extends StatelessWidget {
+  const _WelcomeFeature({
+    required this.icon,
+    required this.title,
+    required this.description,
+  });
+
+  final IconData icon;
+  final String title;
+  final String description;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ExcludeSemantics(
+          child: Icon(icon, color: const Color(0xFF2F80ED), size: 25),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                description,
+                style: const TextStyle(fontSize: 13, height: 1.35),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
 
 class _StatusDot extends StatefulWidget {
   const _StatusDot({
