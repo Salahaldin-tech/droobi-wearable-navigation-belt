@@ -37,17 +37,17 @@ class AboutUsScreen extends StatelessWidget {
                   title: 'About Us',
                   titleAr: 'من نحن',
                   description:
-                      'Learn about the Droobi project, its features, team, and academic context.',
+                'About Us contains the project overview, features, team information, and academic context. Scroll down to read the sections.',
                   descriptionAr:
-                      'تعرّف على مشروع دروبي وميزاته وفريق العمل وسياقه الأكاديمي.',
+                'تحتوي صفحة «من نحن» على نبذة المشروع وميزاته ومعلومات الفريق والسياق الأكاديمي. مرّر إلى الأسفل لقراءة الأقسام.',
                   tips: [
-                    'This page contains project information and team details.',
-                    'Use the GitHub button to open the project repository.',
-                  ],
-                  tipsAr: [
-                    'تحتوي هذه الصفحة على معلومات المشروع والفريق.',
-                    'استخدم زر GitHub لفتح مستودع المشروع.',
-                  ],
+                'Scroll down to read the project description and feature cards. Continue scrolling to view the team section and other project details.',
+                'If you see the GitHub button, tap it to open the project repository in your browser. Use the phone’s Back action to return to Droobi.',
+              ],
+              tipsAr: [
+                'مرّر إلى الأسفل لقراءة وصف المشروع وبطاقات الميزات. تابع التمرير لعرض قسم الفريق وبقية تفاصيل المشروع.',
+                'إذا ظهر زر GitHub، اضغطه لفتح مستودع المشروع في المتصفح. استخدم زر الرجوع في الهاتف للعودة إلى دروبي.',
+              ],
                 ),
               ],
             ),
