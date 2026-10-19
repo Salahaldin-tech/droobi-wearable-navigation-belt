@@ -190,18 +190,20 @@ class _DestinationSearchScreenState
               title: 'Search Destination',
               titleAr: 'البحث عن وجهة',
               description:
-                  'Enter a destination name and tap Search. Choose a result to save it to Favorites or use it for live navigation.',
+                'Search Destination lets you find a place by name. The search field is at the top, the Search button is beside it, and matching results or a no-results message appear below.',
               descriptionAr:
-                  'أدخل اسم الوجهة واضغط على بحث. اختر إحدى النتائج لحفظها في المفضلة أو استخدامها في الملاحة المباشرة.',
+                'تتيح لك شاشة البحث عن وجهة العثور على مكان باسمه. يوجد حقل البحث في الأعلى وزر بحث بجانبه، وتظهر النتائج المطابقة أو رسالة عدم وجود نتائج أسفل الحقل.',
               tips: [
-                'Use a clear place or campus location name.',
-                'If you arrived here from voice search, check the recognized text before searching.',
-                'A destination must be selected from results before navigation can begin.',
+                'Tap “Where do you want to go?” and type a destination name. If you arrived from voice search, check that the recognized words are correct.',
+                'Tap Search beside the field, or submit the keyboard. A loading indicator may appear while Droobi searches; matching results are shown underneath.',
+                'Choose the correct result. Use the available action to save it to Favorites or start Live Navigation; navigation opens the Live Navigation screen for the selected destination.',
+                'If no matching result appears, check the spelling or try a more specific place name and search again.',
               ],
               tipsAr: [
-                'اكتب اسم مكان أو موقع داخل الجامعة بوضوح.',
-                'إذا وصلت إلى هنا من البحث الصوتي، راجع النص الذي تم التعرّف عليه قبل البحث.',
-                'يجب اختيار وجهة من النتائج قبل بدء الملاحة.',
+                'اضغط حقل «إلى أين تريد الذهاب؟» واكتب اسم الوجهة. إذا وصلت من البحث الصوتي، تأكد من صحة الكلمات التي تم التعرّف عليها.',
+                'اضغط زر بحث بجانب الحقل أو أرسل البحث من لوحة المفاتيح. قد يظهر مؤشر تحميل أثناء البحث، ثم تظهر النتائج المطابقة أسفل الحقل.',
+                'اختر النتيجة الصحيحة. استخدم الإجراء المتاح لحفظها في المفضلة أو بدء الملاحة المباشرة؛ وستفتح شاشة الملاحة المباشرة للوجهة المختارة.',
+                'إذا لم تظهر نتيجة مطابقة، راجع الإملاء أو جرّب اسم مكان أكثر تحديدًا ثم ابحث مجددًا.',
               ],
               color: _AppTheme.accent,
             ),
