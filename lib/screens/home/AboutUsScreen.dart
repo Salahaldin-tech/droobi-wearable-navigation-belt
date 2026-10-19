@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../widgets/page_help_button.dart';
+
 class AboutUsScreen extends StatelessWidget {
   const AboutUsScreen({super.key});
 
@@ -25,7 +27,31 @@ class AboutUsScreen extends StatelessWidget {
       child: Theme(
         data: base.copyWith(colorScheme: cs),
         child: Scaffold(
-          appBar: AppBar(title: Text(s.title)),
+          appBar: AppBar(
+            title: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(s.title),
+                const SizedBox(width: 4),
+                const PageHelpButton(
+                  title: 'About Us',
+                  titleAr: 'من نحن',
+                  description:
+                      'Learn about the Droobi project, its features, team, and academic context.',
+                  descriptionAr:
+                      'تعرّف على مشروع دروبي وميزاته وفريق العمل وسياقه الأكاديمي.',
+                  tips: [
+                    'This page contains project information and team details.',
+                    'Use the GitHub button to open the project repository.',
+                  ],
+                  tipsAr: [
+                    'تحتوي هذه الصفحة على معلومات المشروع والفريق.',
+                    'استخدم زر GitHub لفتح مستودع المشروع.',
+                  ],
+                ),
+              ],
+            ),
+          ),
           body: ListView(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
             children: [
