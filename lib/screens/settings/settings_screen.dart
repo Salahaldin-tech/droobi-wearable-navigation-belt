@@ -9,6 +9,7 @@ import '../../state/destination_search_notifier.dart';
 import '../../state/voice_language_notifier.dart';
 import '../../widgets/connection_status_indicator.dart';
 import '../../widgets/droobi_bottom_nav.dart';
+import '../../widgets/page_help_button.dart';
 import '../test/dev_test_menu.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -65,13 +66,38 @@ class SettingsScreen extends ConsumerWidget {
                   16,
                 ),
                 children: [
-                  const Text(
-                    'Settings',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w500,
-                      color: _text,
-                    ),
+                  const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Settings',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w500,
+                          color: _text,
+                        ),
+                      ),
+                      SizedBox(width: 4),
+                      PageHelpButton(
+                        title: 'Settings',
+                        titleAr: 'الإعدادات',
+                        description:
+                            'Manage your navigation belt connection, voice input language, and other app preferences here.',
+                        descriptionAr:
+                            'يمكنك هنا إدارة اتصال حزام الملاحة ولغة الإدخال الصوتي وبقية تفضيلات التطبيق.',
+                        tips: [
+                          'Use Connect / Reconnect Belt to look for your belt.',
+                          'Choose Arabic or English for voice input.',
+                          'If a permission is denied, enable it from the phone settings when needed.',
+                        ],
+                        tipsAr: [
+                          'استخدم زر الاتصال أو إعادة الاتصال للبحث عن الحزام.',
+                          'اختر العربية أو الإنجليزية للمدخلات الصوتية.',
+                          'إذا رفضت إذنًا، فعّله من إعدادات الهاتف عند الحاجة.',
+                        ],
+                        color: _blue,
+                      ),
+                    ],
                   ),
 
                   const SizedBox(height: 4),
