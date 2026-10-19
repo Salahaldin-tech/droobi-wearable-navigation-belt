@@ -82,19 +82,21 @@ class SettingsScreen extends ConsumerWidget {
                         title: 'Settings',
                         titleAr: 'الإعدادات',
                         description:
-                            'Manage your navigation belt connection, voice input language, and other app preferences here.',
+                'Settings controls the navigation belt connection and app preferences. Read the connection status before trying to start navigation.',
                         descriptionAr:
-                            'يمكنك هنا إدارة اتصال حزام الملاحة ولغة الإدخال الصوتي وبقية تفضيلات التطبيق.',
+                'تتحكم الإعدادات باتصال حزام الملاحة وتفضيلات التطبيق. اقرأ حالة الاتصال قبل محاولة بدء الملاحة.',
                         tips: [
-                          'Use Connect / Reconnect Belt to look for your belt.',
-                          'Choose Arabic or English for voice input.',
-                          'If a permission is denied, enable it from the phone settings when needed.',
-                        ],
-                        tipsAr: [
-                          'استخدم زر الاتصال أو إعادة الاتصال للبحث عن الحزام.',
-                          'اختر العربية أو الإنجليزية للمدخلات الصوتية.',
-                          'إذا رفضت إذنًا، فعّله من إعدادات الهاتف عند الحاجة.',
-                        ],
+                'In the Device section, read the connection status indicator. If the belt is not connected, tap the Connect Belt button; if it is already connected, the button lets you disconnect it.',
+                'To change voice-input language, find the voice language setting and choose Arabic or English from its selector. This changes the language used for voice input.',
+                'If location or Bluetooth access is denied, open your phone’s system Settings, allow the required permission, then return to Droobi and retry the action.',
+                'Use the remaining settings controls for their displayed preference. If you choose Log Out, you will leave the signed-in session and return to the authentication screen.',
+              ],
+              tipsAr: [
+                'في قسم الجهاز، اقرأ مؤشر حالة الاتصال. إذا لم يكن الحزام متصلًا، اضغط زر الاتصال بالحزام؛ وإذا كان متصلًا، يتيح لك الزر قطع الاتصال.',
+                'لتغيير لغة الإدخال الصوتي، ابحث عن إعداد لغة الصوت واختر العربية أو الإنجليزية من القائمة. يغيّر ذلك لغة الإدخال الصوتي.',
+                'إذا رُفض إذن الموقع أو البلوتوث، افتح إعدادات الهاتف، واسمح بالإذن المطلوب، ثم ارجع إلى دروبي وأعد المحاولة.',
+                'استخدم بقية عناصر الإعدادات حسب الخيار المعروض. إذا اخترت تسجيل الخروج، ستنهي الجلسة الحالية وتعود إلى شاشة تسجيل الدخول.',
+              ],
                         color: _blue,
                       ),
                     ],
