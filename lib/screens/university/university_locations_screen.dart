@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/university_location.dart';
 import '../../state/university_locations_notifier.dart';
 import '../../widgets/droobi_bottom_nav.dart';
+import '../../widgets/page_help_button.dart';
 
 class UniversityLocationsScreen extends ConsumerStatefulWidget {
   const UniversityLocationsScreen({super.key});
@@ -500,13 +501,38 @@ class _UniversityLocationsScreenState
           ),
         ),
         SizedBox(height: 4),
-        Text(
-          'Arab American University',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            color: _textColor,
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Arab American University',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: _textColor,
+                ),
+              ),
+            ),
+            PageHelpButton(
+              title: 'University',
+              titleAr: 'الجامعة',
+              description:
+                  'Browse campus colleges, gates, and facilities. Use the search field to filter locations by name.',
+              descriptionAr:
+                  'تصفّح كليات الجامعة وبواباتها ومرافقها. استخدم حقل البحث لتصفية المواقع حسب الاسم.',
+              tips: [
+                'Choose Colleges, Gates, or Facilities to browse a category.',
+                'Type a building, gate, or facility name to search across the campus list.',
+                'Select a location to view its available details or navigation action.',
+              ],
+              tipsAr: [
+                'اختر الكليات أو البوابات أو المرافق لتصفّح التصنيف.',
+                'اكتب اسم مبنى أو بوابة أو مرفق للبحث ضمن مواقع الجامعة.',
+                'اختر موقعًا لعرض تفاصيله المتاحة أو خيار الملاحة.',
+              ],
+              color: _primaryBlue,
+            ),
+          ],
         ),
       ],
     );
