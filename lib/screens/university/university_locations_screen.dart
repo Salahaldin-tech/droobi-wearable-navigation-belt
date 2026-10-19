@@ -517,18 +517,18 @@ class _UniversityLocationsScreenState
               title: 'University',
               titleAr: 'الجامعة',
               description:
-                  'Browse campus colleges, gates, and facilities. Use the search field to filter locations by name.',
+                'Use this page to find Arab American University campus locations. The category chips filter the list, and the search field narrows the locations by name.',
               descriptionAr:
-                  'تصفّح كليات الجامعة وبواباتها ومرافقها. استخدم حقل البحث لتصفية المواقع حسب الاسم.',
+                'استخدم هذه الصفحة للعثور على مواقع حرم الجامعة العربية الأمريكية. تصفّي أزرار التصنيفات القائمة، ويضيّق حقل البحث النتائج حسب الاسم.',
               tips: [
-                'Choose Colleges, Gates, or Facilities to browse a category.',
-                'Type a building, gate, or facility name to search across the campus list.',
-                'Select a location to view its available details or navigation action.',
+                'Tap Colleges, Gates, or Facilities in the row of category chips to filter the campus locations. The selected chip is highlighted in blue and the list below updates.',
+                'Tap the field labeled “Search buildings, gates, facilities” and type a name. Matching locations appear in the list below; clear or edit the text to change the results.',
+                'Tap the campus location you want from the results to open its available details or navigation action. Follow the action shown to continue to navigation if offered.',
               ],
               tipsAr: [
-                'اختر الكليات أو البوابات أو المرافق لتصفّح التصنيف.',
-                'اكتب اسم مبنى أو بوابة أو مرفق للبحث ضمن مواقع الجامعة.',
-                'اختر موقعًا لعرض تفاصيله المتاحة أو خيار الملاحة.',
+                'اضغط على الكليات أو البوابات أو المرافق ضمن أزرار التصنيفات لتصفية مواقع الجامعة. يظهر التصنيف المحدد باللون الأزرق وتتحدث القائمة أسفله.',
+                'اضغط حقل «البحث عن مبانٍ وبوابات ومرافق» واكتب الاسم. ستظهر المواقع المطابقة في القائمة أسفل الحقل؛ عدّل النص لتغيير النتائج.',
+                'اضغط على موقع الحرم الذي تريده من النتائج لعرض التفاصيل المتاحة أو إجراء الملاحة. اتبع الخيار الظاهر للانتقال إلى الملاحة إذا كان متاحًا.',
               ],
               color: _primaryBlue,
             ),
