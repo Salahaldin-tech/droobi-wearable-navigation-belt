@@ -37,17 +37,19 @@ class AboutUsScreen extends StatelessWidget {
                   title: 'About Us',
                   titleAr: 'من نحن',
                   description:
-                'About Us contains the project overview, features, team information, and academic context. Scroll down to read the sections.',
+                'The page has a top app bar with the page title and help button. Its content scrolls vertically: a centered logo and app name first, then the description, then feature cards in a single column, followed by the team section and project details.',
                   descriptionAr:
-                'تحتوي صفحة «من نحن» على نبذة المشروع وميزاته ومعلومات الفريق والسياق الأكاديمي. مرّر إلى الأسفل لقراءة الأقسام.',
+                'تحتوي الصفحة على شريط علوي فيه العنوان وزر المساعدة. يتحرك المحتوى عموديًا: يظهر الشعار واسم التطبيق في المنتصف أولًا، ثم الوصف، ثم بطاقات الميزات في عمود واحد، وبعدها قسم الفريق وتفاصيل المشروع.',
                   tips: [
-                'Scroll down to read the project description and feature cards. Continue scrolling to view the team section and other project details.',
-                'If you see the GitHub button, tap it to open the project repository in your browser. Use the phone’s Back action to return to Droobi.',
-              ],
+                  'Swipe up on the page to scroll down through the content. The logo and Droobi name are near the top; the description appears below them.',
+                  'Continue scrolling to see feature cards stacked vertically, one card per row, then the Team section and member cards.',
+                  'If the View on GitHub button appears near the project links toward the lower part of the page, tap it to open the repository in your browser. Use Back to return to Droobi.',
+                ],
               tipsAr: [
-                'مرّر إلى الأسفل لقراءة وصف المشروع وبطاقات الميزات. تابع التمرير لعرض قسم الفريق وبقية تفاصيل المشروع.',
-                'إذا ظهر زر GitHub، اضغطه لفتح مستودع المشروع في المتصفح. استخدم زر الرجوع في الهاتف للعودة إلى دروبي.',
-              ],
+                  'مرّر بإصبعك إلى الأعلى على الصفحة للانتقال إلى أسفل المحتوى. يظهر الشعار واسم Droobi قرب الأعلى، ويظهر الوصف أسفلهما.',
+                  'واصل التمرير لرؤية بطاقات الميزات المتراصة عموديًا، بطاقة واحدة في كل صف، ثم قسم Team وبطاقات أعضاء الفريق.',
+                  'إذا ظهر زر View on GitHub قرب روابط المشروع في الجزء السفلي، اضغطه لفتح المستودع في المتصفح. استخدم الرجوع للعودة إلى دروبي.',
+                ],
                 ),
               ],
             ),
