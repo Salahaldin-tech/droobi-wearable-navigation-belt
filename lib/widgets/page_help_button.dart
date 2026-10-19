@@ -33,7 +33,9 @@ class PageHelpButton extends StatelessWidget {
         barrierDismissible: false,
         builder: (dialogContext) {
           final activeTips = isArabic ? tipsAr : tips;
-          return AlertDialog(
+          return PopScope(
+            canPop: false,
+            child: AlertDialog(
             icon: Icon(Icons.help_outline_rounded, color: color, size: 30),
             title: Text(
               isArabic ? 'مساعدة: $titleAr' : 'Help: $title',
@@ -94,6 +96,7 @@ class PageHelpButton extends StatelessWidget {
                 child: Text(isArabic ? 'إغلاق' : 'Close'),
               ),
             ],
+            ),
           );
         },
       ),
