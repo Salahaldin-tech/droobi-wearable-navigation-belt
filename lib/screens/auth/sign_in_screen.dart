@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../services/firebase/auth_service.dart';
 import '../../state/auth_state_notifier.dart';
+import '../../widgets/page_help_button.dart';
 import 'sign_up_screen.dart';
 
 // ---------------------------------------------------------------------------
@@ -263,13 +264,35 @@ class _Header extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 4),
-              Text(
-                'Login',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                  color: _AuthTheme.textSecondary,
-                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Login',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                      color: _AuthTheme.textSecondary,
+                    ),
+                  ),
+                  SizedBox(width: 4),
+                  PageHelpButton(
+                    title: 'Sign In',
+                    titleAr: 'تسجيل الدخول',
+                    description:
+                        'Sign in with your account to access Droobi navigation features. If you do not have an account, use the Sign Up option.',
+                    descriptionAr:
+                        'سجّل الدخول إلى حسابك لاستخدام ميزات الملاحة في دروبي. إذا لم يكن لديك حساب، استخدم خيار إنشاء حساب.',
+                    tips: [
+                      'Enter the email address and password registered to your account.',
+                      'If sign-in fails, check your credentials and internet connection.',
+                    ],
+                    tipsAr: [
+                      'أدخل البريد الإلكتروني وكلمة المرور المسجلين لحسابك.',
+                      'إذا تعذّر تسجيل الدخول، تحقّق من بياناتك واتصال الإنترنت.',
+                    ],
+                  ),
+                ],
               ),
             ],
           ),
