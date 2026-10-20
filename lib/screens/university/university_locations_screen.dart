@@ -7,7 +7,10 @@ import '../../widgets/droobi_bottom_nav.dart';
 import '../../widgets/page_help_button.dart';
 
 class UniversityLocationsScreen extends ConsumerStatefulWidget {
-  const UniversityLocationsScreen({super.key});
+  const UniversityLocationsScreen({super.key, this.initialQuery});
+
+  /// Optional query supplied by destination search (for example, "Gate 3").
+  final String? initialQuery;
 
   @override
   ConsumerState<UniversityLocationsScreen> createState() =>
@@ -49,6 +52,12 @@ class _UniversityLocationsScreenState
       vsync: this,
       duration: const Duration(seconds: 10),
     );
+
+    final initialQuery = widget.initialQuery?.trim();
+    if (initialQuery != null && initialQuery.isNotEmpty) {
+      _searchController.text = initialQuery;
+      _searchQuery = initialQuery.toLowerCase();
+    }
 
     _searchController.addListener(() {
       setState(() {
