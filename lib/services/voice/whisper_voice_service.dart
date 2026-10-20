@@ -14,7 +14,7 @@ class WhisperVoiceService implements VoiceInputService {
   WhisperVoiceService({AudioRecorder? recorder})
       : _recorder = recorder ?? AudioRecorder();
 
-  static const WhisperModel _model = WhisperModel.small;
+  static const WhisperModel _model = WhisperModel.medium;
 
   // ---------------------------------------------------------------------------
   // MODEL FILE VALIDATION
@@ -25,18 +25,18 @@ class WhisperVoiceService implements VoiceInputService {
   // ---------------------------------------------------------------------------
 
   // Same file name the package looks for in getApplicationSupportDirectory().
-  static const String _modelFileName = 'ggml-small.bin';
+  static const String _modelFileName = 'ggml-medium.bin';
 
   static const String _modelUrl =
-      'https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.bin';
+      'https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-medium.bin';
 
-  // SHA-256 of the official ggml-small.bin (about 488 MB).
+  // SHA-256 of the official ggml-medium.bin (about 1.53 GB).
   static const String _modelSha256 =
-      '1be3a9b2063867b937e64e2ec7483364a79917e157fa98c5d94b5c1fffea987b';
+      '6c14d5adee5f86394037b4e4e8b59f1673b6cee10e3cf0b11bbdbee79c156208';
 
   // Cheap sanity range. The checksum is the real integrity check.
-  static const int _minModelBytes = 480000000;
-  static const int _maxModelBytes = 495000000;
+  static const int _minModelBytes = 1530000000;
+  static const int _maxModelBytes = 1540000000;
 
   // Recordings shorter than about 0.3 seconds are not sent to native Whisper.
   // 44 byte WAV header + 0.3 s of 16 kHz mono 16-bit audio.
@@ -143,7 +143,7 @@ class WhisperVoiceService implements VoiceInputService {
     return true;
   }
 
-  /// Downloads to a .part file and only renames it to ggml-small.bin after
+  /// Downloads to a .part file and only renames it to ggml-medium.bin after
   /// the HTTP status, size and SHA-256 have all been verified.
   Future<void> _downloadModel(File modelFile, File markerFile) async {
     final partFile = File('${modelFile.path}.part');
