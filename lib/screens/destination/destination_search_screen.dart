@@ -125,7 +125,10 @@ class _CampusQuery {
     if (q.isEmpty) return false;
     return _campusPlaceNames.any((name) {
       final candidate = normalize(name);
-      return q == candidate || q.contains(candidate) || candidate.contains(q);
+      // Only route when the full campus alias is present; substring
+      // matching in the opposite direction would misroute short queries
+      // such as "art" to the campus guide.
+      return q == candidate || q.contains(candidate);
     });
   }
 
