@@ -76,6 +76,9 @@ class DestinationSearchNotifier
 
   final DestinationSearchService _service;
 
+  // Invalidates older requests when the user clears or starts a new search.
+  int _searchRequestId = 0;
+
   static const String _cityPreferenceKey =
       'destination_search_city';
 
@@ -99,9 +102,12 @@ class DestinationSearchNotifier
       return;
     }
 
+    _searchRequestId++;
     state = state.copyWith(
       selectedCity: city,
       results: const [],
+      isLoading: false,
+      clearError: true,
     );
 
     final preferences =
@@ -114,18 +120,28 @@ class DestinationSearchNotifier
   }
 
   Future<void> search(String query) async {
+    final normalizedQuery = query.trim();
+    if (normalizedQuery.isEmpty) {
+      clear();
+      return;
+    }
+
+    final requestId = ++_searchRequestId;
     state = state.copyWith(
-      query: query,
+      query: normalizedQuery,
+      results: const [],
       isLoading: true,
       clearError: true,
     );
 
     try {
-      final results =
-          await _service.searchDestinations(
-        query,
+      final results = await _service.searchDestinations(
+        normalizedQuery,
         city: state.selectedCity,
       );
+
+      // Ignore stale responses if a newer search or clear happened meanwhile.
+      if (requestId != _searchRequestId) return;
 
       state = state.copyWith(
         results: results,
@@ -133,6 +149,8 @@ class DestinationSearchNotifier
         clearError: true,
       );
     } on Exception catch (e) {
+      if (requestId != _searchRequestId) return;
+
       state = state.copyWith(
         isLoading: false,
         results: const [],
@@ -142,6 +160,7 @@ class DestinationSearchNotifier
   }
 
   void clear() {
+    _searchRequestId++;
     state = DestinationSearchState(
       selectedCity: state.selectedCity,
     );
