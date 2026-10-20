@@ -337,7 +337,10 @@ class _UniversityLocationsScreenState
         .where(
           (item) =>
               item.name.toLowerCase().contains(_searchQuery) ||
-              item.nameAr.contains(_searchQuery),
+              item.nameAr.contains(_searchQuery) ||
+              item.aliases.any(
+                (alias) => alias.toLowerCase().contains(_searchQuery),
+              ),
         )
         .toList();
   }
