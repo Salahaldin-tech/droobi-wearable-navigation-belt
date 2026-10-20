@@ -19,7 +19,7 @@ dependencies:
 
   http: ^1.2.1
 
-  whisper_flutter_new:
+  whisper_flutter_new: ^1.0.1
 
   record:
 
