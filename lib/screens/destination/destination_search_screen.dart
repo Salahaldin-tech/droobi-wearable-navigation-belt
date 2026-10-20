@@ -171,9 +171,15 @@ class _DestinationSearchScreenState
           state.isLoading) {
         ref.read(destinationSearchProvider.notifier).clear();
       }
-      if (_campusSuggestion != null && mounted) {
-        setState(() => _campusSuggestion = null);
-      }
+    }
+
+    // Rebuild while typing so the suffix changes between search and clear.
+    if (mounted) {
+      setState(() {
+        if (_controller.text.trim().isEmpty) {
+          _campusSuggestion = null;
+        }
+      });
     }
   }
 
