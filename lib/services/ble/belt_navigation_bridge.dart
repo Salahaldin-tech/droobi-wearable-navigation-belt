@@ -1,4 +1,3 @@
-
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -48,15 +47,15 @@ class BeltNavigationBridge {
 
     final direction = snapshot.direction;
 
+    // Fail safe: whenever navigation has no valid direction, stop the
+    // motors instead of leaving the previous vibration pattern running.
     if (direction == null) {
+      await _beltConnectionService.sendCommand(BeltCommand.stop);
       return;
     }
 
     final command = _beltCommandFromDirection(direction);
-
-
-
-await _beltConnectionService.sendCommand(command);
+    await _beltConnectionService.sendCommand(command);
   }
 
   Future<void> _sendCurrentNavigationCommand() async {
@@ -66,11 +65,11 @@ await _beltConnectionService.sendCommand(command);
 
     final direction = _navigationService.snapshot.direction;
 
-    if (direction == null) {
-      return;
-    }
-
-    final command = _beltCommandFromDirection(direction);
+    // On reconnect, never replay an old command. If the current
+    // navigation snapshot has no direction, explicitly stop the belt.
+    final command = direction == null
+        ? BeltCommand.stop
+        : _beltCommandFromDirection(direction);
 
     await _beltConnectionService.sendCommand(command);
   }
@@ -81,25 +80,18 @@ await _beltConnectionService.sendCommand(command);
     switch (direction) {
       case NavigationDirection.forward:
         return BeltCommand.front;
-
       case NavigationDirection.back:
         return BeltCommand.back;
-
       case NavigationDirection.left:
         return BeltCommand.left;
-
       case NavigationDirection.right:
         return BeltCommand.right;
-
       case NavigationDirection.backLeft:
         return BeltCommand.backLeft;
-
       case NavigationDirection.backRight:
         return BeltCommand.backRight;
-
       case NavigationDirection.forwardLeft:
         return BeltCommand.frontLeft;
-
       case NavigationDirection.forwardRight:
         return BeltCommand.frontRight;
     }
