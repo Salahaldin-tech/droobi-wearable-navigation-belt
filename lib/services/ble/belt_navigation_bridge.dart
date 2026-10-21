@@ -45,11 +45,20 @@ class BeltNavigationBridge {
       return;
     }
 
+    // Destination reached: pulse all four belt motors together.
+    // This is a one-shot firmware pattern, not a navigation direction.
+    if (snapshot.state == NavigationState.arrived) {
+      await _beltConnectionService.sendCommand(BeltCommand.arrived);
+      return;
+    }
+
     final direction = snapshot.direction;
 
-    // Fail safe: whenever navigation has no valid direction, stop the
-    // motors instead of leaving the previous vibration pattern running.
-    if (direction == null) {
+    // Fail safe for GPS errors, recovery states, or any snapshot
+    // without a valid direction: never leave an old pattern running.
+    if (direction == null ||
+        snapshot.state == NavigationState.gpsUnavailable ||
+        snapshot.state == NavigationState.routeUnavailable) {
       await _beltConnectionService.sendCommand(BeltCommand.stop);
       return;
     }
@@ -63,11 +72,13 @@ class BeltNavigationBridge {
       return;
     }
 
-    final direction = _navigationService.snapshot.direction;
+    final snapshot = _navigationService.snapshot;
+    final direction = snapshot.direction;
 
-    // On reconnect, never replay an old command. If the current
-    // navigation snapshot has no direction, explicitly stop the belt.
-    final command = direction == null
+    // Do not replay an arrival pulse or stale direction on reconnect.
+    // If there is no current navigation direction, explicitly stop.
+    final command = direction == null ||
+            snapshot.state != NavigationState.navigating
         ? BeltCommand.stop
         : _beltCommandFromDirection(direction);
 
