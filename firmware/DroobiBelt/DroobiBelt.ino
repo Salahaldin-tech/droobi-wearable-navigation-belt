@@ -122,12 +122,15 @@ class CommandCallbacks : public BLECharacteristicCallbacks {
 class ServerCallbacks : public BLEServerCallbacks {
   void onConnect(BLEServer *server) override {
     deviceConnected = true;
+    lastHeartbeatMs = millis();
+    heartbeatSeen = true;
     Serial.println("[BLE] Droobi connected");
     stopMotors();
   }
 
   void onDisconnect(BLEServer *server) override {
     deviceConnected = false;
+    heartbeatSeen = false;
     Serial.println("[BLE] Droobi disconnected; stopping motors");
     stopMotors();
   }
