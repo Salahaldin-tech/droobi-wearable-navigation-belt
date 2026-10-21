@@ -34,6 +34,7 @@ static constexpr bool MOTOR_ACTIVE_HIGH = true;
 
 // A missing heartbeat stops vibration as a safety measure.
 static constexpr unsigned long HEARTBEAT_TIMEOUT_MS = 10000;
+static constexpr unsigned long DIRECTION_PULSE_MS = 3000;
 static constexpr unsigned long ARRIVAL_PULSE_MS = 1200;
 
 BLEServer *bleServer = nullptr;
@@ -46,23 +47,37 @@ bool heartbeatSeen = false;
 bool arrivalPulseActive = false;
 unsigned long arrivalPulseUntilMs = 0;
 String lastCommand = "STOP";
+// Remember the last direction even after its 3-second pulse ends.
+// Repeated writes of the same direction must not restart the timer.
+String lastDirectionCommand = "STOP";
+bool directionPulseActive = false;
+unsigned long directionPulseUntilMs = 0;
 
 void setMotor(uint8_t pin, bool enabled) {
   const bool outputHigh = MOTOR_ACTIVE_HIGH ? enabled : !enabled;
   digitalWrite(pin, outputHigh ? HIGH : LOW);
 }
 
-void stopMotors() {
+void setAllMotorsOff() {
   setMotor(MOTOR_FRONT_PIN, false);
   setMotor(MOTOR_BACK_PIN, false);
   setMotor(MOTOR_LEFT_PIN, false);
   setMotor(MOTOR_RIGHT_PIN, false);
+}
+
+void stopMotors() {
+  setAllMotorsOff();
   arrivalPulseActive = false;
   arrivalPulseUntilMs = 0;
+  directionPulseActive = false;
+  directionPulseUntilMs = 0;
   lastCommand = "STOP";
 }
 
 void pulseAllMotorsForArrival() {
+  lastDirectionCommand = "STOP";
+  directionPulseActive = false;
+  directionPulseUntilMs = 0;
   setMotor(MOTOR_FRONT_PIN, true);
   setMotor(MOTOR_BACK_PIN, true);
   setMotor(MOTOR_LEFT_PIN, true);
@@ -80,12 +95,42 @@ void applyCommand(String command) {
   if (command == "HB") {
     lastHeartbeatMs = millis();
     heartbeatSeen = true;
-    Serial.println("[BLE] Heartbeat received");
     return;
   }
 
-  // Clear the previous pattern before applying any new command.
+  if (command == "STOP") {
+    stopMotors();
+    lastDirectionCommand = "STOP";
+    Serial.println("[CMD] STOP");
+    return;
+  }
+
+  if (command == "ARRIVED") {
+    stopMotors();
+    pulseAllMotorsForArrival();
+    return;
+  }
+
+  const bool isDirection =
+      command == "F" || command == "B" || command == "L" ||
+      command == "R" || command == "FL" || command == "FR" ||
+      command == "BL" || command == "BR";
+
+  if (!isDirection) {
+    Serial.print("[WARN] Unknown command: ");
+    Serial.println(command);
+    return;
+  }
+
+  // Ignore repeated writes of the same direction. In particular, RRRR
+  // must not keep restarting the 3-second vibration window.
+  if (command == lastDirectionCommand) {
+    return;
+  }
+
+  // A new direction starts a fresh 3-second pulse.
   stopMotors();
+  lastDirectionCommand = command;
 
   if (command == "F") {
     setMotor(MOTOR_FRONT_PIN, true);
@@ -107,20 +152,14 @@ void applyCommand(String command) {
   } else if (command == "BR") {
     setMotor(MOTOR_BACK_PIN, true);
     setMotor(MOTOR_RIGHT_PIN, true);
-  } else if (command == "ARRIVED") {
-    pulseAllMotorsForArrival();
-    return;
-  } else if (command == "STOP") {
-    // stopMotors() above already stopped every motor.
-  } else {
-    Serial.print("[WARN] Unknown command: ");
-    Serial.println(command);
-    return;
   }
 
+  directionPulseActive = true;
+  directionPulseUntilMs = millis() + DIRECTION_PULSE_MS;
   lastCommand = command;
   Serial.print("[CMD] ");
-  Serial.println(command);
+  Serial.print(command);
+  Serial.println(" - motors ON for 3000 ms");
 }
 
 class CommandCallbacks : public BLECharacteristicCallbacks {
@@ -218,6 +257,15 @@ void loop() {
     } else if (input.length() > 0) {
       Serial.println("[HELP] Use F B L R FL FR BL BR ARRIVED STOP or TEST");
     }
+  }
+
+  if (directionPulseActive &&
+      static_cast<long>(millis() - directionPulseUntilMs) >= 0) {
+    setAllMotorsOff();
+    directionPulseActive = false;
+    directionPulseUntilMs = 0;
+    lastCommand = "STOP";
+    Serial.println("[DIRECTION] 3-second pulse complete; motors stopped");
   }
 
   if (arrivalPulseActive &&
