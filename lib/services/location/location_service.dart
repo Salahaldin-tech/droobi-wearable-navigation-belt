@@ -27,29 +27,13 @@ class LocationFailure implements Exception {
 }
 
 class LocationService {
-  // ============================================================
-  // EXISTING API
-  // ============================================================
-  //
-  // Keeps returning LatLon so existing GPS/routing test screens
-  // continue working without any changes.
-  //
+  // Keeps the existing LatLon API for screens and older callers.
   Future<LatLon> getCurrentLocation() async {
     final fix = await getCurrentLocationFix();
     return fix.position;
   }
 
-  // ============================================================
-  // NEW LOCATION FIX API
-  // ============================================================
-  //
-  // Returns:
-  // - GPS coordinates
-  // - GPS accuracy
-  // - timestamp
-  //
-  // This will be used by the new navigation filtering system.
-  //
+  // Returns coordinates, accuracy, and timestamp for navigation.
   Future<LocationFix> getCurrentLocationFix() async {
     await _ensureLocationAvailable();
 
@@ -77,41 +61,22 @@ class LocationService {
     }
   }
 
-  // ============================================================
-  // EXISTING-STYLE POSITION STREAM
-  // ============================================================
-  //
-  // Returns only LatLon.
-  //
-  // Existing code can use this without knowing about LocationFix.
-  //
   Stream<LatLon> get positionStream {
-    return locationFixStream.map(
-      (fix) => fix.position,
-    );
+    return locationFixStream.map((fix) => fix.position);
   }
 
-  // ============================================================
-  // NEW LOCATION FIX STREAM
-  // ============================================================
-  //
-  // Uses LocationSettings because this is the correct API form
-  // for the Geolocator version currently used by the project.
-  //
   Stream<LocationFix> get locationFixStream {
-    final controller =
-        StreamController<LocationFix>();
+    final controller = StreamController<LocationFix>();
 
-    StreamSubscription<Position>? subscription;
+    StreamSubscription<Position>? positionSubscription;
+    StreamSubscription<ServiceStatus>? serviceStatusSubscription;
 
     () async {
       try {
         await _ensureLocationAvailable();
 
-        subscription =
-            Geolocator.getPositionStream(
-          locationSettings:
-              const LocationSettings(
+        positionSubscription = Geolocator.getPositionStream(
+          locationSettings: const LocationSettings(
             accuracy: LocationAccuracy.high,
             distanceFilter: 3,
           ),
@@ -121,9 +86,7 @@ class LocationService {
               return;
             }
 
-            controller.add(
-              _toLocationFix(position),
-            );
+            controller.add(_toLocationFix(position));
           },
           onError: (Object error) {
             if (controller.isClosed) {
@@ -138,6 +101,37 @@ class LocationService {
             );
           },
         );
+
+        // Detect GPS/location services being disabled during navigation,
+        // instead of waiting for another position event to reveal it.
+        serviceStatusSubscription =
+            Geolocator.getServiceStatusStream().listen(
+          (status) {
+            if (controller.isClosed ||
+                status != ServiceStatus.disabled) {
+              return;
+            }
+
+            controller.addError(
+              const LocationFailure(
+                LocationErrorType.serviceDisabled,
+                'Location services were turned off. Enable GPS to resume navigation.',
+              ),
+            );
+          },
+          onError: (Object error) {
+            if (controller.isClosed) {
+              return;
+            }
+
+            controller.addError(
+              LocationFailure(
+                LocationErrorType.unavailable,
+                'Could not monitor GPS service status: $error',
+              ),
+            );
+          },
+        );
       } catch (error) {
         if (!controller.isClosed) {
           controller.addError(error);
@@ -146,7 +140,8 @@ class LocationService {
     }();
 
     controller.onCancel = () async {
-      await subscription?.cancel();
+      await positionSubscription?.cancel();
+      await serviceStatusSubscription?.cancel();
 
       if (!controller.isClosed) {
         await controller.close();
@@ -156,13 +151,8 @@ class LocationService {
     return controller.stream;
   }
 
-  // ============================================================
-  // LOCATION SERVICE + PERMISSION
-  // ============================================================
-
   Future<void> _ensureLocationAvailable() async {
-    final serviceEnabled =
-        await Geolocator.isLocationServiceEnabled();
+    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
 
     if (!serviceEnabled) {
       throw const LocationFailure(
@@ -171,25 +161,20 @@ class LocationService {
       );
     }
 
-    var permission =
-        await Geolocator.checkPermission();
+    var permission = await Geolocator.checkPermission();
 
-    if (permission ==
-        LocationPermission.denied) {
-      permission =
-          await Geolocator.requestPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
     }
 
-    if (permission ==
-        LocationPermission.denied) {
+    if (permission == LocationPermission.denied) {
       throw const LocationFailure(
         LocationErrorType.permissionDenied,
         'Location permission was denied.',
       );
     }
 
-    if (permission ==
-        LocationPermission.deniedForever) {
+    if (permission == LocationPermission.deniedForever) {
       throw const LocationFailure(
         LocationErrorType.permissionDeniedForever,
         'Location permission was permanently denied. '
@@ -198,13 +183,7 @@ class LocationService {
     }
   }
 
-  // ============================================================
-  // POSITION → LOCATION FIX
-  // ============================================================
-
-  LocationFix _toLocationFix(
-    Position position,
-  ) {
+  LocationFix _toLocationFix(Position position) {
     return LocationFix(
       position: LatLon(
         latitude: position.latitude,
