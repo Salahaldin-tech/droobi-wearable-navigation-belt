@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/enums/belt_connection_state.dart';
 import '../../models/lat_lon.dart';
 import '../../models/navigation_direction.dart';
 import '../../services/navigation/navigation_service.dart';
@@ -313,7 +314,12 @@ class _LiveNavigationScreenState
             child: Column(
               children: [
                 _buildStatusCard(),
-                const SizedBox(height: 18),
+                const SizedBox(height: 10),
+                _buildBeltConnectionCard(
+                  ref.watch(beltConnectionStateProvider).asData?.value ??
+                      ref.read(beltConnectionServiceProvider).currentState,
+                ),
+                const SizedBox(height: 12),
                 Expanded(
                   child: _buildNavigationContent(
                     direction: direction,
@@ -330,6 +336,87 @@ class _LiveNavigationScreenState
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildBeltConnectionCard(BeltConnectionState state) {
+    late final String title;
+    late final String description;
+    late final Color color;
+    late final IconData icon;
+
+    switch (state) {
+      case BeltConnectionState.connected:
+        title = 'Belt connected';
+        description = 'Belt vibration guidance is available.';
+        color = Colors.green.shade700;
+        icon = Icons.bluetooth_connected;
+        break;
+      case BeltConnectionState.scanning:
+        title = 'Searching for belt';
+        description = 'Keep the ESP32 powered on and nearby.';
+        color = Colors.blue.shade700;
+        icon = Icons.bluetooth_searching;
+        break;
+      case BeltConnectionState.connecting:
+        title = 'Connecting to belt';
+        description = 'Establishing the Bluetooth connection.';
+        color = Colors.blue.shade700;
+        icon = Icons.bluetooth_searching;
+        break;
+      case BeltConnectionState.reconnecting:
+        title = 'Bluetooth connection lost';
+        description =
+            'Trying to reconnect. Belt vibration is unavailable until it reconnects.';
+        color = Colors.orange.shade800;
+        icon = Icons.bluetooth_searching;
+        break;
+      case BeltConnectionState.disconnected:
+      case BeltConnectionState.scanFailed:
+        title = 'Belt not connected';
+        description =
+            'On-screen navigation may continue, but belt vibration is unavailable.';
+        color = Colors.red.shade700;
+        icon = Icons.bluetooth_disabled;
+        break;
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: color.withOpacity(0.25)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: color,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  description,
+                  style: TextStyle(
+                    color: Colors.grey.shade800,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
