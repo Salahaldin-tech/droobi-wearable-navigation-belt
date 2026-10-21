@@ -4,9 +4,9 @@
  * BLE protocol must stay in sync with:
  *   lib/core/enums/belt_command.dart
  *
- * Commands: F, B, L, R, FL, FR, BL, BR, STOP, HB
- * Direction commands activate one motor; diagonal commands activate
- * the two adjacent motors. HB is a heartbeat and never activates motors.
+ * Commands: F, B, L, R, FL, FR, BL, BR, ARRIVED, STOP, HB
+ * ARRIVED briefly activates all four motors together.
+ * HB is a heartbeat and never activates motors.
  *
  * The four GPIOs below are DRIVER INPUT pins, not motor power outputs.
  * Do not connect ERM motors directly to ESP32 GPIO pins.
@@ -18,8 +18,8 @@
 #include <BLEUtils.h>
 #include <BLE2902.h>
 
-// Keep these UUIDs identical to Droobi's Flutter BLE configuration.
-static const char *DEVICE_NAME = "Droobi Belt";
+// Keep these values identical to Droobi's Flutter BLE configuration.
+static const char *DEVICE_NAME = "DroobiBelt";
 static const char *SERVICE_UUID = "4e4a0001-6f6e-4b65-8b1a-0123456789ab";
 static const char *COMMAND_CHARACTERISTIC_UUID = "4e4a0002-6f6e-4b65-8b1a-0123456789ab";
 
@@ -33,8 +33,8 @@ static constexpr uint8_t MOTOR_RIGHT_PIN = 14;
 static constexpr bool MOTOR_ACTIVE_HIGH = true;
 
 // A missing heartbeat stops vibration as a safety measure.
-// The timeout starts after the first HB packet has been received.
 static constexpr unsigned long HEARTBEAT_TIMEOUT_MS = 10000;
+static constexpr unsigned long ARRIVAL_PULSE_MS = 1200;
 
 BLEServer *bleServer = nullptr;
 BLECharacteristic *commandCharacteristic = nullptr;
@@ -43,6 +43,8 @@ bool previousDeviceConnected = false;
 
 unsigned long lastHeartbeatMs = 0;
 bool heartbeatSeen = false;
+bool arrivalPulseActive = false;
+unsigned long arrivalPulseUntilMs = 0;
 String lastCommand = "STOP";
 
 void setMotor(uint8_t pin, bool enabled) {
@@ -55,7 +57,20 @@ void stopMotors() {
   setMotor(MOTOR_BACK_PIN, false);
   setMotor(MOTOR_LEFT_PIN, false);
   setMotor(MOTOR_RIGHT_PIN, false);
+  arrivalPulseActive = false;
+  arrivalPulseUntilMs = 0;
   lastCommand = "STOP";
+}
+
+void pulseAllMotorsForArrival() {
+  setMotor(MOTOR_FRONT_PIN, true);
+  setMotor(MOTOR_BACK_PIN, true);
+  setMotor(MOTOR_LEFT_PIN, true);
+  setMotor(MOTOR_RIGHT_PIN, true);
+  arrivalPulseActive = true;
+  arrivalPulseUntilMs = millis() + ARRIVAL_PULSE_MS;
+  lastCommand = "ARRIVED";
+  Serial.println("[ARRIVED] All four motors ON for 1200 ms");
 }
 
 void applyCommand(String command) {
@@ -69,7 +84,7 @@ void applyCommand(String command) {
     return;
   }
 
-  // Always clear the previous pattern before applying the new one.
+  // Clear the previous pattern before applying any new command.
   stopMotors();
 
   if (command == "F") {
@@ -92,6 +107,9 @@ void applyCommand(String command) {
   } else if (command == "BR") {
     setMotor(MOTOR_BACK_PIN, true);
     setMotor(MOTOR_RIGHT_PIN, true);
+  } else if (command == "ARRIVED") {
+    pulseAllMotorsForArrival();
+    return;
   } else if (command == "STOP") {
     // stopMotors() above already stopped every motor.
   } else {
@@ -178,8 +196,8 @@ void setup() {
 
   Serial.println();
   Serial.println("=== Droobi Belt ESP32 ready ===");
-  Serial.println("BLE name: Droobi Belt");
-  Serial.println("Serial commands: F B L R FL FR BL BR STOP TEST");
+  Serial.println("BLE name: DroobiBelt");
+  Serial.println("Serial commands: F B L R FL FR BL BR ARRIVED STOP TEST");
   Serial.println("Waiting for Droobi BLE connection...");
 }
 
@@ -194,11 +212,18 @@ void loop() {
       testAllDirections();
     } else if (input == "F" || input == "B" || input == "L" ||
                input == "R" || input == "FL" || input == "FR" ||
-               input == "BL" || input == "BR" || input == "STOP") {
+               input == "BL" || input == "BR" || input == "ARRIVED" ||
+               input == "STOP") {
       applyCommand(input);
     } else if (input.length() > 0) {
-      Serial.println("[HELP] Use F B L R FL FR BL BR STOP or TEST");
+      Serial.println("[HELP] Use F B L R FL FR BL BR ARRIVED STOP or TEST");
     }
+  }
+
+  if (arrivalPulseActive &&
+      static_cast<long>(millis() - arrivalPulseUntilMs) >= 0) {
+    stopMotors();
+    Serial.println("[ARRIVED] Pulse complete; motors stopped");
   }
 
   if (heartbeatSeen && millis() - lastHeartbeatMs > HEARTBEAT_TIMEOUT_MS) {
