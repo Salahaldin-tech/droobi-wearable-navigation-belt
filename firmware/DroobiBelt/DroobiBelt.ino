@@ -183,6 +183,7 @@ class ServerCallbacks : public BLEServerCallbacks {
     heartbeatSeen = true;
     Serial.println("[BLE] Droobi connected");
     stopMotors();
+    lastDirectionCommand = "STOP";
   }
 
   void onDisconnect(BLEServer *server) override {
@@ -190,6 +191,7 @@ class ServerCallbacks : public BLEServerCallbacks {
     heartbeatSeen = false;
     Serial.println("[BLE] Droobi disconnected; stopping motors");
     stopMotors();
+    lastDirectionCommand = "STOP";
   }
 };
 
