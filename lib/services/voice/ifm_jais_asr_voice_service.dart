@@ -154,7 +154,7 @@ class IfmJaisAsrVoiceService implements VoiceInputService {
   }
 
   bool _usesWrongScript(String text, VoiceLanguage language) {
-    final hasArabic = RegExp(r'[\\u0600-\\u06FF\\u0750-\\u077F\\u08A0-\\u08FF]').hasMatch(text);
+    final hasArabic = RegExp(r'[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]').hasMatch(text);
     final hasLatin = RegExp(r'[A-Za-z]').hasMatch(text);
 
     // The API receives the language hint; this also rejects wrong-script output.
