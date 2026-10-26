@@ -132,10 +132,25 @@ class VoiceCommandNotifier extends StateNotifier<VoiceCommandState> {
         return;
       }
 
+      final selectedLanguage = _ref.read(voiceLanguageProvider);
+      final isLanguageMismatch = error is VoiceLanguageMismatchException;
+      final message = isLanguageMismatch
+          ? (selectedLanguage == VoiceLanguage.arabic
+              ? 'Please speak Arabic only.'
+              : 'Please speak English only.')
+          : 'Voice recognition failed. Please try again.';
+
       state = state.copyWith(
         phase: VoiceCommandPhase.error,
-        errorMessage: 'Voice recognition failed. Please try again.',
+        errorMessage: message,
       );
+
+      if (isLanguageMismatch) {
+        await _feedback.announce(
+          message,
+          priority: AnnouncementPriority.normal,
+        );
+      }
     }
   }
 
