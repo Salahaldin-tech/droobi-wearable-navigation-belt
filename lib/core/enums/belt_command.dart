@@ -1,13 +1,8 @@
-/// The 8 navigation directions plus STOP, exactly as agreed in Stage 1.
+/// Navigation commands and belt status patterns sent to the ESP32.
 ///
-/// This is a Dart enum specifically so that an invalid command is a
-/// compile-time impossibility anywhere in the app's own logic. The
-/// wire string is only produced at the point of actual BLE transmission
-/// (see [wireValue]), never passed around as a raw String elsewhere.
-///
-/// Heartbeat ("HB") is intentionally NOT part of this enum - it is not
-/// a navigation command, must never participate in send-on-change
-/// dedup, and must never be treated as "the current direction".
+/// Heartbeat ("HB") is intentionally NOT part of this enum - it is not a
+/// navigation command, must never participate in send-on-change dedup, and
+/// must never be treated as the current direction.
 enum BeltCommand {
   front,
   back,
@@ -17,6 +12,7 @@ enum BeltCommand {
   frontRight,
   backLeft,
   backRight,
+  arrived,
   stop,
 }
 
@@ -40,12 +36,14 @@ extension BeltCommandWireValue on BeltCommand {
         return 'BL';
       case BeltCommand.backRight:
         return 'BR';
+      case BeltCommand.arrived:
+        return 'ARRIVED';
       case BeltCommand.stop:
         return 'STOP';
     }
   }
 
-  /// A short human-readable label, for the test screen / future UI.
+  /// A short human-readable label for diagnostics.
   String get label {
     switch (this) {
       case BeltCommand.front:
@@ -64,6 +62,8 @@ extension BeltCommandWireValue on BeltCommand {
         return 'Back-Left';
       case BeltCommand.backRight:
         return 'Back-Right';
+      case BeltCommand.arrived:
+        return 'Arrived';
       case BeltCommand.stop:
         return 'STOP';
     }
