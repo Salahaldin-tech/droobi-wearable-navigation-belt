@@ -144,42 +144,7 @@ class IfmJaisAsrVoiceService implements VoiceInputService {
   /// the recognized destination phrase intact.
   String _removeTrailingPunctuation(String value) => value
       .trim()
-      .replaceFirst(RegExp(r'[\\s.!?؟،؛:…]+
-    try {
-      final decoded = jsonDecode(body);
-      if (decoded is String) return decoded;
-      if (decoded is Map<String, dynamic>) {
-        for (final key in ['text', 'transcription', 'transcript']) {
-          final value = decoded[key];
-          if (value is String) return value;
-        }
-        // Some OpenAI-compatible APIs return a list of segments.
-        final segments = decoded['segments'];
-        if (segments is List) {
-          return segments
-              .whereType<Map>()
-              .map((segment) => segment['text'])
-              .whereType<String>()
-              .join(' ');
-        }
-      }
-    } on FormatException {
-      // A plain-text response is also accepted.
-    }
-    return body;
-  }
-
-  @override
-  Future<void> stopListening() async {
-    if (!_isListening) return;
-    _stopRequested = true;
-    final completer = _recordingStopCompleter;
-    if (completer != null && !completer.isCompleted) {
-      completer.complete();
-    }
-  }
-}
-), '')
+      .replaceFirst(RegExp(r'[\s.!?؟،؛:…]+$'), '')
       .trimRight();
 
   String _extractTranscript(String body) {
