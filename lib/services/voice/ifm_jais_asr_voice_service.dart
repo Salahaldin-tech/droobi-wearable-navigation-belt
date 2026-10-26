@@ -10,15 +10,11 @@ import 'package:record/record.dart';
 import '../../core/enums/voice_language.dart';
 import 'voice_input_service.dart';
 
-/// Experimental IFM-hosted Jais-ASR implementation.
+/// IFM-hosted Jais-ASR speech-to-text service.
 ///
-/// Enabled only with:
-/// --dart-define=USE_IFM_JAIS_ASR=true
-/// --dart-define=IFM_API_KEY=YOUR_TEST_KEY
-///
-/// WARNING: compile-time defines are embedded in the client app. This is for
-/// local evaluation only; production must call a backend that keeps the key
-/// secret. No API key is stored in source control.
+/// WARNING: compile-time defines are embedded in the client app. Use this
+/// direct-API configuration only for local testing. Production must call a
+/// backend that keeps the IFM API key secret.
 class IfmJaisAsrVoiceService implements VoiceInputService {
   IfmJaisAsrVoiceService({AudioRecorder? recorder})
       : _recorder = recorder ?? AudioRecorder();
@@ -114,6 +110,7 @@ class IfmJaisAsrVoiceService implements VoiceInputService {
       final request = http.MultipartRequest('POST', Uri.parse(_endpoint))
         ..headers['Authorization'] = 'Bearer $_apiKey'
         ..fields['model'] = _model
+        ..fields['language'] = language == VoiceLanguage.arabic ? 'ar' : 'en'
         ..files.add(await http.MultipartFile.fromPath('file', file.path));
 
       final streamedResponse = await request.send().timeout(
@@ -132,7 +129,7 @@ class IfmJaisAsrVoiceService implements VoiceInputService {
         );
       }
 
-      final text = _extractTranscript(response.body).trim();
+      final text = _removeTrailingPunctuation(_extractTranscript(response.body));
       debugPrint('IFM Jais-ASR returned ${text.length} characters.');
       return text.isEmpty ? null : text;
     } finally {
@@ -142,6 +139,48 @@ class IfmJaisAsrVoiceService implements VoiceInputService {
       }
     }
   }
+
+  /// Remove punctuation only from the very end, keeping punctuation inside
+  /// the recognized destination phrase intact.
+  String _removeTrailingPunctuation(String value) => value
+      .trim()
+      .replaceFirst(RegExp(r'[\\s.!?؟،؛:…]+
+    try {
+      final decoded = jsonDecode(body);
+      if (decoded is String) return decoded;
+      if (decoded is Map<String, dynamic>) {
+        for (final key in ['text', 'transcription', 'transcript']) {
+          final value = decoded[key];
+          if (value is String) return value;
+        }
+        // Some OpenAI-compatible APIs return a list of segments.
+        final segments = decoded['segments'];
+        if (segments is List) {
+          return segments
+              .whereType<Map>()
+              .map((segment) => segment['text'])
+              .whereType<String>()
+              .join(' ');
+        }
+      }
+    } on FormatException {
+      // A plain-text response is also accepted.
+    }
+    return body;
+  }
+
+  @override
+  Future<void> stopListening() async {
+    if (!_isListening) return;
+    _stopRequested = true;
+    final completer = _recordingStopCompleter;
+    if (completer != null && !completer.isCompleted) {
+      completer.complete();
+    }
+  }
+}
+), '')
+      .trimRight();
 
   String _extractTranscript(String body) {
     try {
