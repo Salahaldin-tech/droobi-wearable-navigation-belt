@@ -28,6 +28,8 @@ The command strings match `lib/core/enums/belt_command.dart`.
 | `STOP` | All motors off |
 | `HB` | Heartbeat only; no motor activation |
 
+Each directional command activates its motor pattern for **3 seconds maximum**. Repeated writes of the same direction do not restart that timer; a different direction starts a fresh 3-second pulse. `STOP`, BLE disconnect, and heartbeat timeout stop the motors.
+
 Each GPIO constant is a **motor-driver input**, not a motor power output. Update the pins to match the actual driver wiring before running the motors. Defaults: GPIO 25 (front), 26 (back), 27 (left), and 14 (right).
 
 ## First test
