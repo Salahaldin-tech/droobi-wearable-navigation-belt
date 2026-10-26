@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/enums/voice_command_state.dart';
@@ -120,7 +121,13 @@ class VoiceCommandNotifier extends StateNotifier<VoiceCommandState> {
         recognizedText,
         requestId,
       );
-    } catch (_) {
+    } catch (error, stackTrace) {
+      // Keep the user-facing message simple, but preserve the actual cause
+      // in debug logs so API, permission, recording and network failures can
+      // be distinguished during testing. Never log request headers or keys.
+      debugPrint('Voice recognition failed: ${error.runtimeType}: $error');
+      debugPrintStack(stackTrace: stackTrace, label: 'Voice recognition stack');
+
       if (!mounted || requestId != _requestId) {
         return;
       }
