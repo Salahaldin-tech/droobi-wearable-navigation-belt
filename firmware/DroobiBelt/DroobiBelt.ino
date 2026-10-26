@@ -72,6 +72,7 @@ void stopMotors() {
   directionPulseActive = false;
   directionPulseUntilMs = 0;
   lastCommand = "STOP";
+  lastDirectionCommand = "STOP";
 }
 
 void pulseAllMotorsForArrival() {
@@ -164,15 +165,17 @@ void applyCommand(String command) {
 
 class CommandCallbacks : public BLECharacteristicCallbacks {
   void onWrite(BLECharacteristic *characteristic) override {
-    const std::string value = characteristic->getValue();
-    if (value.empty()) return;
+    // This ESP32 BLE library version returns Arduino String from getValue().
+    String value = characteristic->getValue();
+    value.trim();
 
-    String command;
-    command.reserve(value.length());
-    for (size_t i = 0; i < value.length(); ++i) {
-      command += value[i];
+    if (value.isEmpty()) {
+      return;
     }
-    applyCommand(command);
+
+    Serial.print("[BLE RX] ");
+    Serial.println(value);
+    applyCommand(value);
   }
 };
 
