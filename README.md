@@ -37,7 +37,7 @@ Instead of a map, Droobi gives you three things you can actually use while walki
 
 | 🎙️ Talk to it | 🔊 Hear it | 📳 Feel it |
 |:---:|:---:|:---:|
-| Say your destination in **Arabic or English**. Speech recognition runs **on-device**. | Turn-by-turn **spoken guidance** in your language. | A **belt with vibration motors** buzzes left, right, front, or back, so you always know which way to go. |
+| Say your destination in **Arabic or English**. Speech recognition uses the **IFM-hosted Jais-ASR API**. | Turn-by-turn **spoken guidance** in your language. | A **belt with vibration motors** buzzes left, right, front, or back, so you always know which way to go. |
 
 > **Built as a graduation project** at the Arab American University (Faculty of Engineering), combining mobile development, embedded systems, BLE, and accessibility.
 
@@ -58,10 +58,10 @@ Instead of a map, Droobi gives you three things you can actually use while walki
 </td>
 <td width="50%" valign="top">
 
-### 🎙️ Offline Voice Input
-- **Whisper (whisper.cpp)** running locally
-- No cloud speech-to-text
-- Arabic + English commands
+### 🎙️ Online Voice Input
+- **IFM Jais-ASR** speech-to-text API
+- Arabic or English follows the selected microphone language setting
+- No large speech model download on the phone
 - Hands-free destination entry
 
 </td>
@@ -118,7 +118,7 @@ Instead of a map, Droobi gives you three things you can actually use while walki
 
 ```mermaid
 flowchart LR
-    U([🧑 User]) -->|voice| V[🎙️ Whisper<br/>on-device STT]
+    U([🧑 User]) -->|voice| V[🎙️ IFM Jais-ASR<br/>cloud STT]
     V --> S[🔎 Nominatim<br/>destination search]
     S --> R[🗺️ OSRM<br/>route]
     G[📍 GPS] --> N

@@ -19,8 +19,6 @@ dependencies:
 
   http: ^1.2.1
 
-  whisper_flutter_new: ^1.0.1
-
   record:
 
   path_provider:
@@ -32,7 +30,6 @@ dependencies:
   permission_handler: ^11.3.1
   flutter_compass: ^0.8.1
   cupertino_icons: ^1.0.6
-  crypto: ^3.0.7
   url_launcher: ^6.3.3
 
 dev_dependencies:
