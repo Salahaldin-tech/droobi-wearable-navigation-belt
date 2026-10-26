@@ -6,7 +6,6 @@ import '../core/enums/voice_command_state.dart';
 import '../services/accessibility/feedback_service.dart';
 import '../services/accessibility/flutter_tts_feedback_service.dart';
 import '../services/voice/voice_input_service.dart';
-import '../services/voice/whisper_voice_service.dart';
 import '../services/voice/ifm_jais_asr_voice_service.dart';
 import 'destination_search_notifier.dart';
 import 'voice_language_notifier.dart';
@@ -15,18 +14,9 @@ final feedbackServiceProvider = Provider<FeedbackService>((ref) {
   return FlutterTtsFeedbackService();
 });
 
-/// Experimental provider switch. Whisper remains the default unless explicitly
-/// enabled at build/run time with --dart-define=USE_IFM_JAIS_ASR=true.
-const bool _useIfmJaisAsr = bool.fromEnvironment(
-  'USE_IFM_JAIS_ASR',
-  defaultValue: false,
-);
-
+/// Jais-ASR is now the primary speech-to-text provider.
 final voiceInputServiceProvider = Provider<VoiceInputService>((ref) {
-  if (_useIfmJaisAsr) {
-    return IfmJaisAsrVoiceService();
-  }
-  return WhisperVoiceService();
+  return IfmJaisAsrVoiceService();
 });
 
 const Duration _confirmationWindow = Duration(milliseconds: 2500);
