@@ -10,6 +10,16 @@ import 'package:record/record.dart';
 import '../../core/enums/voice_language.dart';
 import 'voice_input_service.dart';
 
+/// Thrown when a transcript conflicts with the selected speech language.
+class VoiceLanguageMismatchException implements Exception {
+  const VoiceLanguageMismatchException(this.language);
+
+  final VoiceLanguage language;
+
+  @override
+  String toString() => 'Speech did not match the selected language';
+}
+
 /// IFM-hosted Jais-ASR speech-to-text service.
 ///
 /// WARNING: compile-time defines are embedded in the client app. Use this
@@ -130,6 +140,9 @@ class IfmJaisAsrVoiceService implements VoiceInputService {
       }
 
       final text = _removeTrailingPunctuation(_extractTranscript(response.body));
+      if (_usesWrongScript(text, language)) {
+        throw VoiceLanguageMismatchException(language);
+      }
       debugPrint('IFM Jais-ASR returned ${text.length} characters.');
       return text.isEmpty ? null : text;
     } finally {
@@ -138,6 +151,17 @@ class IfmJaisAsrVoiceService implements VoiceInputService {
         await file.delete();
       }
     }
+  }
+
+  bool _usesWrongScript(String text, VoiceLanguage language) {
+    final hasArabic = RegExp(r'[\\u0600-\\u06FF\\u0750-\\u077F\\u08A0-\\u08FF]').hasMatch(text);
+    final hasLatin = RegExp(r'[A-Za-z]').hasMatch(text);
+
+    // The API receives the language hint; this also rejects wrong-script output.
+    return switch (language) {
+      VoiceLanguage.arabic => hasLatin,
+      VoiceLanguage.english => hasArabic,
+    };
   }
 
   /// Remove punctuation only from the very end, keeping punctuation inside
