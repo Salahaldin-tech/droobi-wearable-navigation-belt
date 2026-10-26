@@ -303,7 +303,7 @@ lib/
 | Search | OpenStreetMap / Nominatim |
 | Routing | OSRM |
 | Location & heading | Geolocator · Flutter Compass |
-| Voice in | Whisper / whisper.cpp (on-device) |
+| Voice in | IFM-hosted Jais-ASR (online speech-to-text) |
 | Voice out | Flutter TTS |
 | Bluetooth | Flutter Blue Plus |
 | Wearable | ESP32 |
@@ -347,9 +347,11 @@ cd droobi-wearable-navigation-belt
 # 3. Install dependencies
 flutter pub get
 
-# 4. Run (device connected or emulator started)
-flutter run
+# 4. Run locally with your IFM test API key (never commit the key)
+flutter run --dart-define=IFM_API_KEY=YOUR_NEW_TEST_KEY
 ```
+
+Voice recognition requires an IFM API key at runtime. Replace `YOUR_NEW_TEST_KEY` locally; do not put a real key in source control. See [`docs/IFM_JAIS_ASR_EXPERIMENT.md`](docs/IFM_JAIS_ASR_EXPERIMENT.md) for testing and security notes.
 
 ### 🔥 Firebase setup
 
@@ -392,7 +394,7 @@ gantt
 - [x] Role-based admin access
 - [x] Destination search + city selection (OSM / Nominatim)
 - [x] GPS location + OSRM routing
-- [x] Voice input (Whisper) + Text-to-Speech
+- [x] Voice input (IFM Jais-ASR API) + Text-to-Speech
 - [x] BLE communication layer
 - [x] Settings + Developer test menu
 
