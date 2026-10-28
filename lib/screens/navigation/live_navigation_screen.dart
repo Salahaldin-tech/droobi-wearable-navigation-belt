@@ -1021,19 +1021,36 @@ class _LiveNavigationScreenState
     required bool isArrived,
   }) {
     if (_showContinue || !_navigationHasStarted || _requiresResume) {
+      const appBlue = Color(0xFF2F80ED);
       return SizedBox(
         width: double.infinity,
-        child: FilledButton(
+        child: FilledButton.icon(
           onPressed: _checkingReadiness || _starting ? null : _continueNavigation,
           style: FilledButton.styleFrom(
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            foregroundColor: Theme.of(context).colorScheme.onPrimary,
-            minimumSize: const Size.fromHeight(52),
+            backgroundColor: appBlue,
+            foregroundColor: Colors.white,
+            disabledBackgroundColor: appBlue.withOpacity(0.55),
+            disabledForegroundColor: Colors.white.withOpacity(0.9),
+            elevation: 2,
+            minimumSize: const Size.fromHeight(54),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
           ),
-          child: Text(_checkingReadiness || _starting ? 'CHECKING...' : 'CONTINUE'),
+          icon: _checkingReadiness || _starting
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                )
+              : const Icon(Icons.play_arrow_rounded),
+          label: Text(
+            _checkingReadiness || _starting ? 'CHECKING...' : 'CONTINUE',
+            style: const TextStyle(fontWeight: FontWeight.w800, letterSpacing: 0.5),
+          ),
         ),
       );
     }
