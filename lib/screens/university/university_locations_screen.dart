@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../models/lat_lon.dart';
 import '../../models/university_location.dart';
+import '../../screens/navigation/live_navigation_screen.dart';
 import '../../state/university_locations_notifier.dart';
 import '../../widgets/droobi_bottom_nav.dart';
 import '../../widgets/page_help_button.dart';
@@ -139,8 +141,12 @@ class _UniversityLocationsScreenState
       nameAr: 'كلية الآداب والتربية',
       aliases: [
         'Faculty of Arts and Education',
+        'Faculty of Arts and Sciences',
         'Faculty of Arts',
         'Arts and Education',
+        'Arts and Sciences',
+        'كلية الآداب والعلوم',
+        'كلية الآداب والتربية',
       ],
     ),
     _UniversityItem(
@@ -790,6 +796,27 @@ class _UniversityLocationsScreenState
     _UniversityItem item,
     List<UniversityLocation> locations,
   ) {
+    // These two main doors have field-verified coordinates supplied for
+    // the first campus-navigation test. Use them even if Firestore has no
+    // entry yet, and do not let an older Firestore coordinate override them.
+    if (item.name == 'Faculty of Arts and Education') {
+      return const UniversityLocation(
+        id: 'campus_arts_main_door',
+        name: 'Faculty of Arts and Sciences (Main Door)',
+        latitude: 32.40800714037887,
+        longitude: 35.34461510962358,
+      );
+    }
+
+    if (item.name == 'Faculty of Engineering') {
+      return const UniversityLocation(
+        id: 'campus_engineering_main_door',
+        name: 'Faculty of Engineering (Main Door)',
+        latitude: 32.40830124533684,
+        longitude: 35.345673423520545,
+      );
+    }
+
     for (final location in locations) {
       final locationName = _normalize(location.name);
 
@@ -824,22 +851,16 @@ class _UniversityLocationsScreenState
     _UniversityItem item,
     UniversityLocation location,
   ) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(
-            'Selected ${item.name}',
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => LiveNavigationScreen(
+          destination: LatLon(
+            latitude: location.latitude,
+            longitude: location.longitude,
           ),
         ),
-      );
-
-    // GPS + routing will be connected
-    // in the GPS/routing stage.
-    //
-    // The selected coordinates are available:
-    // location.latitude
-    // location.longitude
+      ),
+    );
   }
 
   // ===========================================================================
