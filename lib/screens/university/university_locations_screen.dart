@@ -817,6 +817,15 @@ class _UniversityLocationsScreenState
       );
     }
 
+    if (item.name == 'Gate 1') {
+      return const UniversityLocation(
+        id: 'campus_gate_1',
+        name: 'Gate 1',
+        latitude: 32.40554629411794,
+        longitude: 35.342217740641594,
+      );
+    }
+
     for (final location in locations) {
       final locationName = _normalize(location.name);
 
