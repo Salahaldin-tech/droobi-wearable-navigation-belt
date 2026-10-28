@@ -19,6 +19,12 @@ abstract class BeltConnectionService {
   /// render before the first stream event arrives.
   BeltConnectionState get currentState;
 
+  /// Returns whether the phone's Bluetooth adapter is powered on.
+  Future<bool> isBluetoothEnabled();
+
+  /// Requests Android to turn Bluetooth on when supported by the platform.
+  Future<void> requestEnableBluetooth();
+
   /// The last navigation command actually written to the belt.
   /// Null if nothing has been sent yet (e.g. fresh connection).
   BeltCommand? get lastSentCommand;
