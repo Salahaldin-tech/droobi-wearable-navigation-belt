@@ -32,6 +32,9 @@ class LiveNavigationScreen extends ConsumerStatefulWidget {
 class _LiveNavigationScreenState
     extends ConsumerState<LiveNavigationScreen> {
   StreamSubscription<NavigationSnapshot>? _navigationSubscription;
+  StreamSubscription<ServiceStatus>? _gpsStatusSubscription;
+  StreamSubscription<bool>? _bluetoothStatusSubscription;
+  StreamSubscription<BeltConnectionState>? _beltStatusSubscription;
 
   NavigationSnapshot _snapshot = const NavigationSnapshot(
     state: NavigationState.idle,
@@ -45,6 +48,8 @@ class _LiveNavigationScreenState
   bool _alarmActive = false;
   bool _wasBeltConnected = false;
   bool _gpsFailureAlerted = false;
+  bool _safetyDialogShowing = false;
+  String? _activeSafetyIssue;
   String? _errorMessage;
 
   @override
@@ -59,6 +64,7 @@ class _LiveNavigationScreenState
   Future<void> _prepareNavigation() async {
     final ready = await _checkReadiness(showMessages: true);
     if (!mounted) return;
+    _startSafetyMonitoring();
     if (ready) {
       await _startNavigation();
     } else {
@@ -175,20 +181,118 @@ class _LiveNavigationScreenState
 
   Future<void> _showRequirementDialog(String title, String message) async {
     if (!mounted) return;
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
+        backgroundColor: colors.surface,
+        surfaceTintColor: colors.surfaceTint,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
+        titleTextStyle: theme.textTheme.titleLarge?.copyWith(
+          color: colors.primary,
+          fontWeight: FontWeight.w700,
+        ),
+        contentTextStyle: theme.textTheme.bodyLarge?.copyWith(
+          color: colors.onSurface,
+        ),
         title: Text(title),
         content: Text(message),
+        actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
         actions: [
-          TextButton(
+          FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text('OK'),
           ),
         ],
       ),
     );
+  }
+
+  void _startSafetyMonitoring() {
+    if (_gpsStatusSubscription != null) return;
+
+    _gpsStatusSubscription = Geolocator.getServiceStatusStream().listen(
+      (status) {
+        if (status == ServiceStatus.disabled) {
+          _raiseSafetyAlert(
+            issue: 'gps',
+            title: 'GPS is turned off',
+            message: 'GPS/location services were turned off. Navigation is paused. Turn GPS on, then tap CONTINUE to resume.',
+          );
+        } else if (status == ServiceStatus.enabled && _activeSafetyIssue == 'gps') {
+          _clearSafetyAlert('gps');
+        }
+      },
+      onError: (_) {},
+    );
+
+    final beltService = ref.read(beltConnectionServiceProvider);
+    _bluetoothStatusSubscription = beltService.bluetoothEnabledStream.listen(
+      (enabled) {
+        if (!enabled) {
+          _raiseSafetyAlert(
+            issue: 'bluetooth',
+            title: 'Bluetooth is turned off',
+            message: 'Bluetooth was turned off. Navigation is paused. Turn Bluetooth on and tap CONTINUE to resume.',
+          );
+        } else if (_activeSafetyIssue == 'bluetooth') {
+          _clearSafetyAlert('bluetooth');
+        }
+      },
+      onError: (_) {},
+    );
+
+    _wasBeltConnected = beltService.currentState == BeltConnectionState.connected;
+    _beltStatusSubscription = beltService.connectionState.listen((state) {
+      if (state == BeltConnectionState.connected) {
+        _wasBeltConnected = true;
+        if (_activeSafetyIssue == 'belt') _clearSafetyAlert('belt');
+        return;
+      }
+
+      final connectionWasLost = _wasBeltConnected &&
+          state != BeltConnectionState.connected;
+      if (connectionWasLost) {
+        _raiseSafetyAlert(
+          issue: 'belt',
+          title: 'Navigation belt disconnected',
+          message: 'The belt connection was lost. Navigation is paused. Reconnect the belt, then tap CONTINUE to resume.',
+        );
+      }
+    });
+  }
+
+  void _raiseSafetyAlert({
+    required String issue,
+    required String title,
+    required String message,
+  }) {
+    if (!mounted || _activeSafetyIssue == issue) return;
+    _activeSafetyIssue = issue;
+    _requiresResume = true;
+    _showContinue = true;
+    _triggerFailureAlarm();
+    if (mounted) setState(() {});
+
+    if (_navigationHasStarted) {
+      ref.read(navigationServiceProvider).stop();
+    }
+    if (!_safetyDialogShowing) {
+      _safetyDialogShowing = true;
+      _showRequirementDialog(title, message).whenComplete(() {
+        _safetyDialogShowing = false;
+      });
+    }
+  }
+
+  void _clearSafetyAlert(String issue) {
+    if (_activeSafetyIssue != issue) return;
+    _activeSafetyIssue = null;
+    if (mounted) setState(() {});
   }
 
   Future<void> _triggerFailureAlarm() async {
@@ -422,28 +526,6 @@ class _LiveNavigationScreenState
     ref.watch(beltNavigationBridgeProvider);
 
     
-
-    ref.listen<AsyncValue<BeltConnectionState>>(
-      beltConnectionStateProvider,
-      (previous, next) {
-        final oldState = previous?.asData?.value;
-        final newState = next.asData?.value;
-        if (newState == BeltConnectionState.connected) {
-          _wasBeltConnected = true;
-          return;
-        }
-        final lostConnection = _wasBeltConnected &&
-            oldState == BeltConnectionState.connected &&
-            newState != null &&
-            newState != BeltConnectionState.connected;
-        if (lostConnection) {
-          _requiresResume = true;
-          _showContinue = true;
-          _triggerFailureAlarm();
-          if (mounted) setState(() {});
-        }
-      },
-    );
 
     final direction = _snapshot.direction;
 
@@ -883,8 +965,16 @@ class _LiveNavigationScreenState
     if (_showContinue || !_navigationHasStarted || _requiresResume) {
       return SizedBox(
         width: double.infinity,
-        child: ElevatedButton(
+        child: FilledButton(
           onPressed: _checkingReadiness || _starting ? null : _continueNavigation,
+          style: FilledButton.styleFrom(
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            foregroundColor: Theme.of(context).colorScheme.onPrimary,
+            minimumSize: const Size.fromHeight(52),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
           child: Text(_checkingReadiness || _starting ? 'CHECKING...' : 'CONTINUE'),
         ),
       );
@@ -915,6 +1005,9 @@ class _LiveNavigationScreenState
   @override
   void dispose() {
     _navigationSubscription?.cancel();
+    _gpsStatusSubscription?.cancel();
+    _bluetoothStatusSubscription?.cancel();
+    _beltStatusSubscription?.cancel();
     Vibration.cancel();
     super.dispose();
   }
