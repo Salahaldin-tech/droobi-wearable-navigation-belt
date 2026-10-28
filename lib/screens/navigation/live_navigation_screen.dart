@@ -273,6 +273,7 @@ class _LiveNavigationScreenState
         destination: widget.destination,
       );
       _navigationHasStarted = true;
+      if (mounted) setState(() {});
     } catch (error) {
       if (!mounted) {
         return;
@@ -535,7 +536,6 @@ class _LiveNavigationScreenState
                 const SizedBox(height: 18),
                 _buildBottomControls(
                   isArrived: isArrived,
-                  isNavigating: isNavigating,
                 ),
               ],
             ),
@@ -879,7 +879,6 @@ class _LiveNavigationScreenState
 
   Widget _buildBottomControls({
     required bool isArrived,
-    required bool isNavigating,
   }) {
     if (_showContinue || !_navigationHasStarted || _requiresResume) {
       return SizedBox(
