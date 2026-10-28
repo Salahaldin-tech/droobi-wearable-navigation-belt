@@ -4,6 +4,9 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:vibration/vibration.dart';
 
 import '../../core/enums/belt_connection_state.dart';
 import '../../models/lat_lon.dart';
@@ -35,6 +38,13 @@ class _LiveNavigationScreenState
   );
 
   bool _starting = false;
+  bool _navigationHasStarted = false;
+  bool _showContinue = false;
+  bool _checkingReadiness = false;
+  bool _requiresResume = false;
+  bool _alarmActive = false;
+  bool _wasBeltConnected = false;
+  bool _gpsFailureAlerted = false;
   String? _errorMessage;
 
   @override
@@ -42,15 +52,185 @@ class _LiveNavigationScreenState
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _startNavigation();
+      _prepareNavigation();
     });
   }
 
-  Future<void> _startNavigation() async {
-    if (_starting) {
+  Future<void> _prepareNavigation() async {
+    final ready = await _checkReadiness(showMessages: true);
+    if (!mounted) return;
+    if (ready) {
+      await _startNavigation();
+    } else {
+      setState(() => _showContinue = true);
+    }
+  }
+
+  Future<void> _continueNavigation() async {
+    if (_checkingReadiness || _starting) return;
+    final ready = await _checkReadiness(showMessages: true);
+    if (!mounted) return;
+    if (!ready) {
+      setState(() => _showContinue = true);
       return;
     }
+    if (_navigationHasStarted || _requiresResume) {
+      await ref.read(navigationServiceProvider).stop();
+    }
+    setState(() {
+      _showContinue = false;
+      _requiresResume = false;
+      _errorMessage = null;
+      _gpsFailureAlerted = false;
+    });
+    await _startNavigation();
+  }
 
+  Future<bool> _checkReadiness({required bool showMessages}) async {
+    if (_checkingReadiness) return false;
+    _checkingReadiness = true;
+    try {
+      var locationPermission = await Geolocator.checkPermission();
+      if (locationPermission == LocationPermission.denied) {
+        if (showMessages && mounted) {
+          await _showRequirementDialog(
+            'GPS permission required',
+            'Droobi needs location permission to calculate and follow your route. Android will now ask for permission.',
+          );
+        }
+        locationPermission = await Geolocator.requestPermission();
+      }
+      if (locationPermission == LocationPermission.deniedForever) {
+        if (showMessages && mounted) {
+          await _showRequirementDialog(
+            'GPS permission is blocked',
+            'Location permission is blocked for Droobi. Open app settings and allow location, then tap CONTINUE.',
+          );
+        }
+        await Geolocator.openAppSettings();
+        return false;
+      }
+      if (locationPermission == LocationPermission.denied) return false;
+
+      if (!await Geolocator.isLocationServiceEnabled()) {
+        if (showMessages && mounted) {
+          await _showRequirementDialog(
+            'GPS is turned off',
+            'GPS/location services are off. Android will open Location Settings so you can turn them on. Return to Droobi and tap CONTINUE.',
+          );
+        }
+        await Geolocator.openLocationSettings();
+        return false;
+      }
+
+      final scanStatus = await Permission.bluetoothScan.status;
+      final connectStatus = await Permission.bluetoothConnect.status;
+      if (!scanStatus.isGranted || !connectStatus.isGranted) {
+        if (showMessages && mounted) {
+          await _showRequirementDialog(
+            'Bluetooth permission required',
+            'Droobi needs Bluetooth permissions to find and connect to the navigation belt. Android will now ask for permission.',
+          );
+        }
+        final results = await [
+          Permission.bluetoothScan,
+          Permission.bluetoothConnect,
+        ].request();
+        if (results.values.any((status) => !status.isGranted)) return false;
+      }
+
+      final beltService = ref.read(beltConnectionServiceProvider);
+      var bluetoothEnabled = false;
+      try {
+        bluetoothEnabled = await beltService.isBluetoothEnabled();
+      } catch (_) {
+        bluetoothEnabled = false;
+      }
+      if (!bluetoothEnabled) {
+        if (showMessages && mounted) {
+          await _showRequirementDialog(
+            'Bluetooth is turned off',
+            'Bluetooth is off. Droobi will ask Android to turn Bluetooth on. If Android does not enable it automatically, turn it on in Quick Settings and tap CONTINUE.',
+          );
+        }
+        try { await beltService.requestEnableBluetooth(); } catch (_) {}
+        return false;
+      }
+
+      if (beltService.currentState != BeltConnectionState.connected) {
+        if (showMessages && mounted) {
+          await _showRequirementDialog(
+            'Navigation belt not connected',
+            'Turn on the ESP32 belt and keep it nearby. Droobi will search for it; navigation will not start until the belt is connected.',
+          );
+        }
+        try { await beltService.scanAndConnect(); } catch (_) {}
+        if (beltService.currentState != BeltConnectionState.connected) return false;
+      }
+      return true;
+    } finally {
+      _checkingReadiness = false;
+    }
+  }
+
+  Future<void> _showRequirementDialog(String title, String message) async {
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _triggerFailureAlarm() async {
+    if (_alarmActive) return;
+    _alarmActive = true;
+    try {
+      // 2 s on, 1 s off, 2 s on, 1 s off, 2 s on = 8 seconds.
+      await Vibration.vibrate(pattern: [0, 2000, 1000, 2000, 1000, 2000]);
+    } catch (_) {
+      // Keep navigation usable if device vibration is unavailable.
+    } finally {
+      _alarmActive = false;
+    }
+  }
+
+  void _handleNavigationFailure(NavigationSnapshot snapshot) {
+    final message = (snapshot.errorMessage ?? '').toLowerCase();
+    final gpsFailure = snapshot.state == NavigationState.gpsUnavailable ||
+        (snapshot.state == NavigationState.routeUnavailable &&
+            (message.contains('gps') || message.contains('location') || message.contains('position')));
+    if (gpsFailure && !_gpsFailureAlerted) {
+      _gpsFailureAlerted = true;
+      _requiresResume = true;
+      _showContinue = true;
+      _triggerFailureAlarm();
+      if (mounted) setState(() {});
+    }
+  }
+
+  Future<void> _startNavigation() async {
+    if (_starting) return;
+    final beltService = ref.read(beltConnectionServiceProvider);
+    if (beltService.currentState != BeltConnectionState.connected) {
+      if (mounted) {
+        setState(() => _showContinue = true);
+        await _showRequirementDialog(
+          'Navigation belt not connected',
+          'Navigation cannot start until the belt is connected. Connect the belt and tap CONTINUE.',
+        );
+      }
+      return;
+    }
     _starting = true;
 
     final navigationService =
@@ -75,6 +255,7 @@ class _LiveNavigationScreenState
             _errorMessage = null;
           }
         });
+        _handleNavigationFailure(snapshot);
       },
       onError: (Object error) {
         if (!mounted) {
@@ -91,6 +272,7 @@ class _LiveNavigationScreenState
       await navigationService.start(
         destination: widget.destination,
       );
+      _navigationHasStarted = true;
     } catch (error) {
       if (!mounted) {
         return;
@@ -240,6 +422,28 @@ class _LiveNavigationScreenState
 
     
 
+    ref.listen<AsyncValue<BeltConnectionState>>(
+      beltConnectionStateProvider,
+      (previous, next) {
+        final oldState = previous?.asData?.value;
+        final newState = next.asData?.value;
+        if (newState == BeltConnectionState.connected) {
+          _wasBeltConnected = true;
+          return;
+        }
+        final lostConnection = _wasBeltConnected &&
+            oldState == BeltConnectionState.connected &&
+            newState != null &&
+            newState != BeltConnectionState.connected;
+        if (lostConnection) {
+          _requiresResume = true;
+          _showContinue = true;
+          _triggerFailureAlarm();
+          if (mounted) setState(() {});
+        }
+      },
+    );
+
     final direction = _snapshot.direction;
 
     final isArrived =
@@ -331,6 +535,7 @@ class _LiveNavigationScreenState
                 const SizedBox(height: 18),
                 _buildBottomControls(
                   isArrived: isArrived,
+                  isNavigating: isNavigating,
                 ),
               ],
             ),
@@ -376,7 +581,7 @@ class _LiveNavigationScreenState
       case BeltConnectionState.scanFailed:
         title = 'Belt not connected';
         description =
-            'On-screen navigation may continue, but belt vibration is unavailable.';
+            'Navigation should be resumed after the belt reconnects. Tap CONTINUE when ready.';
         color = Colors.red.shade700;
         icon = Icons.bluetooth_disabled;
         break;
@@ -674,7 +879,17 @@ class _LiveNavigationScreenState
 
   Widget _buildBottomControls({
     required bool isArrived,
+    required bool isNavigating,
   }) {
+    if (_showContinue || !_navigationHasStarted || _requiresResume) {
+      return SizedBox(
+        width: double.infinity,
+        child: ElevatedButton(
+          onPressed: _checkingReadiness || _starting ? null : _continueNavigation,
+          child: Text(_checkingReadiness || _starting ? 'CHECKING...' : 'CONTINUE'),
+        ),
+      );
+    }
     if (isArrived) {
       return SizedBox(
         width: double.infinity,
@@ -701,6 +916,7 @@ class _LiveNavigationScreenState
   @override
   void dispose() {
     _navigationSubscription?.cancel();
+    Vibration.cancel();
     super.dispose();
   }
 }
