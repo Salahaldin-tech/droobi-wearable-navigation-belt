@@ -57,6 +57,12 @@ class FlutterBlueBeltService implements BeltConnectionService {
   }
 
   @override
+  Stream<bool> get bluetoothEnabledStream =>
+      FlutterBluePlus.adapterState.map(
+        (state) => state == BluetoothAdapterState.on,
+      );
+
+  @override
   Future<void> requestEnableBluetooth() async {
     await FlutterBluePlus.turnOn();
   }
