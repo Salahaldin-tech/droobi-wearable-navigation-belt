@@ -183,29 +183,75 @@ class _LiveNavigationScreenState
     if (!mounted) return;
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
+    const appBlue = Color(0xFF2F80ED);
+    final IconData statusIcon = title.toLowerCase().contains('gps') ||
+            title.toLowerCase().contains('location')
+        ? Icons.location_searching_rounded
+        : title.toLowerCase().contains('bluetooth') ||
+                title.toLowerCase().contains('belt')
+            ? Icons.bluetooth_rounded
+            : Icons.info_outline_rounded;
+
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
         backgroundColor: colors.surface,
-        surfaceTintColor: colors.surfaceTint,
+        surfaceTintColor: colors.surface,
+        elevation: 10,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(28),
+          side: BorderSide(color: appBlue.withOpacity(0.18)),
         ),
-        titleTextStyle: theme.textTheme.titleLarge?.copyWith(
-          color: colors.primary,
-          fontWeight: FontWeight.w700,
+        titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+        contentPadding: const EdgeInsets.fromLTRB(24, 8, 24, 20),
+        title: Column(
+          children: [
+            Container(
+              width: 68,
+              height: 68,
+              decoration: BoxDecoration(
+                color: appBlue.withOpacity(0.11),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(statusIcon, color: appBlue, size: 34),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.titleLarge?.copyWith(
+                color: appBlue,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ],
         ),
-        contentTextStyle: theme.textTheme.bodyLarge?.copyWith(
-          color: colors.onSurface,
+        content: Text(
+          message,
+          textAlign: TextAlign.center,
+          style: theme.textTheme.bodyLarge?.copyWith(
+            color: colors.onSurface,
+            height: 1.4,
+          ),
         ),
-        title: Text(title),
-        content: Text(message),
-        actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+        actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
         actions: [
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('OK'),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: appBlue,
+                foregroundColor: Colors.white,
+                minimumSize: const Size.fromHeight(50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              icon: const Icon(Icons.check_circle_outline_rounded),
+              label: const Text('OK, GOT IT'),
+            ),
           ),
         ],
       ),
@@ -221,9 +267,9 @@ class _LiveNavigationScreenState
           _raiseSafetyAlert(
             issue: 'gps',
             title: 'GPS is turned off',
-            message: 'GPS/location services were turned off. Navigation is paused. Turn GPS on, then tap CONTINUE to resume.',
+            message: 'GPS/location services were turned off. Navigation is paused. Tap OK to open Location Settings, turn GPS on, then return and tap CONTINUE.',
+            onAcknowledge: () => Geolocator.openLocationSettings(),
           );
-          Geolocator.openLocationSettings();
         } else if (status == ServiceStatus.enabled && _activeSafetyIssue == 'gps') {
           _clearSafetyAlert('gps');
         }
@@ -238,9 +284,9 @@ class _LiveNavigationScreenState
           _raiseSafetyAlert(
             issue: 'bluetooth',
             title: 'Bluetooth is turned off',
-            message: 'Bluetooth was turned off. Navigation is paused. Turn Bluetooth on and tap CONTINUE to resume.',
+            message: 'Bluetooth was turned off. Navigation is paused. Tap OK to allow Droobi to request Bluetooth, then tap CONTINUE to resume.',
+            onAcknowledge: () => beltService.requestEnableBluetooth(),
           );
-          beltService.requestEnableBluetooth().catchError((_) {});
         } else if (_activeSafetyIssue == 'bluetooth') {
           _clearSafetyAlert('bluetooth');
         }
@@ -272,6 +318,7 @@ class _LiveNavigationScreenState
     required String issue,
     required String title,
     required String message,
+    Future<void> Function()? onAcknowledge,
   }) {
     if (!mounted || _activeSafetyIssue == issue) return;
     _activeSafetyIssue = issue;
@@ -285,7 +332,15 @@ class _LiveNavigationScreenState
     }
     if (!_safetyDialogShowing) {
       _safetyDialogShowing = true;
-      _showRequirementDialog(title, message).whenComplete(() {
+      _showRequirementDialog(title, message).then((_) async {
+        if (onAcknowledge != null && mounted) {
+          try {
+            await onAcknowledge();
+          } catch (_) {
+            // The user can still enable the setting manually.
+          }
+        }
+      }).whenComplete(() {
         _safetyDialogShowing = false;
       });
     }
