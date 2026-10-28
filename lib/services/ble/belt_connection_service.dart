@@ -22,6 +22,9 @@ abstract class BeltConnectionService {
   /// Returns whether the phone's Bluetooth adapter is powered on.
   Future<bool> isBluetoothEnabled();
 
+  /// Emits changes to the phone's Bluetooth adapter power state.
+  Stream<bool> get bluetoothEnabledStream;
+
   /// Requests Android to turn Bluetooth on when supported by the platform.
   Future<void> requestEnableBluetooth();
 
