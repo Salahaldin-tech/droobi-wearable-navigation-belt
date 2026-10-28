@@ -223,6 +223,7 @@ class _LiveNavigationScreenState
             title: 'GPS is turned off',
             message: 'GPS/location services were turned off. Navigation is paused. Turn GPS on, then tap CONTINUE to resume.',
           );
+          Geolocator.openLocationSettings();
         } else if (status == ServiceStatus.enabled && _activeSafetyIssue == 'gps') {
           _clearSafetyAlert('gps');
         }
@@ -239,6 +240,7 @@ class _LiveNavigationScreenState
             title: 'Bluetooth is turned off',
             message: 'Bluetooth was turned off. Navigation is paused. Turn Bluetooth on and tap CONTINUE to resume.',
           );
+          beltService.requestEnableBluetooth().catchError((_) {});
         } else if (_activeSafetyIssue == 'bluetooth') {
           _clearSafetyAlert('bluetooth');
         }
@@ -315,10 +317,11 @@ class _LiveNavigationScreenState
             (message.contains('gps') || message.contains('location') || message.contains('position')));
     if (gpsFailure && !_gpsFailureAlerted) {
       _gpsFailureAlerted = true;
-      _requiresResume = true;
-      _showContinue = true;
-      _triggerFailureAlarm();
-      if (mounted) setState(() {});
+      _raiseSafetyAlert(
+        issue: 'gps',
+        title: 'GPS signal unavailable',
+        message: 'Droobi cannot get a reliable GPS position. Navigation is paused. Check that Location is on and tap CONTINUE to retry.',
+      );
     }
   }
 
