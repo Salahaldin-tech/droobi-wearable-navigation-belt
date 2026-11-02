@@ -803,8 +803,8 @@ class _UniversityLocationsScreenState
       return const UniversityLocation(
         id: 'campus_arts_main_door',
         name: 'Faculty of Arts and Sciences (Main Door)',
-        latitude: 32.40800714037887,
-        longitude: 35.34461510962358,
+        latitude: 32.40796388,
+        longitude: 35.34514643,
       );
     }
 
@@ -812,8 +812,17 @@ class _UniversityLocationsScreenState
       return const UniversityLocation(
         id: 'campus_engineering_main_door',
         name: 'Faculty of Engineering (Main Door)',
-        latitude: 32.40830124533684,
-        longitude: 35.345673423520545,
+        latitude: 32.40813551,
+        longitude: 35.34558311,
+      );
+    }
+
+    if (item.name == 'Gate 3') {
+      return const UniversityLocation(
+        id: 'campus_gate_3_gps_logger',
+        name: 'Gate 3',
+        latitude: 32.40732308,
+        longitude: 35.34127506,
       );
     }
 
@@ -863,6 +872,7 @@ class _UniversityLocationsScreenState
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => LiveNavigationScreen(
+          useCampusRouting: true,
           destination: LatLon(
             latitude: location.latitude,
             longitude: location.longitude,
