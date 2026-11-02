@@ -198,7 +198,7 @@ class CampusRoutingService implements RoutingService {
     final sy = (end.latitude - start.latitude) * latitudeScale;
     final lengthSquared = sx * sx + sy * sy;
     if (lengthSquared <= 0.0001) return start;
-    final t = ((px * sx + py * sy) / lengthSquared).clamp(0.0, 1.0);
+    final t = ((px * sx + py * sy) / lengthSquared).clamp(0.0, 1.0).toDouble();
     return LatLon(
       latitude: start.latitude + (end.latitude - start.latitude) * t,
       longitude: start.longitude + (end.longitude - start.longitude) * t,
