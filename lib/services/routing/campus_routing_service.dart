@@ -76,7 +76,7 @@ class CampusRoutingService implements RoutingService {
     required LatLon origin,
     required LatLon destination,
   }) async {
-    final graph = await _loadGraph();
+    final graph = (await _loadGraph()).copy();
     if (graph.points.isEmpty) {
       throw const RoutingFailure(
         RoutingErrorType.noRouteFound,
@@ -84,8 +84,8 @@ class CampusRoutingService implements RoutingService {
       );
     }
 
-    final start = _nearestNode(graph, origin);
-    final end = _nearestNode(graph, destination);
+    final start = _nearestSegment(graph, origin);
+    final end = _nearestSegment(graph, destination);
 
     if (start.distance > maximumOriginSnapMeters) {
       throw RoutingFailure(
@@ -146,8 +146,11 @@ class CampusRoutingService implements RoutingService {
       );
     }
 
-    final path = ids.reversed.map((id) => graph.points[id]).toList();
-    if (path.length == 1) path.add(destination);
+    final path = <LatLon>[
+      origin,
+      ...ids.reversed.map((id) => graph.points[id]),
+      destination,
+    ];
     final distance = distances[end.index] + start.distance + end.distance;
     return RouteResult(
       polyline: path,
@@ -156,17 +159,50 @@ class CampusRoutingService implements RoutingService {
     );
   }
 
-  _SnapResult _nearestNode(_CampusGraph graph, LatLon point) {
-    var nearestIndex = 0;
-    var nearestDistance = double.infinity;
-    for (var i = 0; i < graph.points.length; i++) {
-      final distance = _distance(point, graph.points[i]);
-      if (distance < nearestDistance) {
-        nearestDistance = distance;
-        nearestIndex = i;
+  _SnapResult _nearestSegment(_CampusGraph graph, LatLon point) {
+    var bestDistance = double.infinity;
+    var bestStart = -1;
+    var bestEnd = -1;
+    LatLon? bestProjection;
+
+    for (var from = 0; from < graph.edges.length; from++) {
+      for (final edge in graph.edges[from]) {
+        if (from >= edge.to) continue;
+        final projection = _project(point, graph.points[from], graph.points[edge.to]);
+        final distance = _distance(point, projection);
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          bestStart = from;
+          bestEnd = edge.to;
+          bestProjection = projection;
+        }
       }
     }
-    return _SnapResult(nearestIndex, nearestDistance);
+
+    if (bestStart < 0 || bestProjection == null) {
+      return const _SnapResult(-1, double.infinity);
+    }
+
+    final projectedId = graph.addNode(bestProjection);
+    graph.connect(projectedId, bestStart);
+    graph.connect(projectedId, bestEnd);
+    return _SnapResult(projectedId, bestDistance);
+  }
+
+  static LatLon _project(LatLon point, LatLon start, LatLon end) {
+    final latitudeScale = 111320.0;
+    final longitudeScale = 111320.0 * math.cos(_radians(point.latitude));
+    final px = (point.longitude - start.longitude) * longitudeScale;
+    final py = (point.latitude - start.latitude) * latitudeScale;
+    final sx = (end.longitude - start.longitude) * longitudeScale;
+    final sy = (end.latitude - start.latitude) * latitudeScale;
+    final lengthSquared = sx * sx + sy * sy;
+    if (lengthSquared <= 0.0001) return start;
+    final t = ((px * sx + py * sy) / lengthSquared).clamp(0.0, 1.0);
+    return LatLon(
+      latitude: start.latitude + (end.latitude - start.latitude) * t,
+      longitude: start.longitude + (end.longitude - start.longitude) * t,
+    );
   }
 
   static double _distance(LatLon a, LatLon b) {
@@ -184,6 +220,18 @@ class CampusRoutingService implements RoutingService {
 }
 
 class _CampusGraph {
+  _CampusGraph();
+
+  _CampusGraph.copy(_CampusGraph source) {
+    points.addAll(source.points);
+    for (final sourceEdges in source.edges) {
+      edges.add(sourceEdges.map((edge) => _CampusEdge(edge.to, edge.distance)).toList());
+    }
+    segmentEndpoints.addAll(source.segmentEndpoints);
+  }
+
+  _CampusGraph copy() => _CampusGraph.copy(this);
+
   final List<LatLon> points = [];
   final List<List<_CampusEdge>> edges = [];
   final List<int> segmentEndpoints = [];
