@@ -20,9 +20,11 @@ class LiveNavigationScreen extends ConsumerStatefulWidget {
   const LiveNavigationScreen({
     super.key,
     required this.destination,
+    this.useCampusRouting = false,
   });
 
   final LatLon destination;
+  final bool useCampusRouting;
 
   @override
   ConsumerState<LiveNavigationScreen> createState() =>
@@ -31,6 +33,11 @@ class LiveNavigationScreen extends ConsumerStatefulWidget {
 
 class _LiveNavigationScreenState
     extends ConsumerState<LiveNavigationScreen> {
+  NavigationService get _navigationService => ref.read(
+        widget.useCampusRouting
+            ? campusNavigationServiceProvider
+            : navigationServiceProvider,
+      );
   StreamSubscription<NavigationSnapshot>? _navigationSubscription;
   StreamSubscription<ServiceStatus>? _gpsStatusSubscription;
   StreamSubscription<bool>? _bluetoothStatusSubscription;
@@ -81,7 +88,7 @@ class _LiveNavigationScreenState
       return;
     }
     if (_navigationHasStarted || _requiresResume) {
-      await ref.read(navigationServiceProvider).stop();
+      await _navigationService.stop();
     }
     setState(() {
       _showContinue = false;
