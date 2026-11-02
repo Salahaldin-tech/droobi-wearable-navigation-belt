@@ -45,6 +45,10 @@ class CampusRoutingService implements RoutingService {
           longitude: (pair[1] as num).toDouble(),
         )));
       }
+      if (ids.isNotEmpty) {
+        graph.segmentEndpoints.add(ids.first);
+        graph.segmentEndpoints.add(ids.last);
+      }
       for (var i = 0; i + 1 < ids.length; i++) {
         graph.connect(ids[i], ids[i + 1]);
       }
