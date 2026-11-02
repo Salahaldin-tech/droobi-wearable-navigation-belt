@@ -48,6 +48,7 @@ flutter:
     - assets/images/app_logo.png
     - assets/images/Favorites_bg.png
     - assets/images/uni_bg.png
+    - assets/data/campus_routes.json
 
 flutter_launcher_icons:
   android: true
