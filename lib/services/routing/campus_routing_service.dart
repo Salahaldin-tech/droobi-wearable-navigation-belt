@@ -84,26 +84,33 @@ class CampusRoutingService implements RoutingService {
       );
     }
 
-    final start = _nearestSegment(graph, origin);
-    final end = _nearestSegment(graph, destination);
+    final startSnap = _nearestSegment(graph, origin);
+    final endSnap = _nearestSegment(graph, destination);
 
-    if (start.distance > maximumOriginSnapMeters) {
+    if (startSnap.distance > maximumOriginSnapMeters) {
       throw RoutingFailure(
         RoutingErrorType.noRouteFound,
-        'Your current GPS position is ${start.distance.toStringAsFixed(1)} m from the recorded campus paths. Move closer to a recorded path.',
+        'Your current GPS position is  ${startSnap.distance.toStringAsFixed(1)} m from the recorded campus paths. Move closer to a recorded path.',
       );
     }
-    if (end.distance > maximumDestinationSnapMeters) {
+    if (endSnap.distance > maximumDestinationSnapMeters) {
       throw RoutingFailure(
         RoutingErrorType.noRouteFound,
-        'The selected destination is ${end.distance.toStringAsFixed(1)} m from the recorded campus paths. Its entrance needs a GPS Logger recording.',
+        'The selected destination is  ${endSnap.distance.toStringAsFixed(1)} m from the recorded campus paths. Its entrance needs a GPS Logger recording.',
       );
     }
+
+    final startIndex = graph.addNode(startSnap.point!);
+    graph.connect(startIndex, startSnap.segmentStart);
+    graph.connect(startIndex, startSnap.segmentEnd);
+    final endIndex = graph.addNode(endSnap.point!);
+    graph.connect(endIndex, endSnap.segmentStart);
+    graph.connect(endIndex, endSnap.segmentEnd);
 
     final distances = List<double>.filled(graph.points.length, double.infinity);
     final previous = List<int?>.filled(graph.points.length, null);
     final visited = List<bool>.filled(graph.points.length, false);
-    distances[start.index] = 0;
+    distances[startIndex] = 0;
 
     while (true) {
       var current = -1;
@@ -114,7 +121,7 @@ class CampusRoutingService implements RoutingService {
           best = distances[i];
         }
       }
-      if (current == -1 || current == end.index) break;
+      if (current == -1 || current == endIndex) break;
       visited[current] = true;
       for (final edge in graph.edges[current]) {
         final candidate = distances[current] + edge.distance;
@@ -125,7 +132,7 @@ class CampusRoutingService implements RoutingService {
       }
     }
 
-    if (!distances[end.index].isFinite) {
+    if (!distances[endIndex].isFinite) {
       throw const RoutingFailure(
         RoutingErrorType.noRouteFound,
         'No continuous recorded campus path connects your current location to this destination. More GPS Logger path data is required; no route will be invented.',
@@ -133,13 +140,13 @@ class CampusRoutingService implements RoutingService {
     }
 
     final ids = <int>[];
-    int? cursor = end.index;
+    int? cursor = endIndex;
     while (cursor != null) {
       ids.add(cursor);
-      if (cursor == start.index) break;
+      if (cursor == startIndex) break;
       cursor = previous[cursor];
     }
-    if (ids.last != start.index) {
+    if (ids.last != startIndex) {
       throw const RoutingFailure(
         RoutingErrorType.noRouteFound,
         'Could not reconstruct a continuous campus route.',
@@ -151,7 +158,7 @@ class CampusRoutingService implements RoutingService {
       ...ids.reversed.map((id) => graph.points[id]),
       destination,
     ];
-    final distance = distances[end.index] + start.distance + end.distance;
+    final distance = distances[endIndex] + startSnap.distance + endSnap.distance;
     return RouteResult(
       polyline: path,
       distanceMeters: distance,
@@ -180,13 +187,10 @@ class CampusRoutingService implements RoutingService {
     }
 
     if (bestStart < 0 || bestProjection == null) {
-      return const _SnapResult(-1, double.infinity);
+      return const _SnapResult(-1, -1, double.infinity, null);
     }
 
-    final projectedId = graph.addNode(bestProjection);
-    graph.connect(projectedId, bestStart);
-    graph.connect(projectedId, bestEnd);
-    return _SnapResult(projectedId, bestDistance);
+    return _SnapResult(bestStart, bestEnd, bestDistance, bestProjection);
   }
 
   static LatLon _project(LatLon point, LatLon start, LatLon end) {
@@ -258,7 +262,9 @@ class _CampusEdge {
 }
 
 class _SnapResult {
-  const _SnapResult(this.index, this.distance);
-  final int index;
+  const _SnapResult(this.segmentStart, this.segmentEnd, this.distance, this.point);
+  final int segmentStart;
+  final int segmentEnd;
   final double distance;
+  final LatLon? point;
 }
