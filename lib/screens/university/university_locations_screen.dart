@@ -836,14 +836,25 @@ class _UniversityLocationsScreenState
     }
 
     for (final location in locations) {
+      // Ignore malformed Firestore coordinates instead of routing to 0,0.
+      if (!location.latitude.isFinite ||
+          !location.longitude.isFinite ||
+          location.latitude.abs() > 90 ||
+          location.longitude.abs() > 180 ||
+          (location.latitude == 0 && location.longitude == 0)) {
+        continue;
+      }
       final locationName = _normalize(location.name);
+      if (locationName.isEmpty) continue;
 
       for (final alias in item.aliases) {
         final normalizedAlias = _normalize(alias);
 
         if (locationName == normalizedAlias ||
-            locationName.contains(normalizedAlias) ||
-            normalizedAlias.contains(locationName)) {
+            (locationName.length >= 6 &&
+                normalizedAlias.length >= 6 &&
+                (locationName.contains(normalizedAlias) ||
+                    normalizedAlias.contains(locationName)))) {
           return location;
         }
       }
