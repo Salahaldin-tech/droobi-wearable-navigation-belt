@@ -483,7 +483,7 @@ class RouteProgressService {
 
     LatLon? nearestPoint;
 
-    final firstSegment = minimumSegmentIndex.clamp(0, polyline.length - 2);
+    final firstSegment = minimumSegmentIndex.clamp(0, polyline.length - 2).toInt();
     for (
       var i = firstSegment;
       i < polyline.length - 1;
