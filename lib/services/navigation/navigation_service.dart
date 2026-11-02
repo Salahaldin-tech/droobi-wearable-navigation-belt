@@ -633,10 +633,9 @@ class NavigationService {
       minimumSegmentIndex: _lastRouteSegmentIndex,
     );
 
-    _lastRouteSegmentIndex = math.max(
-      _lastRouteSegmentIndex,
-      target.index - 1,
-    );
+    if (target.index - 1 > _lastRouteSegmentIndex) {
+      _lastRouteSegmentIndex = target.index - 1;
+    }
 
     // ------------------------------------------------------------
     // ARRIVAL
