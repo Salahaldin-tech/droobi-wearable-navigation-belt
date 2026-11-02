@@ -335,7 +335,7 @@ class _LiveNavigationScreenState
     if (mounted) setState(() {});
 
     if (_navigationHasStarted) {
-      ref.read(navigationServiceProvider).stop();
+      _navigationService.stop();
     }
     if (!_safetyDialogShowing) {
       _safetyDialogShowing = true;
@@ -403,7 +403,7 @@ class _LiveNavigationScreenState
     _starting = true;
 
     final navigationService =
-        ref.read(navigationServiceProvider);
+        _navigationService;
 
     _navigationSubscription?.cancel();
 
@@ -458,7 +458,7 @@ class _LiveNavigationScreenState
 
   Future<void> _stopNavigation() async {
     final navigationService =
-        ref.read(navigationServiceProvider);
+        _navigationService;
 
     await navigationService.stop();
 
@@ -471,7 +471,7 @@ class _LiveNavigationScreenState
 
   Future<bool> _handleBack() async {
     final navigationService =
-        ref.read(navigationServiceProvider);
+        _navigationService;
 
     await navigationService.stop();
 
