@@ -224,12 +224,18 @@ class RouteProgressService {
 
     // Turn is approaching.
     if (turnDistance <= 15.0) {
-      return 5.0;
+      return 5.0.clamp(
+        minimumLookAheadMeters,
+        maximumLookAheadMeters,
+      ).toDouble();
     }
 
     // Turn exists but is still far enough away.
     if (turnDistance <= 25.0) {
-      return 7.0;
+      return 7.0.clamp(
+        minimumLookAheadMeters,
+        maximumLookAheadMeters,
+      ).toDouble();
     }
 
     return maximumLookAheadMeters;
