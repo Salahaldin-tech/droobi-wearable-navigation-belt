@@ -106,6 +106,12 @@ class CampusRoutingService implements RoutingService {
     final endIndex = graph.addNode(endSnap.point!);
     graph.connect(endIndex, endSnap.segmentStart);
     graph.connect(endIndex, endSnap.segmentEnd);
+    if ((startSnap.segmentStart == endSnap.segmentStart &&
+            startSnap.segmentEnd == endSnap.segmentEnd) ||
+        (startSnap.segmentStart == endSnap.segmentEnd &&
+            startSnap.segmentEnd == endSnap.segmentStart)) {
+      graph.connect(startIndex, endIndex);
+    }
 
     final distances = List<double>.filled(graph.points.length, double.infinity);
     final previous = List<int?>.filled(graph.points.length, null);
