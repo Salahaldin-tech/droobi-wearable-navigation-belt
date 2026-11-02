@@ -803,8 +803,8 @@ class _UniversityLocationsScreenState
       return const UniversityLocation(
         id: 'campus_arts_main_door',
         name: 'Faculty of Arts and Sciences (Main Door)',
-        latitude: 32.40796388,
-        longitude: 35.34514643,
+        latitude: 32.40799960541367,
+        longitude: 35.344605373252065,
       );
     }
 
