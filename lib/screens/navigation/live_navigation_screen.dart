@@ -17,9 +17,11 @@ class LiveNavigationScreen extends ConsumerStatefulWidget {
   const LiveNavigationScreen({
     super.key,
     required this.destination,
+    this.useCampusRouting = false,
   });
 
   final LatLon destination;
+  final bool useCampusRouting;
 
   @override
   ConsumerState<LiveNavigationScreen> createState() =>
@@ -28,6 +30,12 @@ class LiveNavigationScreen extends ConsumerStatefulWidget {
 
 class _LiveNavigationScreenState
     extends ConsumerState<LiveNavigationScreen> {
+
+  NavigationService get _navigationService => ref.read(
+        widget.useCampusRouting
+            ? campusNavigationServiceProvider
+            : navigationServiceProvider,
+      );
   StreamSubscription<NavigationSnapshot>? _navigationSubscription;
 
   NavigationSnapshot _snapshot = const NavigationSnapshot(
@@ -54,7 +62,7 @@ class _LiveNavigationScreenState
     _starting = true;
 
     final navigationService =
-        ref.read(navigationServiceProvider);
+        _navigationService;
 
     _navigationSubscription?.cancel();
 
@@ -106,7 +114,7 @@ class _LiveNavigationScreenState
 
   Future<void> _stopNavigation() async {
     final navigationService =
-        ref.read(navigationServiceProvider);
+        _navigationService;
 
     await navigationService.stop();
 
@@ -119,7 +127,7 @@ class _LiveNavigationScreenState
 
   Future<bool> _handleBack() async {
     final navigationService =
-        ref.read(navigationServiceProvider);
+        _navigationService;
 
     await navigationService.stop();
 
