@@ -188,6 +188,10 @@ class NavigationService {
 
   int _candidateDirectionCount = 0;
 
+  // Campus corridors can run close or parallel to one another. Keep route
+  // progress monotonic so a noisy GPS fix cannot jump to an earlier segment.
+  int _lastRouteSegmentIndex = 0;
+
   // ================================================================
   // PUBLIC
   // ================================================================
@@ -626,7 +630,12 @@ class NavigationService {
       // null tells RouteProgressService to choose
       // the appropriate look-ahead automatically.
       lookAheadMeters: lookAheadMeters,
+      minimumSegmentIndex: _lastRouteSegmentIndex,
     );
+
+    if (target.index - 1 > _lastRouteSegmentIndex) {
+      _lastRouteSegmentIndex = target.index - 1;
+    }
 
     // ------------------------------------------------------------
     // ARRIVAL
@@ -796,6 +805,7 @@ class NavigationService {
     _confirmedDirection = null;
     _candidateDirection = null;
     _candidateDirectionCount = 0;
+    _lastRouteSegmentIndex = 0;
 
     _resetCompassSmoothing();
 
