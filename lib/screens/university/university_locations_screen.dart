@@ -803,8 +803,8 @@ class _UniversityLocationsScreenState
       return const UniversityLocation(
         id: 'campus_arts_main_door',
         name: 'Faculty of Arts and Sciences (Main Door)',
-        latitude: 32.40800714037887,
-        longitude: 35.34461510962358,
+        latitude: 32.40799960541367,
+        longitude: 35.344605373252065,
       );
     }
 
@@ -812,8 +812,17 @@ class _UniversityLocationsScreenState
       return const UniversityLocation(
         id: 'campus_engineering_main_door',
         name: 'Faculty of Engineering (Main Door)',
-        latitude: 32.40830124533684,
-        longitude: 35.345673423520545,
+        latitude: 32.40813551,
+        longitude: 35.34558311,
+      );
+    }
+
+    if (item.name == 'Gate 3') {
+      return const UniversityLocation(
+        id: 'campus_gate_3_gps_logger',
+        name: 'Gate 3',
+        latitude: 32.40732308,
+        longitude: 35.34127506,
       );
     }
 
@@ -827,14 +836,25 @@ class _UniversityLocationsScreenState
     }
 
     for (final location in locations) {
+      // Ignore malformed Firestore coordinates instead of routing to 0,0.
+      if (!location.latitude.isFinite ||
+          !location.longitude.isFinite ||
+          location.latitude.abs() > 90 ||
+          location.longitude.abs() > 180 ||
+          (location.latitude == 0 && location.longitude == 0)) {
+        continue;
+      }
       final locationName = _normalize(location.name);
+      if (locationName.isEmpty) continue;
 
       for (final alias in item.aliases) {
         final normalizedAlias = _normalize(alias);
 
         if (locationName == normalizedAlias ||
-            locationName.contains(normalizedAlias) ||
-            normalizedAlias.contains(locationName)) {
+            (locationName.length >= 6 &&
+                normalizedAlias.length >= 6 &&
+                (locationName.contains(normalizedAlias) ||
+                    normalizedAlias.contains(locationName)))) {
           return location;
         }
       }
@@ -863,6 +883,7 @@ class _UniversityLocationsScreenState
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => LiveNavigationScreen(
+          useCampusRouting: true,
           destination: LatLon(
             latitude: location.latitude,
             longitude: location.longitude,
