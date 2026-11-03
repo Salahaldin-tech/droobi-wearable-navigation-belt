@@ -51,6 +51,7 @@ class RouteProgressService {
     required LatLon currentPosition,
     required RouteResult route,
     double? lookAheadMeters,
+    int minimumSegmentIndex = 0,
   }) {
     if (route.polyline.isEmpty) {
       throw const RouteProgressFailure(
@@ -75,6 +76,7 @@ class RouteProgressService {
     final nearest = _findNearestPointOnRoute(
       currentPosition: currentPosition,
       polyline: route.polyline,
+      minimumSegmentIndex: minimumSegmentIndex,
     );
 
     final adaptiveLookAhead =
@@ -222,12 +224,18 @@ class RouteProgressService {
 
     // Turn is approaching.
     if (turnDistance <= 15.0) {
-      return 5.0;
+      return 5.0.clamp(
+        minimumLookAheadMeters,
+        maximumLookAheadMeters,
+      ).toDouble();
     }
 
     // Turn exists but is still far enough away.
     if (turnDistance <= 25.0) {
-      return 7.0;
+      return 7.0.clamp(
+        minimumLookAheadMeters,
+        maximumLookAheadMeters,
+      ).toDouble();
     }
 
     return maximumLookAheadMeters;
@@ -472,6 +480,7 @@ class RouteProgressService {
   _NearestRoutePoint _findNearestPointOnRoute({
     required LatLon currentPosition,
     required List<LatLon> polyline,
+    int minimumSegmentIndex = 0,
   }) {
     var nearestDistance =
         double.infinity;
@@ -480,8 +489,9 @@ class RouteProgressService {
 
     LatLon? nearestPoint;
 
+    final firstSegment = minimumSegmentIndex.clamp(0, polyline.length - 2).toInt();
     for (
-      var i = 0;
+      var i = firstSegment;
       i < polyline.length - 1;
       i++
     ) {
