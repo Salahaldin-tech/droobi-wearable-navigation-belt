@@ -436,6 +436,7 @@ class NavigationService {
 
     if (_isCampusNavigation) {
       await _maybeRerouteCampus(filteredFix);
+      if (!_isNavigating) return;
     }
 
     final heading = _latestHeading;
@@ -513,9 +514,11 @@ class NavigationService {
       _candidateDirection = null;
       _candidateDirectionCount = 0;
     } catch (error) {
-      // Keep the last known route, but surface that recovery was unsuccessful.
+      // Do not continue issuing directions along a stale route after the
+      // user has left it and QGIS cannot find a connected replacement.
+      _isNavigating = false;
       _publish(NavigationSnapshot(
-        state: NavigationState.recovering,
+        state: NavigationState.routeUnavailable,
         currentPosition: fix.position,
         accuracyMeters: fix.accuracyMeters,
         route: _route,
