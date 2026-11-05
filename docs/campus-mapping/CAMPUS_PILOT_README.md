@@ -10,7 +10,7 @@ Both files use WGS 84 (EPSG:4326), so they can be opened directly in QGIS and in
 
 ## Important
 - This is a test snapshot, not an approved production routing network.
-- No Flutter routing code or app assets were changed.
+- Flutter routing integration is now included on this experimental branch; the GeoJSON exports are bundled as app assets.
 - The source GeoPackage had 14 point features in `campus_network`, 7 line features in `edges`, and an empty `nodes` layer.
 - Point/line attributes are preserved as exported. In particular, review edge `from_node` and `to_node` values during the field test; do not assume connectivity is correct merely because geometries touch.
 - Keep the original GeoPackage as the editable QGIS source. These GeoJSON files are portable review/export copies.
