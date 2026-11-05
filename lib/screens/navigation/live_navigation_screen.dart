@@ -17,9 +17,13 @@ class LiveNavigationScreen extends ConsumerStatefulWidget {
   const LiveNavigationScreen({
     super.key,
     required this.destination,
+    this.campusNavigation = false,
   });
 
   final LatLon destination;
+
+  /// True only when navigation was launched from the University screen.
+  final bool campusNavigation;
 
   @override
   ConsumerState<LiveNavigationScreen> createState() =>
@@ -90,6 +94,7 @@ class _LiveNavigationScreenState
     try {
       await navigationService.start(
         destination: widget.destination,
+        campusNavigation: widget.campusNavigation,
       );
     } catch (error) {
       if (!mounted) {
