@@ -434,6 +434,7 @@ class _LiveNavigationScreenState
 
     final state =
         _stateText(_snapshot.state);
+    final routingMethod = widget.campusNavigation ? 'QGIS' : 'OSRM';
 
     return Container(
       width: double.infinity,
@@ -483,7 +484,7 @@ class _LiveNavigationScreenState
                 if (kDebugMode) ...[
                   const SizedBox(height: 5),
                   Text(
-                    'TEST ROUTING: ${widget.campusNavigation ? 'QGIS' : 'OSRM'}',
+                    'TEST ROUTING: $routingMethod',
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
