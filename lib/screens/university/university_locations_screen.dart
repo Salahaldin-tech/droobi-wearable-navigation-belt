@@ -867,6 +867,7 @@ class _UniversityLocationsScreenState
             latitude: location.latitude,
             longitude: location.longitude,
           ),
+          campusNavigation: true,
         ),
       ),
     );
