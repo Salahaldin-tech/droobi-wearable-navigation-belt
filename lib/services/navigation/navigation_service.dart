@@ -66,6 +66,7 @@ class NavigationService {
   NavigationService({
     required LocationService locationService,
     required RoutingService routingService,
+    RoutingService? campusRoutingService,
     required CompassService compassService,
     GpsFilterService? gpsFilterService,
     RouteProgressService? routeProgressService,
@@ -97,6 +98,7 @@ class NavigationService {
     this.directionConfirmationSamples = 3,
   })  : _locationService = locationService,
         _routingService = routingService,
+        _campusRoutingService = campusRoutingService,
         _compassService = compassService,
         _gpsFilterService =
             gpsFilterService ?? GpsFilterService(),
@@ -108,6 +110,19 @@ class NavigationService {
   final LocationService _locationService;
 
   final RoutingService _routingService;
+
+  final RoutingService? _campusRoutingService;
+
+  RoutingService? _activeRoutingService;
+
+  bool _isCampusNavigation = false;
+  bool _isRerouting = false;
+  int _offRouteSamples = 0;
+  DateTime? _lastCampusRerouteAt;
+
+  static const double _campusOffRouteMinimumMeters = 12.0;
+  static const int _campusOffRouteSamplesRequired = 2;
+  static const Duration _campusRerouteCooldown = Duration(seconds: 5);
 
   final CompassService _compassService;
 
@@ -205,6 +220,7 @@ class NavigationService {
 
   Future<void> start({
     required LatLon destination,
+    bool campusNavigation = false,
   }) async {
     if (_isDisposed) {
       throw StateError(
@@ -220,6 +236,15 @@ class NavigationService {
 
     await stop();
 
+    _isCampusNavigation = campusNavigation;
+    _activeRoutingService = campusNavigation
+        ? _campusRoutingService
+        : _routingService;
+    if (_activeRoutingService == null) {
+      throw const NavigationFailure(
+        'Campus routing is not configured.',
+      );
+    }
     _destination = destination;
 
     _publish(
@@ -246,7 +271,7 @@ class NavigationService {
       // ------------------------------------------------------------
 
       final route =
-          await _routingService.computeRoute(
+          await _activeRoutingService!.computeRoute(
         origin: filteredFix.position,
         destination: destination,
       );
@@ -392,9 +417,9 @@ class NavigationService {
     );
   }
 
-  void _handleLocationFix(
+  Future<void> _handleLocationFix(
     LocationFix rawFix,
-  ) {
+  ) async {
     if (!_isNavigating || _route == null) {
       return;
     }
@@ -408,6 +433,10 @@ class NavigationService {
     }
 
     _lastAcceptedFix = filteredFix;
+
+    if (_isCampusNavigation) {
+      await _maybeRerouteCampus(filteredFix);
+    }
 
     final heading = _latestHeading;
 
@@ -429,6 +458,73 @@ class NavigationService {
       filteredFix,
       heading,
     );
+  }
+
+  // ================================================================
+  // CAMPUS OFF-ROUTE RECOVERY
+  // ================================================================
+
+  Future<void> _maybeRerouteCampus(LocationFix fix) async {
+    final route = _route;
+    final destination = _destination;
+    final router = _activeRoutingService;
+    if (!_isNavigating || route == null || destination == null ||
+        router == null || _isRerouting) {
+      return;
+    }
+
+    final progress = _routeProgressService.getNextTarget(
+      currentPosition: fix.position,
+      route: route,
+      lookAheadMeters: 0,
+    );
+    final offRouteThreshold = math.max(
+      _campusOffRouteMinimumMeters,
+      fix.accuracyMeters * 1.5,
+    );
+
+    if (progress.distanceFromRouteMeters > offRouteThreshold) {
+      _offRouteSamples++;
+    } else {
+      _offRouteSamples = 0;
+      return;
+    }
+
+    if (_offRouteSamples < _campusOffRouteSamplesRequired) return;
+    final now = DateTime.now();
+    if (_lastCampusRerouteAt != null &&
+        now.difference(_lastCampusRerouteAt!) < _campusRerouteCooldown) {
+      return;
+    }
+
+    _isRerouting = true;
+    _lastCampusRerouteAt = now;
+    try {
+      // CampusGraphRoutingService snaps this fresh GPS fix to the nearest
+      // QGIS edge and runs shortest-path routing to the original destination.
+      final replacement = await router.computeRoute(
+        origin: fix.position,
+        destination: destination,
+      );
+      if (!_isNavigating || replacement.polyline.isEmpty) return;
+      _route = replacement;
+      _offRouteSamples = 0;
+      _confirmedDirection = null;
+      _candidateDirection = null;
+      _candidateDirectionCount = 0;
+    } catch (error) {
+      // Keep the last known route, but surface that recovery was unsuccessful.
+      _publish(NavigationSnapshot(
+        state: NavigationState.recovering,
+        currentPosition: fix.position,
+        accuracyMeters: fix.accuracyMeters,
+        route: _route,
+        heading: _latestHeading,
+        errorMessage: 'Could not reconnect to the campus paths: $error',
+      ));
+    } finally {
+      _isRerouting = false;
+    }
   }
 
   // ================================================================
@@ -792,6 +888,11 @@ class NavigationService {
 
     _route = null;
     _destination = null;
+    _activeRoutingService = null;
+    _isCampusNavigation = false;
+    _isRerouting = false;
+    _offRouteSamples = 0;
+    _lastCampusRerouteAt = null;
 
     _confirmedDirection = null;
     _candidateDirection = null;
