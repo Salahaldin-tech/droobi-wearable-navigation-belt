@@ -261,7 +261,7 @@ class CampusGraphRoutingService implements RoutingService {
     final sy = (end.latitude - start.latitude) * metersPerDegree;
     final lengthSquared = sx * sx + sy * sy;
     final fraction = lengthSquared == 0 ? 0.0 :
-        ((px * sx + py * sy) / lengthSquared).clamp(0.0, 1.0);
+        ((px * sx + py * sy) / lengthSquared).clamp(0.0, 1.0).toDouble();
     return _Projection(
       point: LatLon(
         latitude: start.latitude + (end.latitude - start.latitude) * fraction,
