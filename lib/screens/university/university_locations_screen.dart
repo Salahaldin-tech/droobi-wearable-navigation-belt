@@ -826,6 +826,35 @@ class _UniversityLocationsScreenState
       );
     }
 
+    // QGIS campus-pilot destinations. These coordinates are taken from
+    // the exported nodes.geojson and are still unverified in the field.
+    if (item.name == 'Gate 3') {
+      return const UniversityLocation(
+        id: 'campus_gate_3_qgis',
+        name: 'Gate 3',
+        latitude: 32.407314121188996,
+        longitude: 35.341274227489635,
+      );
+    }
+
+    if (item.name == 'Cafeteria') {
+      return const UniversityLocation(
+        id: 'campus_cafeteria_entrance_qgis',
+        name: 'Cafeteria Entrance from Gate 3',
+        latitude: 32.40699249396461,
+        longitude: 35.34216978223841,
+      );
+    }
+
+    if (item.name == 'Faculty of Information Technology') {
+      return const UniversityLocation(
+        id: 'campus_it_entrance_qgis',
+        name: 'Information Technology Building Entrance',
+        latitude: 32.40673198766468,
+        longitude: 35.34336219649338,
+      );
+    }
+
     for (final location in locations) {
       final locationName = _normalize(location.name);
 
