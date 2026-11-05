@@ -480,6 +480,20 @@ class _LiveNavigationScreenState
                     color: Colors.grey.shade700,
                   ),
                 ),
+                if (kDebugMode) ...[
+                  const SizedBox(height: 5),
+                  Text(
+                    'TEST ROUTING: ${widget.campusNavigation ? 'QGIS' : 'OSRM'}',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.5,
+                      color: widget.campusNavigation
+                          ? Colors.deepPurple.shade700
+                          : Colors.teal.shade700,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
