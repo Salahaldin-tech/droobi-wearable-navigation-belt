@@ -109,7 +109,7 @@ class _VoiceCommandButtonState extends State<VoiceCommandButton>
           'Voice Command',
           'Press and hold to speak your destination',
           Icons.mic,
-          const AppColors.brown,
+          AppColors.brown,
         ),
       VoiceCommandPhase.listening => (
           'Listening',
