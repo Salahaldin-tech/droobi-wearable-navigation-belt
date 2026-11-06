@@ -717,11 +717,7 @@ class _NavigationDirectionTestScreenState
                         _direction!
                             .name
                             .toUpperCase(),
-                        style: const TextStyle(
-                          fontSize: 28,
-                          fontWeight:
-                              FontWeight.bold,
-                        ),
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 28),
                       ),
 
                       const SizedBox(height: 8),
