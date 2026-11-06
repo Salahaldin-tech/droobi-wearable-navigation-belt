@@ -10,6 +10,7 @@ import '../../screens/navigation/live_navigation_screen.dart';
 import '../../state/university_locations_notifier.dart';
 import '../../widgets/droobi_bottom_nav.dart';
 import '../../widgets/app_card.dart';
+import '../../widgets/app_search_bar.dart';
 import '../../widgets/page_help_button.dart';
 
 import '../../core/theme/app_colors.dart';
@@ -517,7 +518,9 @@ class _UniversityLocationsScreenState
             Expanded(
               child: Text(
                 'Arab American University',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 28),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontFamily: 'LyonArabic', fontSize: 27, fontWeight: FontWeight.w900),
               ),
             ),
             PageHelpButton(
@@ -553,33 +556,10 @@ class _UniversityLocationsScreenState
     return Semantics(
       textField: true,
       label: 'Search campus locations',
-      child: TextField(
+      child: AppSearchBar(
         controller: _searchController,
-        style: const TextStyle(fontSize: 14, color: _textColor),
-        decoration: InputDecoration(
-          hintText: 'Search buildings, gates, facilities',
-          hintStyle: const TextStyle(fontSize: 14, color: _secondaryText),
-          suffixIcon: const Icon(
-            Icons.search,
-            size: 20,
-            color: _secondaryText,
-          ),
-          filled: true,
-          fillColor: _cardColor,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide.none,
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide.none,
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(color: _primaryBlue, width: 1.5),
-          ),
-        ),
+        hintText: 'Search buildings, gates, facilities',
+        showSearchIcon: true,
       ),
     );
   }
