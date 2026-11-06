@@ -13,6 +13,8 @@ import '../../core/enums/voice_command_state.dart';
 import '../../state/auth_state_notifier.dart';
 import '../../state/belt_connection_notifier.dart';
 import '../../state/voice_command_notifier.dart';
+import '../../widgets/app_search_bar.dart';
+
 import '../../widgets/connection_status_indicator.dart';
 import '../../widgets/page_help_button.dart';
 import '../../widgets/droobi_bottom_nav.dart';
@@ -439,62 +441,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       button: true,
                       label: 'Search destination',
                       hint: 'Open destination search',
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: AppColors.cream,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: AppColors.brown, width: 1.5),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.brown.withValues(alpha: 0.15),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
+                      child: AppSearchBar(
+                        hintText: 'Search destination...',
+                        readOnly: true,
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const DestinationSearchScreen(),
                             ),
-                          ],
-                        ),
-                        child: Material(
-                          color: AppColors.cream,
-                          borderRadius: BorderRadius.circular(16),
-                          clipBehavior: Clip.antiAlias,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(16),
-                            onTap: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      const DestinationSearchScreen(),
-                                ),
-                              );
-                            },
-                            child: Container(
-                              height: 52,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.search,
-                                    size: 22,
-                                    color: AppColors.brown,
-                                  ),
-                                  SizedBox(width: 12),
-                                  Expanded(
-                                    child: Text(
-                                      'Search destination...',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: AppColors.brown.withValues(alpha: 0.6),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
+                          );
+                        },
+                      )
                       ),
                     ),
                   ),
