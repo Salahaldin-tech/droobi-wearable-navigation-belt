@@ -117,12 +117,9 @@ class _CompassTestScreenState
 
               const SizedBox(height: 24),
 
-              const Text(
+              Text(
                 'Phone Heading',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 22),
               ),
 
               const SizedBox(height: 16),
