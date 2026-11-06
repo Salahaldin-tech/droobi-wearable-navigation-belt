@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/enums/belt_connection_state.dart';
+import '../../core/theme/app_colors.dart';
 import '../../core/enums/voice_command_state.dart';
 import '../../state/auth_state_notifier.dart';
 import '../../state/belt_connection_notifier.dart';
@@ -43,11 +44,11 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen>
     with TickerProviderStateMixin {
-  static const Color _blue = Color(0xFF2F80ED);
+  static const Color _blue = AppColors.primary;
   static const Color _green = Color(0xFF27AE60);
   static const Color _grey = Color(0xFF9CA3AF);
-  static const Color _text = Color(0xFF111111);
-  static const Color _muted = Color(0xFF6B7280);
+  static const Color _text = AppColors.primary;
+  static const Color _muted = AppColors.primary;
 
   late final AnimationController _entranceController;
   late final AnimationController _backgroundController;
@@ -192,7 +193,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 },
                 style: FilledButton.styleFrom(
                   backgroundColor: _blue,
-                  foregroundColor: Colors.white,
+                  foregroundColor: AppColors.background,
                   minimumSize: const Size.fromHeight(48),
                 ),
                 child: const Text("Let's Get Started"),
@@ -315,10 +316,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.68),
+              color: AppColors.background.withValues(alpha: 0.88),
               borderRadius: BorderRadius.circular(radius),
               border: Border.all(
-                color: Colors.white.withValues(alpha: 0.75),
+                color: AppColors.background.withValues(alpha: 0.95),
               ),
             ),
             child: child,
@@ -368,7 +369,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     });
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       body: Stack(
         children: [
           // ================================================================
@@ -397,7 +398,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
           Positioned.fill(
             child: Container(
-              color: Colors.white.withValues(
+              color: AppColors.background.withValues(
                 alpha: 0.10,
               ),
             ),
@@ -516,7 +517,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           button: true,
                           label: 'Open menu',
                           child: Material(
-                            color: Colors.white,
+                            color: AppColors.background,
                             borderRadius: BorderRadius.circular(10),
                             elevation: 3,
                             child: InkWell(
@@ -1035,7 +1036,7 @@ class _WelcomeFeature extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         ExcludeSemantics(
-          child: Icon(icon, color: const Color(0xFF2F80ED), size: 25),
+          child: Icon(icon, color: AppColors.primary, size: 25),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -1173,7 +1174,7 @@ class _MenuItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const blue = Color(0xFF2F80ED);
+    const blue = AppColors.primary;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
