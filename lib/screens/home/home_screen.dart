@@ -759,20 +759,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                             userName,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w600,
-                              color: _text,
-                            ),
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 24),
                           ),
                         ] else
-                          const Text(
+                          Text(
                             'Welcome to Droobi',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w600,
-                              color: _text,
-                            ),
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 24),
                           ),
                       ],
                     ),
