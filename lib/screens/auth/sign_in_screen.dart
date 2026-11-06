@@ -318,7 +318,7 @@ class _SignUpPill extends StatelessWidget {
       color: AppColors.cream,
       borderRadius: BorderRadius.circular(24),
       elevation: 2,
-      shadowColor: const AppColors.brown,
+      shadowColor: AppColors.brown,
       child: InkWell(
         borderRadius: BorderRadius.circular(24),
         onTap: onTap,
@@ -383,7 +383,7 @@ class _LoginPanel extends StatelessWidget {
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 28),
                 decoration: BoxDecoration(
-                  color: const AppColors.cream,
+                  color: AppColors.cream,
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
