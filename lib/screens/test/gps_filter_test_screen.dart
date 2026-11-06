@@ -352,7 +352,7 @@ class _GpsFilterTestScreenState
       appBar: AppBar(
         backgroundColor: AppColors.brown,
         elevation: 0,
-        foregroundColor: AppColors.brown,
+        foregroundColor: AppColors.cream,
         title: const Text(
           'GPS Filter Test',
           style: TextStyle(
