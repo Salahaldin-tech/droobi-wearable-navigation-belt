@@ -69,16 +69,12 @@ class SettingsScreen extends ConsumerWidget {
                   16,
                 ),
                 children: [
-                  const Row(
+                  Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         'Settings',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w500,
-                          color: _text,
-                        ),
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 30),
                       ),
                       SizedBox(width: 4),
                       PageHelpButton(
