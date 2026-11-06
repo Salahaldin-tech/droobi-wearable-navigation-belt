@@ -40,7 +40,7 @@ class RouteProgressService {
   }
 
   double get remainingRouteMeters =>
-      math.max(0.0, totalRouteMeters - _lastProgressMeters);
+      math.max(0.0, totalRouteMeters - _lastProgressMeters).toDouble();
 
   void reset() {
     _activeRoute = null;
@@ -104,7 +104,7 @@ class RouteProgressService {
     final nearest = _findNearestPointOnRoute(
       currentPosition: currentPosition,
       polyline: route.polyline,
-      startIndex: math.max(0, _lastSegmentIndex - 1),
+      startIndex: math.max(0, _lastSegmentIndex - 1).toInt(),
       endIndex: math.min(
         route.polyline.length - 2,
         _lastSegmentIndex + 8,
@@ -114,7 +114,7 @@ class RouteProgressService {
     // Keep progress locally monotonic. A one-segment retreat is tolerated
     // for GPS jitter; a distant earlier segment cannot steal route matching.
     if (nearest.segmentIndex >= _lastSegmentIndex - 1) {
-      _lastSegmentIndex = math.max(_lastSegmentIndex, nearest.segmentIndex);
+      _lastSegmentIndex = math.max(_lastSegmentIndex, nearest.segmentIndex).toInt();
     }
 
     var progressAtProjection = 0.0;
@@ -128,7 +128,7 @@ class RouteProgressService {
       route.polyline[nearest.segmentIndex],
       nearest.projectedPoint,
     );
-    _lastProgressMeters = math.max(_lastProgressMeters, progressAtProjection);
+    _lastProgressMeters = math.max(_lastProgressMeters, progressAtProjection).toDouble();
 
     final adaptiveLookAhead =
         lookAheadMeters ??
