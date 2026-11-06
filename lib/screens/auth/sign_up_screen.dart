@@ -197,8 +197,9 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     ),
                   ),
                 ),
-                _SignUpPanel(
-                  nameController: _nameController,
+                Expanded(
+                  child: _SignUpPanel(
+                    nameController: _nameController,
                   emailController: _emailController,
                   passwordController: _passwordController,
                   confirmPasswordController: _confirmPasswordController,
@@ -216,7 +217,8 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                   onConfirmSubmitted: (_) {
                     if (!_isSubmitting) _submit();
                   },
-                  onLoginTap: _isSubmitting ? null : _goToLogin,
+                    onLoginTap: _isSubmitting ? null : _goToLogin,
+                  ),
                 ),
               ],
             ),
@@ -279,9 +281,10 @@ class _Header extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
               Text(
                 'Droobi',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 30),
@@ -321,7 +324,8 @@ class _Header extends StatelessWidget {
                   ),
                 ],
               ),
-            ],
+              ],
+            ),
           ),
           _LoginPill(onTap: onLoginTap),
         ],
@@ -406,7 +410,8 @@ class _SignUpPanel extends StatelessWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
         boxShadow: _AuthTheme.panelShadow,
       ),
-      child: Padding(
+      child: SingleChildScrollView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -620,7 +625,9 @@ class _RoundedField extends StatelessWidget {
       style: const TextStyle(fontSize: 15, color: _AuthTheme.textPrimary),
       decoration: InputDecoration(
         hintText: hintText,
-        suffixIcon: suffixIcon,
+        suffixIcon: suffixIcon == null
+            ? null
+            : SizedBox(width: 48, height: 48, child: suffixIcon),
         contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
       ),
     );
