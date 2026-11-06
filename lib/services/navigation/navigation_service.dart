@@ -203,6 +203,10 @@ class NavigationService {
 
   int _candidateDirectionCount = 0;
 
+  DateTime? _candidateDirectionSince;
+  DateTime? _lastArrivalFixTimestamp;
+  int _arrivalFixCount = 0;
+
   // ================================================================
   // PUBLIC
   // ================================================================
@@ -737,8 +741,35 @@ class NavigationService {
       destination,
     );
 
-    if (distanceToDestination <=
-        arrivalDistanceMeters) {
+    // Count only distinct GPS fixes. Compass callbacks can recalculate
+    // navigation many times per second and are not independent arrival proof.
+    if (_lastArrivalFixTimestamp != fix.timestamp) {
+      _lastArrivalFixTimestamp = fix.timestamp;
+      final endpoint = route.polyline.isNotEmpty
+          ? route.polyline.last
+          : destination;
+      final distanceToEndpoint = _routeProgressService.distanceBetween(
+        fix.position,
+        endpoint,
+      );
+      final arrivalRadius = math.max(
+        arrivalDistanceMeters,
+        math.min(12.0, fix.accuracyMeters * 0.75),
+      );
+      final remainingRoute = _routeProgressService.remainingRouteMeters;
+      final nearDestination = distanceToDestination <= arrivalRadius ||
+          distanceToEndpoint <= arrivalRadius;
+      final routeNearlyComplete = remainingRoute <=
+          math.max(10.0, fix.accuracyMeters * 0.75);
+
+      if (nearDestination && routeNearlyComplete) {
+        _arrivalFixCount++;
+      } else {
+        _arrivalFixCount = 0;
+      }
+    }
+
+    if (_arrivalFixCount >= 3) {
       _publish(
         NavigationSnapshot(
           state: NavigationState.arrived,
@@ -746,14 +777,11 @@ class NavigationService {
           accuracyMeters: fix.accuracyMeters,
           route: route,
           targetPoint: destination,
-          distanceFromRouteMeters:
-              target.distanceFromRouteMeters,
+          distanceFromRouteMeters: target.distanceFromRouteMeters,
           heading: heading,
         ),
       );
-
       _isNavigating = false;
-
       return;
     }
 
@@ -832,42 +860,40 @@ class NavigationService {
   NavigationDirection _stabilizeDirection(
     NavigationDirection candidate,
   ) {
-    // First direction.
+    final now = DateTime.now();
     if (_confirmedDirection == null) {
       _confirmedDirection = candidate;
-
       _candidateDirection = null;
       _candidateDirectionCount = 0;
-
-      return _confirmedDirection!;
+      _candidateDirectionSince = null;
+      return candidate;
     }
 
-    // Same direction.
     if (candidate == _confirmedDirection) {
       _candidateDirection = null;
       _candidateDirectionCount = 0;
-
+      _candidateDirectionSince = null;
       return _confirmedDirection!;
     }
 
-    // New candidate.
     if (_candidateDirection != candidate) {
       _candidateDirection = candidate;
       _candidateDirectionCount = 1;
-
+      _candidateDirectionSince = now;
       return _confirmedDirection!;
     }
 
+    // Compass streams can emit ~30 samples/second. A time window avoids
+    // confirming a new direction from three adjacent samples in milliseconds.
     _candidateDirectionCount++;
-
-    if (_candidateDirectionCount >=
-        directionConfirmationSamples) {
-      _confirmedDirection = _candidateDirection;
-
+    final since = _candidateDirectionSince;
+    if (since != null &&
+        now.difference(since) >= const Duration(milliseconds: 900)) {
+      _confirmedDirection = candidate;
       _candidateDirection = null;
       _candidateDirectionCount = 0;
+      _candidateDirectionSince = null;
     }
-
     return _confirmedDirection!;
   }
 
@@ -900,6 +926,10 @@ class NavigationService {
     _confirmedDirection = null;
     _candidateDirection = null;
     _candidateDirectionCount = 0;
+    _candidateDirectionSince = null;
+    _arrivalFixCount = 0;
+    _lastArrivalFixTimestamp = null;
+    _routeProgressService.reset();
 
     _resetCompassSmoothing();
 
