@@ -1061,7 +1061,7 @@ class _MenuItem extends StatelessWidget {
         selected: active,
         label: label,
         child: Material(
-          color: active ? blue.withValues(alpha: 0.08) : AppColors.brown,
+          color: active ? blue.withValues(alpha: 0.12) : AppColors.cream,
           borderRadius: BorderRadius.circular(12),
           child: InkWell(
             onTap: onTap,
@@ -1085,7 +1085,7 @@ class _MenuItem extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: active ? FontWeight.w600 : FontWeight.w500,
-                      color: active ? blue : AppColors.brown,
+                      color: AppColors.brown,
                     ),
                   ),
                 ],
