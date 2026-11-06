@@ -224,6 +224,7 @@ class NavigationService {
 
   Future<void> start({
     required LatLon destination,
+    List<LatLon>? destinationCandidates,
     bool campusNavigation = false,
   }) async {
     if (_isDisposed) {
@@ -274,18 +275,54 @@ class NavigationService {
       // 2. ROUTE
       // ------------------------------------------------------------
 
-      final route =
-          await _activeRoutingService!.computeRoute(
-        origin: filteredFix.position,
-        destination: destination,
-      );
+      // If the selected campus destination has multiple QGIS entrances,
+      // compute a pedestrian route to each entrance and choose the shortest
+      // reachable route. Straight-line distance is not used for this choice.
+      final candidates = destinationCandidates
+              ?.where((point) =>
+                  point.latitude != 0 && point.longitude != 0)
+              .toList() ??
+          const <LatLon>[];
+      var selectedDestination = destination;
+      RouteResult? bestRoute;
+      Object? lastRouteError;
 
-      if (route.polyline.isEmpty) {
-        throw const NavigationFailure(
-          'The routing service returned an empty route.',
+      if (campusNavigation && candidates.isNotEmpty) {
+        for (final candidate in candidates) {
+          try {
+            final candidateRoute =
+                await _activeRoutingService!.computeRoute(
+              origin: filteredFix.position,
+              destination: candidate,
+            );
+            if (candidateRoute.polyline.isEmpty) continue;
+            if (bestRoute == null ||
+                candidateRoute.distanceMeters < bestRoute.distanceMeters) {
+              bestRoute = candidateRoute;
+              selectedDestination = candidate;
+            }
+          } catch (error) {
+            lastRouteError = error;
+          }
+        }
+      } else {
+        bestRoute = await _activeRoutingService!.computeRoute(
+          origin: filteredFix.position,
+          destination: destination,
         );
       }
 
+      if (bestRoute == null || bestRoute.polyline.isEmpty) {
+        if (lastRouteError != null) throw lastRouteError;
+        throw const NavigationFailure(
+          'No reachable QGIS entrance was found for this destination.',
+        );
+      }
+
+      // Keep the selected entrance as the target for arrival detection and
+      // any later off-route recalculation.
+      _destination = selectedDestination;
+      final route = bestRoute;
       _route = route;
 
       // ------------------------------------------------------------
