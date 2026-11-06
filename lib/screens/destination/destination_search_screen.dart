@@ -639,11 +639,7 @@ class _SectionTitle extends StatelessWidget {
         header: true,
         child: Text(
           text,
-          style: const TextStyle(
-            color: _AppTheme.textPrimary,
-            fontWeight: FontWeight.w800,
-            fontSize: 18,
-          ),
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 22),
         ),
       );
 }
