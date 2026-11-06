@@ -143,60 +143,51 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
           ),
 
           SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            bottom: false,
+            child: Column(
+              children: [
+                _Header(onSignUpTap: _isSubmitting ? null : _openSignUp),
+                Expanded(
+                  flex: 28,
+                  child: Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        _Header(onSignUpTap: _isSubmitting ? null : _openSignUp),
-                        const SizedBox(height: 28),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Welcome back',
-                                textAlign: TextAlign.center,
-                                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 24),
-                              ),
-                              const SizedBox(height: 6),
-                              const Text(
-                                'Sign in to keep exploring',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: _AuthTheme.textSecondary,
-                                ),
-                              ),
-                            ],
-                          ),
+                        Text(
+                          'Welcome back',
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 24),
                         ),
-                        const SizedBox(height: 28),
-                        _LoginPanel(
-                          emailController: _emailController,
-                          passwordController: _passwordController,
-                          isSubmitting: _isSubmitting,
-                          obscurePassword: _obscurePassword,
-                          errorMessage: _errorMessage,
-                          onTogglePasswordVisibility: () {
-                            setState(() => _obscurePassword = !_obscurePassword);
-                          },
-                          onSubmit: _isSubmitting ? null : _submit,
-                          onPasswordSubmitted: (_) {
-                            if (!_isSubmitting) _submit();
-                          },
-                          onSignUpTap: _isSubmitting ? null : _openSignUp,
+                        SizedBox(height: 6),
+                        Text(
+                          'Sign in to keep exploring',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: _AuthTheme.textSecondary,
+                          ),
                         ),
                       ],
                     ),
                   ),
-                );
-              },
+                ),
+                Expanded(
+                  flex: 72,
+                  child: _LoginPanel(
+                    emailController: _emailController,
+                    passwordController: _passwordController,
+                    isSubmitting: _isSubmitting,
+                    obscurePassword: _obscurePassword,
+                    errorMessage: _errorMessage,
+                    onTogglePasswordVisibility: () {
+                      setState(() => _obscurePassword = !_obscurePassword);
+                    },
+                    onSubmit: _isSubmitting ? null : _submit,
+                    onPasswordSubmitted: (_) {
+                      if (!_isSubmitting) _submit();
+                    },
+                    onSignUpTap: _isSubmitting ? null : _openSignUp,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -375,7 +366,7 @@ class _LoginPanel extends StatelessWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
         boxShadow: _AuthTheme.panelShadow,
       ),
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
