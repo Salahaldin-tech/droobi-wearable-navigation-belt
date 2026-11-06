@@ -8,6 +8,7 @@ import '../../services/location/location_service.dart';
 import '../../state/favorites_notifier.dart';
 import '../../state/location_notifier.dart';
 import '../../widgets/droobi_bottom_nav.dart';
+import '../../widgets/app_card.dart';
 import '../../widgets/page_help_button.dart';
 import '../destination/destination_search_screen.dart';
 import '../navigation/live_navigation_screen.dart';
@@ -608,7 +609,9 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
     WidgetRef ref,
     FavoriteLocation favorite,
   ) {
-    return Semantics(
+    return AppCard(
+      padding: EdgeInsets.zero,
+      child: Semantics(
       container: true,
       label: 'Favorite location: ${favorite.label}',
       child: Material(
