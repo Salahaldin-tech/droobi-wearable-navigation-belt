@@ -340,7 +340,11 @@ class _LoginPill extends StatelessWidget {
     return Material(
       color: AppColors.cream,
       borderRadius: BorderRadius.circular(24),
-      elevation: 2,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        side: const BorderSide(color: AppColors.brown, width: 1.5),
+        borderRadius: BorderRadius.circular(24),
+      ),
       shadowColor: AppColors.brown,
       child: InkWell(
         borderRadius: BorderRadius.circular(24),
@@ -599,8 +603,8 @@ class _RoundedField extends StatelessWidget {
 
   OutlineInputBorder _border(Color color) {
     return OutlineInputBorder(
-      borderRadius: BorderRadius.circular(14),
-      borderSide: BorderSide(color: color, width: 1),
+      borderRadius: BorderRadius.circular(16),
+      borderSide: BorderSide(color: color, width: color == AppColors.brown ? 2 : 1.5),
     );
   }
 
@@ -616,15 +620,8 @@ class _RoundedField extends StatelessWidget {
       style: const TextStyle(fontSize: 15, color: _AuthTheme.textPrimary),
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle: const TextStyle(color: AppColors.brown, fontSize: 15),
         suffixIcon: suffixIcon,
-        filled: true,
-        fillColor: _AuthTheme.fieldFill,
         contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-        border: _border(_AuthTheme.fieldBorder),
-        enabledBorder: _border(_AuthTheme.fieldBorder),
-        focusedBorder: _border(_AuthTheme.accent),
-        disabledBorder: _border(_AuthTheme.fieldBorder),
       ),
     );
   }
