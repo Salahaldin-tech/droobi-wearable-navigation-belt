@@ -40,13 +40,16 @@ class AppCard extends StatelessWidget {
             ),
           ],
         ),
-        child: ClipRRect(
-          borderRadius: radius,
-          child: InkWell(
-            onTap: onTap,
-            child: Padding(
-              padding: padding,
-              child: child,
+        child: Padding(
+          padding: const EdgeInsets.all(1),
+          child: ClipRRect(
+            borderRadius: radius,
+            child: InkWell(
+              onTap: onTap,
+              child: Padding(
+                padding: padding,
+                child: child,
+              ),
             ),
           ),
         ),
