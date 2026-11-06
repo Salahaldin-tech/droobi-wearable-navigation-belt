@@ -37,12 +37,9 @@ class _DirectionTestScreenState
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            const Text(
+            Text(
               'Relative Angle',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 22),
             ),
 
             const SizedBox(height: 12),
