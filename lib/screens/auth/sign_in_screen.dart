@@ -112,6 +112,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor: _AuthTheme.pageBackground,
       body: Stack(
         children: [
@@ -249,7 +250,8 @@ class _Header extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
+          Expanded(
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
@@ -290,6 +292,7 @@ class _Header extends StatelessWidget {
                 ],
               ),
             ],
+          ),
           ),
           _SignUpPill(onTap: onSignUpTap),
         ],
