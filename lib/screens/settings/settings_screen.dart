@@ -22,7 +22,6 @@ class SettingsScreen extends ConsumerWidget {
   static const Color _red = AppColors.brown;
   static const Color _text = AppColors.brown;
   static const Color _muted = AppColors.brown;
-  static const Color _card = AppColors.cream;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
