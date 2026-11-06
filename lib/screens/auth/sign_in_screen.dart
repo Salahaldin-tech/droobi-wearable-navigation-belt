@@ -152,14 +152,10 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   child: Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
-                      children: const [
+                      children: [
                         Text(
                           'Welcome back',
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w700,
-                            color: _AuthTheme.textPrimary,
-                          ),
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 24),
                         ),
                         SizedBox(height: 6),
                         Text(
@@ -253,17 +249,12 @@ class _Header extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Column(
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 'Droobi',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w800,
-                  color: _AuthTheme.textPrimary,
-                  letterSpacing: -0.5,
-                ),
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 30),
               ),
               SizedBox(height: 4),
               Row(
