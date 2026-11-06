@@ -371,6 +371,7 @@ class _LoginPanel extends StatelessWidget {
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Drag indicator
@@ -484,8 +485,6 @@ class _LoginPanel extends StatelessWidget {
                       ),
               ),
             ),
-
-            const SizedBox(height: 28),
 
             const SizedBox(height: 28),
             Wrap(
