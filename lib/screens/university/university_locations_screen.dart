@@ -517,11 +517,7 @@ class _UniversityLocationsScreenState
             Expanded(
               child: Text(
                 'Arab American University',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: _textColor,
-                ),
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 28),
               ),
             ),
             PageHelpButton(
