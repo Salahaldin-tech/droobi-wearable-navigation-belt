@@ -249,9 +249,10 @@ class _Header extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
               Text(
                 'Droobi',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 30),
@@ -289,7 +290,8 @@ class _Header extends StatelessWidget {
                   ),
                 ],
               ),
-            ],
+              ],
+            ),
           ),
           _SignUpPill(onTap: onSignUpTap),
         ],
@@ -556,7 +558,9 @@ class _RoundedField extends StatelessWidget {
       style: const TextStyle(fontSize: 15, color: _AuthTheme.textPrimary),
       decoration: InputDecoration(
         hintText: hintText,
-        suffixIcon: suffixIcon,
+        suffixIcon: suffixIcon == null
+            ? null
+            : SizedBox(width: 48, height: 48, child: suffixIcon),
         contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
       ),
     );
