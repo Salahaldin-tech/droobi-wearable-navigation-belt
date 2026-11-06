@@ -215,7 +215,7 @@ class SettingsScreen extends ConsumerWidget {
                             borderRadius:
                                 BorderRadius.circular(10),
                             border: Border.all(
-                              color: const AppColors.cream,
+                              color: AppColors.cream,
                             ),
                           ),
                           child: Row(
@@ -304,7 +304,7 @@ class SettingsScreen extends ConsumerWidget {
                             borderRadius:
                                 BorderRadius.circular(10),
                             border: Border.all(
-                              color: const AppColors.cream,
+                              color: AppColors.cream,
                             ),
                           ),
                           child: DropdownButtonHideUnderline(
