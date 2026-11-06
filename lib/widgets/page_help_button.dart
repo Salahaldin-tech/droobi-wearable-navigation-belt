@@ -12,7 +12,7 @@ class PageHelpButton extends StatelessWidget {
     required this.descriptionAr,
     this.tips = const [],
     this.tipsAr = const [],
-    this.color = const AppColors.brown,
+    this.color = AppColors.brown,
   });
 
   final String title;
