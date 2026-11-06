@@ -339,7 +339,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
     return Scaffold(
       backgroundColor: AppColors.cream,
-      body:           SafeArea(
+      body: SafeArea(
             child: Column(
               children: [
                 // ==========================================================
@@ -451,7 +451,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                             ),
                           );
                         },
-                      )
                       ),
                     ),
                   ),
