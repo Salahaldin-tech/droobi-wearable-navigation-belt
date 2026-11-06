@@ -343,7 +343,6 @@ class _LoginPill extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: AppColors.cream,
-      borderRadius: BorderRadius.circular(24),
       elevation: 0,
       shape: RoundedRectangleBorder(
         side: const BorderSide(color: AppColors.brown, width: 1.5),
