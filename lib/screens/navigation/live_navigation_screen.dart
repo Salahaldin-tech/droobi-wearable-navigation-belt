@@ -13,6 +13,8 @@ import '../../widgets/page_help_button.dart';
 import '../../state/belt_connection_notifier.dart';
 import '../../state/navigation_notifier.dart';
 
+import '../../core/theme/app_colors.dart';
+
 class LiveNavigationScreen extends ConsumerStatefulWidget {
   const LiveNavigationScreen({
     super.key,
@@ -276,11 +278,11 @@ class _LiveNavigationScreenState
         }
       },
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.cream,
         appBar: AppBar(
           elevation: 0,
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black,
+          backgroundColor: AppColors.cream,
+          foregroundColor: AppColors.brown,
           title: const Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -308,7 +310,7 @@ class _LiveNavigationScreenState
                   'اتبع السهم الكبير ونص الاتجاه في منتصف الشاشة، واستخدم اهتزازات الحزام إذا كان متصلًا. إذا ظهرت رسالة حالة أو خطأ بدلًا من الإرشادات، عالج المشكلة المذكورة قبل الاعتماد على الملاحة.',
                   'في أسفل الشاشة، اضغط STOP NAVIGATION لإيقاف الملاحة قبل الوصول. عند ظهور حالة الوصول يتغير الزر السفلي إلى DONE؛ اضغط DONE لإنهاء الملاحة ومغادرة الشاشة.',
                 ],
-                color: Color(0xFF2F80ED),
+                color: AppColors.brown,
               ),
             ],
           ),
@@ -361,26 +363,26 @@ class _LiveNavigationScreenState
       case BeltConnectionState.connected:
         title = 'Belt connected';
         description = 'Belt vibration guidance is available.';
-        color = Colors.green.shade700;
+        color = AppColors.brown.shade700;
         icon = Icons.bluetooth_connected;
         break;
       case BeltConnectionState.scanning:
         title = 'Searching for belt';
         description = 'Keep the ESP32 powered on and nearby.';
-        color = Colors.blue.shade700;
+        color = AppColors.brown.shade700;
         icon = Icons.bluetooth_searching;
         break;
       case BeltConnectionState.connecting:
         title = 'Connecting to belt';
         description = 'Establishing the Bluetooth connection.';
-        color = Colors.blue.shade700;
+        color = AppColors.brown.shade700;
         icon = Icons.bluetooth_searching;
         break;
       case BeltConnectionState.reconnecting:
         title = 'Bluetooth connection lost';
         description =
             'Trying to reconnect. Belt vibration is unavailable until it reconnects.';
-        color = Colors.orange.shade800;
+        color = AppColors.brown.shade800;
         icon = Icons.bluetooth_searching;
         break;
       case BeltConnectionState.disconnected:
@@ -388,7 +390,7 @@ class _LiveNavigationScreenState
         title = 'Belt not connected';
         description =
             'On-screen navigation may continue, but belt vibration is unavailable.';
-        color = Colors.red.shade700;
+        color = AppColors.brown.shade700;
         icon = Icons.bluetooth_disabled;
         break;
     }
@@ -420,7 +422,7 @@ class _LiveNavigationScreenState
                 Text(
                   description,
                   style: TextStyle(
-                    color: Colors.grey.shade800,
+                    color: AppColors.brown.shade800,
                     fontSize: 12,
                   ),
                 ),
@@ -450,7 +452,7 @@ class _LiveNavigationScreenState
       ),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
-        color: Colors.grey.shade100,
+        color: AppColors.brown.shade100,
       ),
       child: Row(
         children: [
@@ -459,11 +461,11 @@ class _LiveNavigationScreenState
             height: 46,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.blue.shade50,
+              color: AppColors.brown.shade50,
             ),
             child: Icon(
               Icons.navigation,
-              color: Colors.blue.shade700,
+              color: AppColors.brown.shade700,
             ),
           ),
           const SizedBox(width: 14),
@@ -484,7 +486,7 @@ class _LiveNavigationScreenState
                   'Route distance: $distance',
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.grey.shade700,
+                    color: AppColors.brown.shade700,
                   ),
                 ),
                 if (kDebugMode) ...[
@@ -496,8 +498,8 @@ class _LiveNavigationScreenState
                       fontWeight: FontWeight.w800,
                       letterSpacing: 0.5,
                       color: widget.campusNavigation
-                          ? Colors.deepPurple.shade700
-                          : Colors.teal.shade700,
+                          ? AppColors.brown.shade700
+                          : AppColors.brown.shade700,
                     ),
                   ),
                 ],
@@ -510,7 +512,7 @@ class _LiveNavigationScreenState
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 11,
-                color: Colors.grey.shade600,
+                color: AppColors.brown.shade600,
               ),
             ),
         ],
@@ -562,7 +564,7 @@ class _LiveNavigationScreenState
             fontSize: 14,
             fontWeight: FontWeight.w700,
             letterSpacing: 1.4,
-            color: Colors.grey.shade600,
+            color: AppColors.brown.shade600,
           ),
         ),
         const SizedBox(height: 24),
@@ -588,9 +590,9 @@ class _LiveNavigationScreenState
             height: 220,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.blue.shade50,
+              color: AppColors.brown.shade50,
               border: Border.all(
-                color: Colors.blue.shade100,
+                color: AppColors.brown.shade100,
                 width: 3,
               ),
             ),
@@ -598,7 +600,7 @@ class _LiveNavigationScreenState
               child: Icon(
                 icon,
                 size: 140,
-                color: Colors.blue.shade600,
+                color: AppColors.brown.shade600,
               ),
             ),
           ),
@@ -625,7 +627,7 @@ class _LiveNavigationScreenState
             '${_snapshot.relativeAngle!.toStringAsFixed(0)}°',
             style: TextStyle(
               fontSize: 14,
-              color: Colors.grey.shade600,
+              color: AppColors.brown.shade600,
             ),
           ),
         const SizedBox(height: 8),
@@ -635,7 +637,7 @@ class _LiveNavigationScreenState
             '${_snapshot.heading!.toStringAsFixed(0)}°',
             style: TextStyle(
               fontSize: 13,
-              color: Colors.grey.shade500,
+              color: AppColors.brown.shade500,
             ),
           ),
       ],
@@ -656,7 +658,7 @@ class _LiveNavigationScreenState
           Icon(
             Icons.check_circle,
             size: 100,
-            color: Colors.green,
+            color: AppColors.brown,
           ),
           const SizedBox(height: 24),
           const Text(
@@ -681,7 +683,7 @@ class _LiveNavigationScreenState
             Icon(
               Icons.error_outline,
               size: 80,
-              color: Colors.red,
+              color: AppColors.brown,
             ),
             const SizedBox(height: 20),
             Text(
@@ -716,8 +718,8 @@ class _LiveNavigationScreenState
       child: ElevatedButton(
         onPressed: _stopNavigation,
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.red.shade50,
-          foregroundColor: Colors.red.shade700,
+          backgroundColor: AppColors.brown.shade50,
+          foregroundColor: AppColors.brown.shade700,
         ),
         child: const Text('STOP NAVIGATION'),
       ),

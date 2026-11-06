@@ -8,6 +8,8 @@ import '../../services/routing/routing_service.dart';
 import '../../state/location_notifier.dart';
 import '../../state/routing_notifier.dart';
 
+import '../../core/theme/app_colors.dart';
+
 class GpsRoutingTestScreen extends ConsumerStatefulWidget {
   const GpsRoutingTestScreen({super.key});
 
@@ -131,7 +133,7 @@ class _GpsRoutingTestScreenState
               Text(
                 _errorMessage!,
                 style: const TextStyle(
-                  color: Colors.red,
+                  color: AppColors.brown,
                 ),
               ),
 

@@ -8,6 +8,8 @@ import '../../state/auth_state_notifier.dart';
 import '../../widgets/page_help_button.dart';
 import 'sign_up_screen.dart';
 
+import '../../core/theme/app_colors.dart';
+
 // ---------------------------------------------------------------------------
 // THEME
 // Light, off-white base with a soft ambient shadow + cyan glow behind the
@@ -16,23 +18,23 @@ import 'sign_up_screen.dart';
 class _AuthTheme {
   const _AuthTheme._();
 
-  static const pageBackground = Color(0xFFF7F7F9);
-  static const panelBackground = Colors.white;
-  static const fieldFill = Color(0xFFF2F3F5);
-  static const fieldBorder = Color(0xFFE6E7EB);
+  static const pageBackground = AppColors.cream;
+  static const panelBackground = AppColors.cream;
+  static const fieldFill = AppColors.cream;
+  static const fieldBorder = AppColors.cream;
 
-  static const textPrimary = Color(0xFF1E3A8A);
-  static const textSecondary = Color(0xFF5B7FDE);
+  static const textPrimary = AppColors.brown;
+  static const textSecondary = AppColors.brown;
 
-  static const loginButton = Color(0xFF2F6FED);
-  static const error = Color(0xFFE0483E);
+  static const loginButton = AppColors.brown;
+  static const error = AppColors.brown;
 
-  static const ambientShadow = Color(0xFF2B2E36);
-  static const glowCyan = Color(0xFF34D8D1);
+  static const ambientShadow = AppColors.brown;
+  static const glowCyan = AppColors.brown;
 
   static const panelShadow = [
     BoxShadow(
-      color: Color(0x1F16181D),
+      color: AppColors.brown,
       blurRadius: 40,
       offset: Offset(0, -8),
     ),
@@ -313,10 +315,10 @@ class _SignUpPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white,
+      color: AppColors.cream,
       borderRadius: BorderRadius.circular(24),
       elevation: 2,
-      shadowColor: const Color(0x1A16181D),
+      shadowColor: const AppColors.brown,
       child: InkWell(
         borderRadius: BorderRadius.circular(24),
         onTap: onTap,
@@ -381,7 +383,7 @@ class _LoginPanel extends StatelessWidget {
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 28),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFD8DADF),
+                  color: const AppColors.cream,
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
@@ -463,7 +465,7 @@ class _LoginPanel extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _AuthTheme.loginButton,
                   disabledBackgroundColor: _AuthTheme.loginButton.withOpacity(0.5),
-                  foregroundColor: Colors.white,
+                  foregroundColor: AppColors.cream,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
@@ -476,7 +478,7 @@ class _LoginPanel extends StatelessWidget {
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           semanticsLabel: 'Signing in',
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.cream),
                         ),
                       )
                     : const Text(
@@ -559,7 +561,7 @@ class _RoundedField extends StatelessWidget {
       style: const TextStyle(fontSize: 15, color: _AuthTheme.textPrimary),
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle: const TextStyle(color: Color(0xFFB0B3BA), fontSize: 15),
+        hintStyle: const TextStyle(color: AppColors.brown, fontSize: 15),
         suffixIcon: suffixIcon,
         filled: true,
         fillColor: _AuthTheme.fieldFill,

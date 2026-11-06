@@ -1,4 +1,3 @@
-import 'dart:ui' show ImageFilter;
 import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:geolocator/geolocator.dart';
@@ -44,14 +43,13 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen>
     with TickerProviderStateMixin {
-  static const Color _blue = AppColors.primary;
-  static const Color _green = Color(0xFF27AE60);
-  static const Color _grey = Color(0xFF9CA3AF);
-  static const Color _text = AppColors.primary;
-  static const Color _muted = AppColors.primary;
+  static const Color _blue = AppColors.brown;
+  static const Color _green = AppColors.brown;
+  static const Color _grey = AppColors.brown;
+  static const Color _text = AppColors.brown;
+  static const Color _muted = AppColors.brown;
 
   late final AnimationController _entranceController;
-  late final AnimationController _backgroundController;
 
   late final Animation<double> _headerAnimation;
   late final Animation<double> _searchAnimation;
@@ -73,11 +71,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     _entranceController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 900),
-    );
-
-    _backgroundController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 10),
     );
 
     _headerAnimation = CurvedAnimation(
@@ -105,15 +98,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
     if (reduceMotion) {
       _entranceController.value = 1.0;
-      _backgroundController.stop();
     } else {
       if (!_entranceStarted) {
         _entranceStarted = true;
         _entranceController.forward();
-      }
-
-      if (!_backgroundController.isAnimating) {
-        _backgroundController.repeat(reverse: true);
       }
     }
   }
@@ -121,7 +109,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   @override
   void dispose() {
     _entranceController.dispose();
-    _backgroundController.dispose();
     super.dispose();
   }
 
@@ -193,7 +180,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 },
                 style: FilledButton.styleFrom(
                   backgroundColor: _blue,
-                  foregroundColor: AppColors.background,
+                  foregroundColor: AppColors.cream,
                   minimumSize: const Size.fromHeight(48),
                 ),
                 child: const Text("Let's Get Started"),
@@ -301,31 +288,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   }) {
     return Container(
       decoration: BoxDecoration(
+        color: AppColors.cream,
         borderRadius: BorderRadius.circular(radius),
-        boxShadow: const [
-          BoxShadow(
-            blurRadius: 16,
-            offset: Offset(0, 6),
-            color: Color(0x14000000),
-          ),
-        ],
+        border: Border.all(color: AppColors.brown),
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(radius),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-          child: Container(
-            decoration: BoxDecoration(
-              color: AppColors.background.withValues(alpha: 0.88),
-              borderRadius: BorderRadius.circular(radius),
-              border: Border.all(
-                color: AppColors.background.withValues(alpha: 0.95),
-              ),
-            ),
-            child: child,
-          ),
-        ),
-      ),
+      child: child,
     );
   }
 
@@ -369,88 +336,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     });
 
     return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Stack(
-        children: [
-          // ================================================================
-          // MAP BACKGROUND
-          // ================================================================
-
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/home_bg.png',
-              fit: BoxFit.cover,
-              excludeFromSemantics: true,
-              errorBuilder: (
-                context,
-                error,
-                stackTrace,
-              ) {
-                return const SizedBox.shrink();
-              },
-            ),
-          ),
-
-          // ================================================================
-          // WHITE OVERLAY
-          // Keeps the map visible but subtle.
-          // ================================================================
-
-          Positioned.fill(
-            child: Container(
-              color: AppColors.background.withValues(
-                alpha: 0.10,
-              ),
-            ),
-          ),
-
-          // ================================================================
-          // SOFT ANIMATED GRADIENT
-          // Very light blue and mint tints that drift slowly.
-          // ================================================================
-
-          Positioned.fill(
-            child: IgnorePointer(
-              child: RepaintBoundary(
-                child: AnimatedBuilder(
-                  animation: _backgroundController,
-                  builder: (context, child) {
-                    final t = Curves.easeInOut.transform(
-                      _backgroundController.value,
-                    );
-
-                    return DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.lerp(
-                            Alignment.topLeft,
-                            Alignment.topRight,
-                            t,
-                          )!,
-                          end: Alignment.lerp(
-                            Alignment.bottomRight,
-                            Alignment.bottomLeft,
-                            t,
-                          )!,
-                          colors: [
-                            const Color(0xFFDCEBFF).withValues(alpha: 0.55),
-                            Colors.white.withValues(alpha: 0.10),
-                            const Color(0xFFD9F5EA).withValues(alpha: 0.45),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
-          ),
-
-          // ================================================================
-          // HOME UI
-          // ================================================================
-
-          SafeArea(
+      backgroundColor: AppColors.cream,
+      body:           SafeArea(
             child: Column(
               children: [
                 // ==========================================================
@@ -517,7 +404,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           button: true,
                           label: 'Open menu',
                           child: Material(
-                            color: AppColors.background,
+                            color: AppColors.cream,
                             borderRadius: BorderRadius.circular(10),
                             elevation: 3,
                             child: InkWell(
@@ -558,7 +445,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       hint: 'Open destination search',
                       child: _glassCard(
                         child: Material(
-                          color: Colors.transparent,
+                          color: AppColors.brown,
                           child: InkWell(
                             borderRadius: BorderRadius.circular(12),
                             onTap: () {
@@ -579,14 +466,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                   Icon(
                                     Icons.search,
                                     size: 22,
-                                    color: Color(0xFF777777),
+                                    color: AppColors.brown,
                                   ),
                                   SizedBox(width: 12),
                                   Text(
                                     'Search destination...',
                                     style: TextStyle(
                                       fontSize: 14,
-                                      color: Color(0xFF666666),
+                                      color: AppColors.brown,
                                     ),
                                   ),
                                 ],
@@ -698,7 +585,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                             voiceState.errorMessage ?? '',
                             textAlign: TextAlign.center,
                             style: const TextStyle(
-                              color: Colors.red,
+                              color: AppColors.brown,
                               fontSize: 14,
                             ),
                           ),
@@ -717,8 +604,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               ],
             ),
           ),
-        ],
-      ),
     );
   }
 
@@ -733,7 +618,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       context: context,
       barrierDismissible: true,
       barrierLabel: 'Close menu',
-      barrierColor: Colors.black.withValues(
+      barrierColor: AppColors.brown.withValues(
         alpha: 0.50,
       ),
       transitionDuration: const Duration(milliseconds: 300),
@@ -765,7 +650,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         return Align(
           alignment: Alignment.centerLeft,
           child: Material(
-            color: Colors.white,
+            color: AppColors.cream,
             elevation: 12,
             clipBehavior: Clip.antiAlias,
             borderRadius: const BorderRadius.horizontal(
@@ -789,14 +674,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       24,
                     ),
                     decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Color(0xFFEAF3FF),
-                          Color(0xFFDDF3EA),
-                        ],
-                      ),
+                      
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -809,13 +687,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                               height: 56,
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: AppColors.cream,
                                 borderRadius: BorderRadius.circular(16),
                                 boxShadow: const [
                                   BoxShadow(
                                     blurRadius: 12,
                                     offset: Offset(0, 4),
-                                    color: Color(0x18000000),
+                                    color: AppColors.brown,
                                   ),
                                 ],
                               ),
@@ -844,7 +722,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                               },
                               icon: const Icon(
                                 Icons.close,
-                                color: Color(0xFF555555),
+                                color: AppColors.brown,
                               ),
                             ),
                           ],
@@ -1036,7 +914,7 @@ class _WelcomeFeature extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         ExcludeSemantics(
-          child: Icon(icon, color: AppColors.primary, size: 25),
+          child: Icon(icon, color: AppColors.brown, size: 25),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -1174,7 +1052,7 @@ class _MenuItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const blue = AppColors.primary;
+    const blue = AppColors.brown;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
@@ -1183,7 +1061,7 @@ class _MenuItem extends StatelessWidget {
         selected: active,
         label: label,
         child: Material(
-          color: active ? blue.withValues(alpha: 0.08) : Colors.transparent,
+          color: active ? blue.withValues(alpha: 0.08) : AppColors.brown,
           borderRadius: BorderRadius.circular(12),
           child: InkWell(
             onTap: onTap,
@@ -1207,7 +1085,7 @@ class _MenuItem extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: active ? FontWeight.w600 : FontWeight.w500,
-                      color: active ? blue : const Color(0xFF111111),
+                      color: active ? blue : const AppColors.brown,
                     ),
                   ),
                 ],

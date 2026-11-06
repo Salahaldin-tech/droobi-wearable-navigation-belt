@@ -5,6 +5,8 @@ import '../../models/lat_lon.dart';
 import '../../services/location/location_service.dart';
 import '../../state/location_notifier.dart';
 
+import '../../core/theme/app_colors.dart';
+
 class LocationTestScreen extends ConsumerStatefulWidget {
   const LocationTestScreen({super.key});
 
@@ -82,7 +84,7 @@ class _LocationTestScreenState
               Text(
                 _errorMessage!,
                 style: const TextStyle(
-                  color: Colors.red,
+                  color: AppColors.brown,
                 ),
               ),
 
@@ -108,7 +110,7 @@ class _LocationTestScreenState
               Text(
                 _location.toString(),
                 style: const TextStyle(
-                  color: Colors.grey,
+                  color: AppColors.brown,
                 ),
               ),
             ],

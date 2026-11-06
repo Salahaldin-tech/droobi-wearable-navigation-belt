@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/destination.dart';
 import '../../state/destination_search_notifier.dart';
 
+import '../../core/theme/app_colors.dart';
+
 /// TEMPORARY screen for Stage 7 validation only.
 ///
 /// Purpose: prove the destination search service layer (Places API
@@ -77,13 +79,13 @@ class _DestinationSearchTestScreenState
                 padding: const EdgeInsets.all(12),
                 margin: const EdgeInsets.only(top: 8),
                 decoration: BoxDecoration(
-                  color: Colors.red.withValues(alpha: 0.1),
-                  border: Border.all(color: Colors.red),
+                  color: AppColors.brown.withValues(alpha: 0.1),
+                  border: Border.all(color: AppColors.brown),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   state.errorMessage!,
-                  style: const TextStyle(color: Colors.red),
+                  style: const TextStyle(color: AppColors.brown),
                 ),
               ),
             const SizedBox(height: 8),

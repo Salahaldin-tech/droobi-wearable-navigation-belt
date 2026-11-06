@@ -8,6 +8,8 @@ import '../../core/enums/belt_connection_state.dart';
 import '../../services/ble/belt_connection_service.dart';
 import '../../state/belt_connection_notifier.dart';
 
+import '../../core/theme/app_colors.dart';
+
 /// TEMPORARY screen for Stage 5 validation only.
 ///
 /// Purpose: prove the Flutter-side BLE layer can reliably scan,
@@ -111,12 +113,12 @@ class _StatusBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (label, color) = switch (state) {
-      BeltConnectionState.disconnected => ('Disconnected', Colors.grey),
-      BeltConnectionState.scanning => ('Scanning...', Colors.blue),
-      BeltConnectionState.connecting => ('Connecting...', Colors.blue),
-      BeltConnectionState.connected => ('Connected', Colors.green),
-      BeltConnectionState.reconnecting => ('Reconnecting...', Colors.orange),
-      BeltConnectionState.scanFailed => ('Belt not found', Colors.red),
+      BeltConnectionState.disconnected => ('Disconnected', AppColors.brown),
+      BeltConnectionState.scanning => ('Scanning...', AppColors.brown),
+      BeltConnectionState.connecting => ('Connecting...', AppColors.brown),
+      BeltConnectionState.connected => ('Connected', AppColors.brown),
+      BeltConnectionState.reconnecting => ('Reconnecting...', AppColors.brown),
+      BeltConnectionState.scanFailed => ('Belt not found', AppColors.brown),
     };
 
     // Status is communicated via text label (screen-reader visible)
@@ -239,8 +241,8 @@ class _CommandButton extends StatelessWidget {
         child: ElevatedButton(
           style: isStop
               ? ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
+                  backgroundColor: AppColors.brown,
+                  foregroundColor: AppColors.cream,
                 )
               : null,
           onPressed: onPressed,
@@ -260,7 +262,7 @@ class _LogView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade400),
+        border: Border.all(color: AppColors.brown.shade400),
         borderRadius: BorderRadius.circular(8),
       ),
       padding: const EdgeInsets.all(8),
@@ -269,7 +271,7 @@ class _LogView extends StatelessWidget {
           for (final line in lines)
             Text(
               line,
-              style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+              style: const TextStyle( fontSize: 12),
             ),
         ],
       ),

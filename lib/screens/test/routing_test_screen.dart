@@ -6,6 +6,8 @@ import '../../models/route_result.dart';
 import '../../services/routing/routing_service.dart';
 import '../../state/routing_notifier.dart';
 
+import '../../core/theme/app_colors.dart';
+
 /// TEMPORARY screen for routing validation.
 ///
 /// Purpose:
@@ -105,7 +107,7 @@ class _RoutingTestScreenState extends ConsumerState<RoutingTestScreen> {
               Text(
                 _errorMessage!,
                 style: const TextStyle(
-                  color: Colors.red,
+                  color: AppColors.brown,
                 ),
               ),
             if (_result != null) ...[

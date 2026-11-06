@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../core/enums/belt_connection_state.dart';
 
+import '../core/theme/app_colors.dart';
+
 /// Displays belt connection status via text + icon + color together,
 /// never color alone (Stage 2/4 accessibility requirement). Marked as
 /// a live region so screen readers announce changes automatically.
@@ -15,32 +17,32 @@ class ConnectionStatusIndicator extends StatelessWidget {
     final (label, color, icon) = switch (state) {
       BeltConnectionState.disconnected => (
           'Belt disconnected',
-          Colors.grey.shade700,
+          AppColors.brown.shade700,
           Icons.bluetooth_disabled,
         ),
       BeltConnectionState.scanning => (
           'Searching for belt...',
-          Colors.blue,
+          AppColors.brown,
           Icons.bluetooth_searching,
         ),
       BeltConnectionState.connecting => (
           'Connecting to belt...',
-          Colors.blue,
+          AppColors.brown,
           Icons.bluetooth_searching,
         ),
       BeltConnectionState.connected => (
           'Belt connected',
-          Colors.green.shade700,
+          AppColors.brown.shade700,
           Icons.bluetooth_connected,
         ),
       BeltConnectionState.reconnecting => (
           'Reconnecting to belt...',
-          Colors.orange.shade800,
+          AppColors.brown.shade800,
           Icons.bluetooth_searching,
         ),
       BeltConnectionState.scanFailed => (
           'Belt not found',
-          Colors.red.shade700,
+          AppColors.brown.shade700,
           Icons.bluetooth_disabled,
         ),
     };

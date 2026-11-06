@@ -9,21 +9,23 @@ import '../../state/destination_search_notifier.dart';
 import '../../state/favorites_notifier.dart';
 import '../../widgets/page_help_button.dart';
 
+import '../../core/theme/app_colors.dart';
+
 class _AppTheme {
   const _AppTheme._();
 
-  static const background = Color(0xFFF7F7F9);
-  static const surface = Colors.white;
-  static const fieldFill = Color(0xFFF2F3F5);
-  static const fieldBorder = Color(0xFFE6E7EB);
-  static const textPrimary = Color(0xFF16181D);
-  static const textSecondary = Color(0xFF55585F);
-  static const hint = Color(0xFF8B9099);
-  static const accent = Color(0xFF2F6FED);
-  static const trending = Color(0xFF1E9E5A);
-  static const error = Color(0xFFE0483E);
+  static const background = AppColors.cream;
+  static const surface = AppColors.cream;
+  static const fieldFill = AppColors.cream;
+  static const fieldBorder = AppColors.cream;
+  static const textPrimary = AppColors.brown;
+  static const textSecondary = AppColors.brown;
+  static const hint = AppColors.brown;
+  static const accent = AppColors.brown;
+  static const trending = AppColors.brown;
+  static const error = AppColors.brown;
   static const cardShadow = [
-    BoxShadow(color: Color(0x141A1D29), blurRadius: 16, offset: Offset(0, 4)),
+    BoxShadow(color: AppColors.brown, blurRadius: 16, offset: Offset(0, 4)),
   ];
 }
 
@@ -39,14 +41,14 @@ class _Category {
 }
 
 const _categories = [
-  _Category('University', Icons.school, Color(0xFF2F6FED), '', isCampus: true),
-  _Category('Restaurants', Icons.restaurant, Color(0xFFF2994A), 'restaurant'),
-  _Category('Cafés', Icons.local_cafe, Color(0xFF8D6E63), 'cafe'),
-  _Category('Pharmacy', Icons.local_pharmacy, Color(0xFFE0483E), 'pharmacy'),
-  _Category('Hospital', Icons.local_hospital, Color(0xFFEB5757), 'hospital'),
-  _Category('Supermarket', Icons.shopping_cart, Color(0xFF27AE60), 'supermarket'),
-  _Category('Bank', Icons.account_balance, Color(0xFF6C63FF), 'bank'),
-  _Category('Mosque', Icons.mosque, Color(0xFF00897B), 'mosque'),
+  _Category('University', Icons.school, AppColors.brown, '', isCampus: true),
+  _Category('Restaurants', Icons.restaurant, AppColors.brown, 'restaurant'),
+  _Category('Cafés', Icons.local_cafe, AppColors.brown, 'cafe'),
+  _Category('Pharmacy', Icons.local_pharmacy, AppColors.brown, 'pharmacy'),
+  _Category('Hospital', Icons.local_hospital, AppColors.brown, 'hospital'),
+  _Category('Supermarket', Icons.shopping_cart, AppColors.brown, 'supermarket'),
+  _Category('Bank', Icons.account_balance, AppColors.brown, 'bank'),
+  _Category('Mosque', Icons.mosque, AppColors.brown, 'mosque'),
 ];
 
 const _trendingSearches = [
@@ -455,7 +457,7 @@ class _DestinationSearchScreenState
             style: ElevatedButton.styleFrom(
               backgroundColor: _AppTheme.accent,
               disabledBackgroundColor: _AppTheme.accent.withOpacity(0.5),
-              foregroundColor: Colors.white,
+              foregroundColor: AppColors.cream,
               elevation: 0,
               padding: const EdgeInsets.symmetric(horizontal: 20),
               shape: RoundedRectangleBorder(

@@ -7,6 +7,8 @@ import '../../models/lat_lon.dart';
 import '../../services/navigation/navigation_service.dart';
 import '../../state/navigation_notifier.dart';
 
+import '../../core/theme/app_colors.dart';
+
 class LiveNavigationTestScreen extends ConsumerStatefulWidget {
   const LiveNavigationTestScreen({
     super.key,
@@ -178,22 +180,22 @@ class _LiveNavigationTestScreenState
   Color _stateColor(NavigationState state) {
     switch (state) {
       case NavigationState.navigating:
-        return Colors.green;
+        return AppColors.brown;
 
       case NavigationState.arrived:
-        return Colors.blue;
+        return AppColors.brown;
 
       case NavigationState.starting:
       case NavigationState.recovering:
-        return Colors.orange;
+        return AppColors.brown;
 
       case NavigationState.gpsUnavailable:
       case NavigationState.routeUnavailable:
-        return Colors.red;
+        return AppColors.brown;
 
       case NavigationState.idle:
       case NavigationState.stopped:
-        return Colors.grey;
+        return AppColors.brown;
     }
   }
 
@@ -252,7 +254,7 @@ class _LiveNavigationTestScreenState
             child: Text(
               label,
               style: const TextStyle(
-                color: Colors.grey,
+                color: AppColors.brown,
                 fontSize: 14,
               ),
             ),
@@ -386,7 +388,7 @@ class _LiveNavigationTestScreenState
 
           if (_errorMessage != null)
             Card(
-              color: Colors.red.withValues(
+              color: AppColors.brown.withValues(
                 alpha: 0.08,
               ),
               child: Padding(
@@ -394,7 +396,7 @@ class _LiveNavigationTestScreenState
                 child: Text(
                   _errorMessage!,
                   style: const TextStyle(
-                    color: Colors.red,
+                    color: AppColors.brown,
                     fontSize: 14,
                   ),
                 ),
@@ -461,7 +463,7 @@ class _LiveNavigationTestScreenState
                   Text(
                     snapshot.errorMessage!,
                     style: const TextStyle(
-                      color: Colors.red,
+                      color: AppColors.brown,
                     ),
                   ),
                 ],
@@ -615,7 +617,7 @@ class _LiveNavigationTestScreenState
             if (snapshot.state ==
                 NavigationState.arrived)
               Card(
-                color: Colors.green.withValues(
+                color: AppColors.brown.withValues(
                   alpha: 0.10,
                 ),
                 child: const Padding(
@@ -624,14 +626,14 @@ class _LiveNavigationTestScreenState
                     children: [
                       Icon(
                         Icons.check_circle,
-                        color: Colors.green,
+                        color: AppColors.brown,
                         size: 56,
                       ),
                       SizedBox(height: 10),
                       Text(
                         'ARRIVED',
                         style: TextStyle(
-                          color: Colors.green,
+                          color: AppColors.brown,
                           fontSize: 24,
                           fontWeight:
                               FontWeight.bold,

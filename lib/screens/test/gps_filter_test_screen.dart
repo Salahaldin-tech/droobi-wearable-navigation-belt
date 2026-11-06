@@ -10,6 +10,8 @@ import '../../services/location/gps_filter_service.dart';
 import '../../services/location/location_service.dart';
 import '../../services/location/position_filter_service.dart';
 
+import '../../core/theme/app_colors.dart';
+
 final gpsFilterTestServiceProvider =
     Provider<GpsFilterService>((ref) {
   return GpsFilterService();
@@ -309,32 +311,32 @@ class _GpsFilterTestScreenState
   Color _statusBackgroundColor() {
     switch (_status) {
       case 'ACCEPTED → FILTERED':
-        return Colors.green.shade50;
+        return AppColors.brown.shade50;
 
       case 'REJECTED':
-        return Colors.red.shade50;
+        return AppColors.brown.shade50;
 
       case 'GPS ERROR':
-        return Colors.orange.shade50;
+        return AppColors.brown.shade50;
 
       default:
-        return Colors.grey.shade100;
+        return AppColors.brown.shade100;
     }
   }
 
   Color _statusTextColor() {
     switch (_status) {
       case 'ACCEPTED → FILTERED':
-        return Colors.green.shade700;
+        return AppColors.brown.shade700;
 
       case 'REJECTED':
-        return Colors.red.shade700;
+        return AppColors.brown.shade700;
 
       case 'GPS ERROR':
-        return Colors.orange.shade800;
+        return AppColors.brown.shade800;
 
       default:
-        return Colors.black87;
+        return AppColors.brown;
     }
   }
 
@@ -346,11 +348,11 @@ class _GpsFilterTestScreenState
     final firstAccepted = _firstAcceptedFix;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F7FC),
+      backgroundColor: const AppColors.cream,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.brown,
         elevation: 0,
-        foregroundColor: Colors.black87,
+        foregroundColor: AppColors.brown,
         title: const Text(
           'GPS Filter Test',
           style: TextStyle(
@@ -701,7 +703,7 @@ class _GpsFilterTestScreenState
                   Text(
                     _errorMessage!,
                     style: const TextStyle(
-                      color: Colors.red,
+                      color: AppColors.brown,
                     ),
                   ),
                 ],
@@ -762,7 +764,7 @@ class _InfoCard extends StatelessWidget {
         vertical: 20,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cream,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: Colors.black12,
@@ -817,7 +819,7 @@ class _InfoRow extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: Colors.black87,
+                color: AppColors.brown,
               ),
             ),
           ),

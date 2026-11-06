@@ -12,14 +12,16 @@ import '../../widgets/droobi_bottom_nav.dart';
 import '../../widgets/page_help_button.dart';
 import '../test/dev_test_menu.dart';
 
+import '../../core/theme/app_colors.dart';
+
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
-  static const Color _blue = Color(0xFF2F80ED);
-  static const Color _red = Color(0xFFEB5757);
-  static const Color _text = Color(0xFF111111);
-  static const Color _muted = Color(0xFF6B7280);
-  static const Color _card = Color(0xFFF5F5F5);
+  static const Color _blue = AppColors.brown;
+  static const Color _red = AppColors.brown;
+  static const Color _text = AppColors.brown;
+  static const Color _muted = AppColors.brown;
+  static const Color _card = AppColors.cream;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -53,7 +55,7 @@ class SettingsScreen extends ConsumerWidget {
         state == BeltConnectionState.connected;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.cream,
       body: SafeArea(
         child: Column(
           children: [
@@ -209,11 +211,11 @@ class SettingsScreen extends ConsumerWidget {
                           height: 40,
                           padding: const EdgeInsets.all(3),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: AppColors.cream,
                             borderRadius:
                                 BorderRadius.circular(10),
                             border: Border.all(
-                              color: const Color(0xFFE5E7EB),
+                              color: const AppColors.cream,
                             ),
                           ),
                           child: Row(
@@ -298,11 +300,11 @@ class SettingsScreen extends ConsumerWidget {
                             horizontal: 10,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: AppColors.cream,
                             borderRadius:
                                 BorderRadius.circular(10),
                             border: Border.all(
-                              color: const Color(0xFFE5E7EB),
+                              color: const AppColors.cream,
                             ),
                           ),
                           child: DropdownButtonHideUnderline(
@@ -359,7 +361,7 @@ class SettingsScreen extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Material(
-                      color: Colors.transparent,
+                      color: AppColors.brown,
                       child: InkWell(
                         borderRadius:
                             BorderRadius.circular(12),
@@ -415,7 +417,7 @@ class SettingsScreen extends ConsumerWidget {
                             BorderRadius.circular(12),
                       ),
                       child: Material(
-                        color: Colors.transparent,
+                        color: AppColors.brown,
                         child: InkWell(
                           borderRadius:
                               BorderRadius.circular(12),
@@ -453,7 +455,7 @@ class SettingsScreen extends ConsumerWidget {
                                   Icons.chevron_right,
                                   size: 20,
                                   color:
-                                      Color(0xFF9CA3AF),
+                                      AppColors.brown,
                                 ),
                               ],
                             ),
@@ -476,7 +478,7 @@ class SettingsScreen extends ConsumerWidget {
                           'Droobi v1.0.0',
                           style: TextStyle(
                             fontSize: 14,
-                            color: Color(0xFF9CA3AF),
+                            color: AppColors.brown,
                           ),
                         ),
 
@@ -486,7 +488,7 @@ class SettingsScreen extends ConsumerWidget {
                           'دروبي',
                           style: TextStyle(
                             fontSize: 14,
-                            color: Color(0xFF9CA3AF),
+                            color: AppColors.brown,
                           ),
                         ),
                       ],
@@ -535,7 +537,7 @@ class SettingsScreen extends ConsumerWidget {
           height: 32,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: selected ? _blue : Colors.white,
+            color: selected ? _blue : AppColors.cream,
             borderRadius: BorderRadius.circular(7),
           ),
           child: Text(
@@ -543,7 +545,7 @@ class SettingsScreen extends ConsumerWidget {
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w500,
-              color: selected ? Colors.white : _text,
+              color: selected ? AppColors.cream : _text,
             ),
           ),
         ),

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../core/enums/voice_command_state.dart';
 
+import '../core/theme/app_colors.dart';
+
 /// The Home Screen's primary, centered microphone action.
 ///
 /// The button uses press-and-hold interaction:
@@ -107,31 +109,31 @@ class _VoiceCommandButtonState extends State<VoiceCommandButton>
           'Voice Command',
           'Press and hold to speak your destination',
           Icons.mic,
-          const Color(0xFF2F80ED),
+          const AppColors.brown,
         ),
       VoiceCommandPhase.listening => (
           'Listening',
           'Release to finish speaking',
           Icons.mic,
-          Colors.red,
+          AppColors.brown,
         ),
       VoiceCommandPhase.processing => (
           'Processing your request',
           null,
           Icons.mic,
-          Colors.orange,
+          AppColors.brown,
         ),
       VoiceCommandPhase.recognized => (
           'Heard: ${widget.state.recognizedText ?? ""}',
           'Waiting to search destination',
           Icons.mic,
-          Colors.green,
+          AppColors.brown,
         ),
       VoiceCommandPhase.error => (
           "Sorry, I didn't catch that",
           'Press and hold to try again',
           Icons.mic_off,
-          Colors.grey,
+          AppColors.brown,
         ),
     };
 

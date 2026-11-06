@@ -16,6 +16,8 @@ import '../../services/routing/routing_service.dart';
 import '../../state/location_notifier.dart';
 import '../../state/routing_notifier.dart';
 
+import '../../core/theme/app_colors.dart';
+
 class NavigationDirectionTestScreen
     extends ConsumerStatefulWidget {
   const NavigationDirectionTestScreen({
@@ -465,7 +467,7 @@ class _NavigationDirectionTestScreenState
                   padding:
                       const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.red.withValues(
+                    color: AppColors.brown.withValues(
                       alpha: 0.08,
                     ),
                     borderRadius:
@@ -474,7 +476,7 @@ class _NavigationDirectionTestScreenState
                   child: Text(
                     _errorMessage!,
                     style: const TextStyle(
-                      color: Colors.red,
+                      color: AppColors.brown,
                       fontSize: 15,
                     ),
                   ),
@@ -706,7 +708,7 @@ class _NavigationDirectionTestScreenState
                   decoration: BoxDecoration(
                     borderRadius:
                         BorderRadius.circular(16),
-                    color: Colors.blue
+                    color: AppColors.brown
                         .withValues(alpha: 0.08),
                   ),
                   child: Column(
@@ -759,7 +761,7 @@ class _NavigationDirectionTestScreenState
                   'Navigation direction calculation '
                   'is active.',
                   style: TextStyle(
-                    color: Colors.green,
+                    color: AppColors.brown,
                     fontWeight: FontWeight.w600,
                   ),
                 ),

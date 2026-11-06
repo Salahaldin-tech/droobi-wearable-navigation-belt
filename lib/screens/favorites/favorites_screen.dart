@@ -12,6 +12,8 @@ import '../../widgets/page_help_button.dart';
 import '../destination/destination_search_screen.dart';
 import '../navigation/live_navigation_screen.dart';
 
+import '../../core/theme/app_colors.dart';
+
 class FavoritesScreen extends ConsumerStatefulWidget {
   const FavoritesScreen({super.key});
 
@@ -21,10 +23,10 @@ class FavoritesScreen extends ConsumerStatefulWidget {
 
 class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
     with TickerProviderStateMixin {
-  static const Color _primaryBlue = Color(0xFF2F80ED);
-  static const Color _cardColor = Color(0xFFF5F5F5);
-  static const Color _textColor = Color(0xFF111111);
-  static const Color _secondaryText = Color(0xFF666666);
+  static const Color _primaryBlue = AppColors.brown;
+  static const Color _cardColor = AppColors.cream;
+  static const Color _textColor = AppColors.brown;
+  static const Color _secondaryText = AppColors.brown;
 
   late final AnimationController _backgroundController;
   late final AnimationController _headerAnimation;
@@ -272,7 +274,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
     required VoidCallback onTap,
   }) {
     return Material(
-      color: Colors.white,
+      color: AppColors.cream,
       borderRadius: BorderRadius.circular(14),
       elevation: 4,
       child: InkWell(
@@ -295,7 +297,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
                 ),
                 child: Icon(
                   icon,
-                  color: Colors.white,
+                  color: AppColors.cream,
                   size: 21,
                 ),
               ),
@@ -338,7 +340,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
     final favoritesAsync = ref.watch(favoritesProvider);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.cream,
       body: Stack(
         children: [
           // MAP BACKGROUND
@@ -356,7 +358,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
           // LIGHT FOG
           Positioned.fill(
             child: Container(
-              color: Colors.white.withValues(alpha: 0.90),
+              color: AppColors.cream.withValues(alpha: 0.90),
             ),
           ),
 
@@ -373,23 +375,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
 
                     return DecoratedBox(
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.lerp(
-                            Alignment.topLeft,
-                            Alignment.topRight,
-                            t,
-                          )!,
-                          end: Alignment.lerp(
-                            Alignment.bottomRight,
-                            Alignment.bottomLeft,
-                            t,
-                          )!,
-                          colors: [
-                            const Color(0xFFDCEBFF).withValues(alpha: 0.30),
-                            Colors.white.withValues(alpha: 0.05),
-                            const Color(0xFFD9F5EA).withValues(alpha: 0.25),
-                          ],
-                        ),
+                        
                       ),
                     );
                   },
@@ -470,7 +456,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
                                 child: Text(
                                   'Unable to load Favorites.',
                                   style: TextStyle(
-                                    color: Colors.red,
+                                    color: AppColors.brown,
                                     fontSize: 15,
                                   ),
                                 ),
@@ -581,7 +567,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
                     child: FloatingActionButton(
                       heroTag: 'favorites_add_fab',
                       backgroundColor: _primaryBlue,
-                      foregroundColor: Colors.white,
+                      foregroundColor: AppColors.cream,
                       elevation: 5,
                       onPressed:
                           _addingCurrentLocation ? null : _toggleAddOptions,
@@ -591,7 +577,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
                               height: 22,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2.5,
-                                color: Colors.white,
+                                color: AppColors.cream,
                               ),
                             )
                           : AnimatedRotation(
@@ -644,7 +630,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
                   ),
                   child: const Icon(
                     Icons.location_on_outlined,
-                    color: Colors.white,
+                    color: AppColors.cream,
                     size: 24,
                   ),
                 ),

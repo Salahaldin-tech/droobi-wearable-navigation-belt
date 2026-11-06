@@ -11,6 +11,8 @@ import '../../state/university_locations_notifier.dart';
 import '../../widgets/droobi_bottom_nav.dart';
 import '../../widgets/page_help_button.dart';
 
+import '../../core/theme/app_colors.dart';
+
 class UniversityLocationsScreen extends ConsumerStatefulWidget {
   const UniversityLocationsScreen({super.key, this.initialQuery});
 
@@ -25,11 +27,11 @@ class UniversityLocationsScreen extends ConsumerStatefulWidget {
 class _UniversityLocationsScreenState
     extends ConsumerState<UniversityLocationsScreen>
     with SingleTickerProviderStateMixin {
-  static const Color _primaryBlue = Color(0xFF2F80ED);
-  static const Color _pageBackground = Color(0xFFF4F5F7);
-  static const Color _cardColor = Color(0xFFF5F5F5);
-  static const Color _textColor = Color(0xFF111111);
-  static const Color _secondaryText = Color(0xFF6B7280);
+  static const Color _primaryBlue = AppColors.brown;
+  static const Color _pageBackground = AppColors.cream;
+  static const Color _cardColor = AppColors.cream;
+  static const Color _textColor = AppColors.brown;
+  static const Color _secondaryText = AppColors.brown;
 
   // Only the first items (the ones visible when the screen opens) animate.
   static const int _maxAnimatedItems = 10;
@@ -397,7 +399,7 @@ class _UniversityLocationsScreenState
 
           Positioned.fill(
             child: Container(
-              color: Colors.white.withValues(alpha: 1),
+              color: AppColors.cream.withValues(alpha: 1),
             ),
           ),
 
@@ -418,23 +420,7 @@ class _UniversityLocationsScreenState
 
                     return DecoratedBox(
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.lerp(
-                            Alignment.topLeft,
-                            Alignment.topRight,
-                            t,
-                          )!,
-                          end: Alignment.lerp(
-                            Alignment.bottomRight,
-                            Alignment.bottomLeft,
-                            t,
-                          )!,
-                          colors: [
-                            const Color(0xFFDCEBFF).withValues(alpha: 0.30),
-                            Colors.white.withValues(alpha: 0.05),
-                            const Color(0xFFD9F5EA).withValues(alpha: 0.25),
-                          ],
-                        ),
+                        
                       ),
                     );
                   },
@@ -629,7 +615,7 @@ class _UniversityLocationsScreenState
                 padding: const EdgeInsets.symmetric(horizontal: 18),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: isSelected ? _primaryBlue : Colors.white,
+                  color: isSelected ? _primaryBlue : AppColors.cream,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: isSelected ? _primaryBlue : _primaryBlue.withValues(alpha: 0.4),
@@ -640,7 +626,7 @@ class _UniversityLocationsScreenState
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: isSelected ? Colors.white : _primaryBlue,
+                    color: isSelected ? AppColors.cream : _primaryBlue,
                   ),
                 ),
               ),
@@ -954,7 +940,7 @@ class _UniversityLocationsScreenState
               Icon(
                 Icons.error_outline,
                 size: 48,
-                color: Colors.grey.shade400,
+                color: AppColors.brown.shade400,
               ),
               const SizedBox(height: 16),
               const Text(

@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../services/navigation/compass_service.dart';
 
+import '../../core/theme/app_colors.dart';
+
 class CompassTestScreen extends ConsumerStatefulWidget {
   const CompassTestScreen({super.key});
 
@@ -147,7 +149,7 @@ class _CompassTestScreenState
                   _errorMessage!,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                    color: Colors.red,
+                    color: AppColors.brown,
                     fontSize: 16,
                   ),
                 ),

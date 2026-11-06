@@ -2,144 +2,199 @@ import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
 
-/// Shared accessible theme for Droobi.
+/// Application-wide cream and brown theme with shared Arabic typography.
 class AccessibleTheme {
   AccessibleTheme._();
 
   static const double minTouchTargetSize = 48;
 
   static ThemeData get theme {
-    final colorScheme = const ColorScheme(
-      brightness: Brightness.light,
-      primary: AppColors.primary,
-      onPrimary: AppColors.onPrimary,
-      secondary: AppColors.primary,
-      onSecondary: AppColors.onPrimary,
-      error: Color(0xFF9B3D32),
-      onError: AppColors.background,
-      surface: AppColors.surface,
-      onSurface: AppColors.onSurface,
+    const scheme = ColorScheme.light(
+      primary: AppColors.brown,
+      onPrimary: AppColors.cream,
+      primaryContainer: AppColors.cream,
+      onPrimaryContainer: AppColors.brown,
+      secondary: AppColors.brown,
+      onSecondary: AppColors.cream,
+      secondaryContainer: AppColors.cream,
+      onSecondaryContainer: AppColors.brown,
+      tertiary: AppColors.brown,
+      onTertiary: AppColors.cream,
+      tertiaryContainer: AppColors.cream,
+      onTertiaryContainer: AppColors.brown,
+      error: AppColors.brown,
+      onError: AppColors.cream,
+      errorContainer: AppColors.cream,
+      onErrorContainer: AppColors.brown,
+      surface: AppColors.cream,
+      onSurface: AppColors.brown,
+      surfaceDim: AppColors.cream,
+      surfaceBright: AppColors.cream,
+      surfaceContainerLowest: AppColors.cream,
+      surfaceContainerLow: AppColors.cream,
+      surfaceContainer: AppColors.cream,
+      surfaceContainerHigh: AppColors.cream,
+      surfaceContainerHighest: AppColors.cream,
+      onSurfaceVariant: AppColors.brown,
+      outline: AppColors.brown,
+      outlineVariant: AppColors.brown,
+      shadow: AppColors.brown,
+      scrim: AppColors.brown,
+      inverseSurface: AppColors.brown,
+      onInverseSurface: AppColors.cream,
+      inversePrimary: AppColors.cream,
+      surfaceTint: AppColors.cream,
+    );
+
+    const headline = TextStyle(
+      fontFamily: 'LyonArabic',
+      fontSize: 48,
+      height: 1.25,
+      fontWeight: FontWeight.w900,
+      color: AppColors.brown,
+      fontFamilyFallback: ['IBMPlexSansArabic'],
+    );
+    const body = TextStyle(
+      fontFamily: 'IBMPlexSansArabic',
+      color: AppColors.brown,
     );
 
     final base = ThemeData(
       useMaterial3: true,
-      colorScheme: colorScheme,
-      scaffoldBackgroundColor: AppColors.background,
-      canvasColor: AppColors.background,
       brightness: Brightness.light,
+      colorScheme: scheme,
+      scaffoldBackgroundColor: AppColors.cream,
+      canvasColor: AppColors.cream,
+      cardColor: AppColors.cream,
+      dialogBackgroundColor: AppColors.cream,
+      fontFamily: 'IBMPlexSansArabic',
+      textTheme: const TextTheme(
+        displayLarge: headline,
+        displayMedium: headline,
+        displaySmall: headline,
+        headlineLarge: headline,
+        headlineMedium: headline,
+        headlineSmall: headline,
+        titleLarge: TextStyle(fontFamily: 'IBMPlexSansArabic', fontWeight: FontWeight.w700, color: AppColors.brown),
+        titleMedium: TextStyle(fontFamily: 'IBMPlexSansArabic', fontWeight: FontWeight.w500, color: AppColors.brown),
+        titleSmall: TextStyle(fontFamily: 'IBMPlexSansArabic', fontWeight: FontWeight.w500, color: AppColors.brown),
+        bodyLarge: body,
+        bodyMedium: body,
+        bodySmall: body,
+        labelLarge: TextStyle(fontFamily: 'IBMPlexSansArabic', fontWeight: FontWeight.w700, color: AppColors.brown),
+        labelMedium: TextStyle(fontFamily: 'IBMPlexSansArabic', fontWeight: FontWeight.w500, color: AppColors.brown),
+        labelSmall: body,
+      ),
+    );
+
+    final outline = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: AppColors.brown),
     );
 
     return base.copyWith(
-      textTheme: base.textTheme.apply(
-        bodyColor: AppColors.primary,
-        displayColor: AppColors.primary,
-      ),
       appBarTheme: const AppBarTheme(
         centerTitle: true,
-        backgroundColor: AppColors.background,
-        foregroundColor: AppColors.primary,
-        surfaceTintColor: Colors.transparent,
-        titleTextStyle: TextStyle(
-              fontSize: 20,
-          fontWeight: FontWeight.w700,
-          color: AppColors.primary,
-        ),
+        backgroundColor: AppColors.cream,
+        foregroundColor: AppColors.brown,
+        surfaceTintColor: AppColors.cream,
       ),
-      iconTheme: const IconThemeData(color: AppColors.primary),
+      iconTheme: const IconThemeData(color: AppColors.brown),
+      primaryIconTheme: const IconThemeData(color: AppColors.brown),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           minimumSize: const Size(minTouchTargetSize * 2, minTouchTargetSize),
-          backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.onPrimary,
-          disabledBackgroundColor: AppColors.disabled,
-          disabledForegroundColor: AppColors.background,
-          textStyle: const TextStyle(
-                  fontSize: 16,
-            fontWeight: FontWeight.w700,
-          ),
+          backgroundColor: AppColors.brown,
+          foregroundColor: AppColors.cream,
+          disabledBackgroundColor: AppColors.brown,
+          disabledForegroundColor: AppColors.cream,
+          textStyle: const TextStyle(fontFamily: 'IBMPlexSansArabic', fontWeight: FontWeight.w700),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           minimumSize: const Size(minTouchTargetSize * 2, minTouchTargetSize),
-          backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.onPrimary,
-          disabledBackgroundColor: AppColors.disabled,
-          disabledForegroundColor: AppColors.background,
-          textStyle: const TextStyle(
-                  fontWeight: FontWeight.w700,
-          ),
+          backgroundColor: AppColors.brown,
+          foregroundColor: AppColors.cream,
+          textStyle: const TextStyle(fontFamily: 'IBMPlexSansArabic', fontWeight: FontWeight.w700),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(foregroundColor: AppColors.primary),
+        style: TextButton.styleFrom(foregroundColor: AppColors.brown, textStyle: const TextStyle(fontFamily: 'IBMPlexSansArabic')),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.primary,
-          side: const BorderSide(color: AppColors.primary),
+          foregroundColor: AppColors.brown,
+          side: const BorderSide(color: AppColors.brown),
+          textStyle: const TextStyle(fontFamily: 'IBMPlexSansArabic'),
         ),
       ),
       iconButtonTheme: IconButtonThemeData(
-        style: IconButton.styleFrom(
-          minimumSize: const Size(minTouchTargetSize, minTouchTargetSize),
-          foregroundColor: AppColors.primary,
-        ),
+        style: IconButton.styleFrom(minimumSize: const Size(minTouchTargetSize, minTouchTargetSize), foregroundColor: AppColors.brown),
+      ),
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: AppColors.brown,
+        foregroundColor: AppColors.cream,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.background,
-        labelStyle: const TextStyle(color: AppColors.primary),
-        hintStyle: const TextStyle(color: AppColors.disabled),
-        prefixIconColor: AppColors.primary,
-        suffixIconColor: AppColors.primary,
-        border: OutlineInputBorder(
-          borderSide: const BorderSide(color: AppColors.border),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: AppColors.border),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-          borderRadius: BorderRadius.circular(12),
-        ),
+        fillColor: AppColors.cream,
+        labelStyle: const TextStyle(color: AppColors.brown, fontFamily: 'IBMPlexSansArabic'),
+        hintStyle: const TextStyle(color: AppColors.brown, fontFamily: 'IBMPlexSansArabic'),
+        prefixIconColor: AppColors.brown,
+        suffixIconColor: AppColors.brown,
+        border: outline,
+        enabledBorder: outline,
+        focusedBorder: outline,
       ),
-      cardTheme: const CardThemeData(
-        color: AppColors.background,
-        surfaceTintColor: Colors.transparent,
-      ),
-      dialogTheme: const DialogThemeData(
-        backgroundColor: AppColors.background,
-        surfaceTintColor: Colors.transparent,
-      ),
-      bottomSheetTheme: const BottomSheetThemeData(
-        backgroundColor: AppColors.background,
-        surfaceTintColor: Colors.transparent,
-      ),
+      cardTheme: const CardThemeData(color: AppColors.cream, surfaceTintColor: AppColors.cream),
+      dialogTheme: const DialogThemeData(backgroundColor: AppColors.cream, surfaceTintColor: AppColors.cream),
+      bottomSheetTheme: const BottomSheetThemeData(backgroundColor: AppColors.cream, surfaceTintColor: AppColors.cream),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        backgroundColor: AppColors.background,
-        selectedItemColor: AppColors.primary,
-        unselectedItemColor: AppColors.disabled,
+        backgroundColor: AppColors.cream,
+        selectedItemColor: AppColors.brown,
+        unselectedItemColor: AppColors.brown,
       ),
       navigationBarTheme: const NavigationBarThemeData(
-        backgroundColor: AppColors.background,
-        indicatorColor: AppColors.border,
-        iconTheme: WidgetStatePropertyAll(IconThemeData(color: AppColors.primary)),
-        labelTextStyle: WidgetStatePropertyAll(
-          TextStyle(color: AppColors.primary, fontWeight: FontWeight.w500),
-        ),
+        backgroundColor: AppColors.cream,
+        indicatorColor: AppColors.cream,
+        iconTheme: WidgetStatePropertyAll(IconThemeData(color: AppColors.brown)),
+        labelTextStyle: WidgetStatePropertyAll(TextStyle(color: AppColors.brown, fontFamily: 'IBMPlexSansArabic')),
       ),
-      listTileTheme: const ListTileThemeData(
-        minVerticalPadding: 12,
-        iconColor: AppColors.primary,
-        textColor: AppColors.primary,
+      tabBarTheme: const TabBarThemeData(labelColor: AppColors.brown, unselectedLabelColor: AppColors.brown, indicatorColor: AppColors.brown),
+      switchTheme: const SwitchThemeData(
+        thumbColor: WidgetStatePropertyAll(AppColors.brown),
+        trackColor: WidgetStatePropertyAll(AppColors.cream),
+        trackOutlineColor: WidgetStatePropertyAll(AppColors.brown),
+      ),
+      checkboxTheme: const CheckboxThemeData(
+        fillColor: WidgetStatePropertyAll(AppColors.brown),
+        checkColor: WidgetStatePropertyAll(AppColors.cream),
+        side: BorderSide(color: AppColors.brown),
+      ),
+      radioTheme: const RadioThemeData(fillColor: WidgetStatePropertyAll(AppColors.brown)),
+      sliderTheme: const SliderThemeData(
+        activeTrackColor: AppColors.brown,
+        inactiveTrackColor: AppColors.cream,
+        thumbColor: AppColors.brown,
+        overlayColor: AppColors.cream,
       ),
       progressIndicatorTheme: const ProgressIndicatorThemeData(
-        color: AppColors.primary,
+        color: AppColors.brown,
+        linearTrackColor: AppColors.cream,
+        circularTrackColor: AppColors.cream,
       ),
-      dividerTheme: const DividerThemeData(color: AppColors.border),
+      snackBarTheme: const SnackBarThemeData(
+        backgroundColor: AppColors.brown,
+        contentTextStyle: TextStyle(color: AppColors.cream, fontFamily: 'IBMPlexSansArabic'),
+      ),
+      dividerTheme: const DividerThemeData(color: AppColors.brown),
+      listTileTheme: const ListTileThemeData(iconColor: AppColors.brown, textColor: AppColors.brown),
+      textSelectionTheme: const TextSelectionThemeData(
+        cursorColor: AppColors.brown,
+        selectionColor: AppColors.cream,
+        selectionHandleColor: AppColors.brown,
+      ),
     );
   }
 }

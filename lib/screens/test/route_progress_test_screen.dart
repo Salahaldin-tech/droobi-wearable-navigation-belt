@@ -9,6 +9,8 @@ import '../../services/routing/routing_service.dart';
 import '../../state/location_notifier.dart';
 import '../../state/routing_notifier.dart';
 
+import '../../core/theme/app_colors.dart';
+
 class RouteProgressTestScreen extends ConsumerStatefulWidget {
   const RouteProgressTestScreen({super.key});
 
@@ -294,7 +296,7 @@ class _RouteProgressTestScreenState
                 padding:
                     const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.red.withValues(
+                  color: AppColors.brown.withValues(
                     alpha: 0.08,
                   ),
                   borderRadius:
@@ -303,7 +305,7 @@ class _RouteProgressTestScreenState
                 child: Text(
                   _errorMessage!,
                   style: const TextStyle(
-                    color: Colors.red,
+                    color: AppColors.brown,
                     fontSize: 15,
                   ),
                 ),
@@ -447,7 +449,7 @@ class _RouteProgressTestScreenState
                 padding:
                     const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.blue.withValues(
+                  color: AppColors.brown.withValues(
                     alpha: 0.08,
                   ),
                   borderRadius:

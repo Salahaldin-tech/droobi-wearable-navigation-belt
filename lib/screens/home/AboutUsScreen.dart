@@ -3,13 +3,15 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../widgets/page_help_button.dart';
 
+import '../../core/theme/app_colors.dart';
+
 class AboutUsScreen extends StatelessWidget {
   const AboutUsScreen({super.key});
 
   static const _repoUrl =
       'https://github.com/Salahaldin-tech/droobi-wearable-navigation-belt';
 
-  static const _blue = Color(0xFF2F80ED);
+  static const _blue = AppColors.brown;
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +21,7 @@ class AboutUsScreen extends StatelessWidget {
     final cs = ColorScheme.fromSeed(
       seedColor: _blue,
       brightness: base.brightness,
-    ).copyWith(primary: _blue, onPrimary: Colors.white);
+    ).copyWith(primary: _blue, onPrimary: AppColors.cream);
     final tt = base.textTheme;
 
     return Directionality(
