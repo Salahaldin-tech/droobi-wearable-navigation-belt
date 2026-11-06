@@ -498,7 +498,7 @@ class _UniversityLocationsScreenState
   // ===========================================================================
 
   Widget _buildHeader() {
-    return const Column(
+    return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
