@@ -75,7 +75,7 @@ class AccessibleTheme {
         headlineLarge: headline,
         headlineMedium: headline,
         headlineSmall: headline,
-        titleLarge: TextStyle(fontFamily: 'IBMPlexSansArabic', fontWeight: FontWeight.w700, color: AppColors.brown),
+        titleLarge: headline.copyWith(fontSize: 24, height: 1.25),
         titleMedium: TextStyle(fontFamily: 'IBMPlexSansArabic', fontWeight: FontWeight.w500, color: AppColors.brown),
         titleSmall: TextStyle(fontFamily: 'IBMPlexSansArabic', fontWeight: FontWeight.w500, color: AppColors.brown),
         bodyLarge: body,
@@ -93,11 +93,12 @@ class AccessibleTheme {
     );
 
     return base.copyWith(
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         centerTitle: true,
         backgroundColor: AppColors.cream,
         foregroundColor: AppColors.brown,
         surfaceTintColor: AppColors.cream,
+        titleTextStyle: headline.copyWith(fontSize: 30, height: 1.2),
       ),
       iconTheme: const IconThemeData(color: AppColors.brown),
       primaryIconTheme: const IconThemeData(color: AppColors.brown),
