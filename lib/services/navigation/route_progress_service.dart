@@ -108,7 +108,7 @@ class RouteProgressService {
       endIndex: math.min(
         route.polyline.length - 2,
         _lastSegmentIndex + 8,
-      ),
+      ).toInt(),
     );
 
     // Keep progress locally monotonic. A one-segment retreat is tolerated
