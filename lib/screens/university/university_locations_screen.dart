@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/lat_lon.dart';
@@ -45,6 +48,7 @@ class _UniversityLocationsScreenState
   String _selectedCategory = _categories.first;
   final _searchController = TextEditingController();
   String _searchQuery = '';
+  List<UniversityLocation> _qgisLocations = [];
 
   @override
   void initState() {
@@ -60,6 +64,8 @@ class _UniversityLocationsScreenState
       _searchController.text = initialQuery;
       _searchQuery = initialQuery.toLowerCase();
     }
+
+    _loadQgisLocations();
 
     _searchController.addListener(() {
       setState(() {
@@ -796,71 +802,29 @@ class _UniversityLocationsScreenState
     _UniversityItem item,
     List<UniversityLocation> locations,
   ) {
-    // These two main doors have field-verified coordinates supplied for
-    // the first campus-navigation test. Use them even if Firestore has no
-    // entry yet, and do not let an older Firestore coordinate override them.
-    if (item.name == 'Faculty of Arts and Education') {
-      return const UniversityLocation(
-        id: 'campus_arts_main_door',
-        name: 'Faculty of Arts and Sciences (Main Door)',
-        latitude: 32.40800714037887,
-        longitude: 35.34461510962358,
-      );
+    // Destination coordinates are sourced from the QGIS nodes layer.
+    // Junction nodes are intentionally excluded from the University cards.
+    final nodeIds = switch (item.name) {
+      'Cafeteria' => const ['C1', 'C2', 'C3'],
+      'Gate 1' => const ['G1'],
+      'Gate 3' => const ['G3'],
+      'Faculty of Information Technology' => const ['IT1'],
+      'Faculty of Arts and Education' => const ['AR1'],
+      'Faculty of Engineering' => const ['E1'],
+      _ => const <String>[],
+    };
+
+    for (final nodeId in nodeIds) {
+      for (final node in _qgisLocations) {
+        if (node.id == nodeId) return node;
+      }
     }
 
-    if (item.name == 'Faculty of Engineering') {
-      return const UniversityLocation(
-        id: 'campus_engineering_main_door',
-        name: 'Faculty of Engineering (Main Door)',
-        latitude: 32.40830124533684,
-        longitude: 35.345673423520545,
-      );
-    }
-
-    if (item.name == 'Gate 1') {
-      return const UniversityLocation(
-        id: 'campus_gate_1',
-        name: 'Gate 1',
-        latitude: 32.40554629411794,
-        longitude: 35.342217740641594,
-      );
-    }
-
-    // QGIS campus-pilot destinations. These coordinates are taken from
-    // the exported nodes.geojson and are still unverified in the field.
-    if (item.name == 'Gate 3') {
-      return const UniversityLocation(
-        id: 'campus_gate_3_qgis',
-        name: 'Gate 3',
-        latitude: 32.407314121188996,
-        longitude: 35.341274227489635,
-      );
-    }
-
-    if (item.name == 'Cafeteria') {
-      return const UniversityLocation(
-        id: 'campus_cafeteria_entrance_qgis',
-        name: 'Cafeteria Entrance from Gate 3',
-        latitude: 32.40699249396461,
-        longitude: 35.34216978223841,
-      );
-    }
-
-    if (item.name == 'Faculty of Information Technology') {
-      return const UniversityLocation(
-        id: 'campus_it_entrance_qgis',
-        name: 'Information Technology Building Entrance',
-        latitude: 32.40673198766468,
-        longitude: 35.34336219649338,
-      );
-    }
-
+    // Keep Firestore-backed locations for destinations not yet mapped in QGIS.
     for (final location in locations) {
       final locationName = _normalize(location.name);
-
       for (final alias in item.aliases) {
         final normalizedAlias = _normalize(alias);
-
         if (locationName == normalizedAlias ||
             locationName.contains(normalizedAlias) ||
             normalizedAlias.contains(locationName)) {
@@ -868,8 +832,52 @@ class _UniversityLocationsScreenState
         }
       }
     }
-
     return null;
+  }
+
+  Future<void> _loadQgisLocations() async {
+    try {
+      final source = await rootBundle.loadString(
+        'docs/campus-mapping/nodes.geojson',
+      );
+      final collection = jsonDecode(source) as Map<String, dynamic>;
+      final features = collection['features'] as List<dynamic>? ?? const [];
+      final parsed = <UniversityLocation>[];
+
+      for (final feature in features) {
+        if (feature is! Map<String, dynamic>) continue;
+        final properties =
+            feature['properties'] as Map<String, dynamic>? ?? const {};
+        final geometry = feature['geometry'] as Map<String, dynamic>?;
+        if (geometry == null || geometry['type'] != 'Point') continue;
+
+        final nodeType = (properties['node_type'] ?? '')
+            .toString()
+            .toLowerCase();
+        if (nodeType.contains('junction')) continue;
+
+        final coordinates = geometry['coordinates'] as List<dynamic>?;
+        if (coordinates == null || coordinates.length < 2) continue;
+        final longitude = (coordinates[0] as num?)?.toDouble();
+        final latitude = (coordinates[1] as num?)?.toDouble();
+        final id = (properties['node_id'] ?? '').toString();
+        final name = (properties['name'] ?? id).toString();
+        if (longitude == null || latitude == null || id.isEmpty) continue;
+
+        parsed.add(UniversityLocation(
+          id: id,
+          name: name,
+          latitude: latitude,
+          longitude: longitude,
+        ));
+      }
+
+      if (mounted) {
+        setState(() => _qgisLocations = parsed);
+      }
+    } catch (error) {
+      debugPrint('Could not load QGIS campus nodes: $error');
+    }
   }
 
   String _normalize(String value) {
@@ -896,6 +904,15 @@ class _UniversityLocationsScreenState
             latitude: location.latitude,
             longitude: location.longitude,
           ),
+          destinationCandidates: item.name == 'Cafeteria'
+              ? _qgisLocations
+                  .where((node) => const ['C1', 'C2', 'C3'].contains(node.id))
+                  .map((node) => LatLon(
+                        latitude: node.latitude,
+                        longitude: node.longitude,
+                      ))
+                  .toList()
+              : null,
           campusNavigation: true,
         ),
       ),
