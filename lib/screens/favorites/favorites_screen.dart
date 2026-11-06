@@ -398,7 +398,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
                         // HEADER
                         _fadeSlide(
                           _headerAnimation,
-                          const Column(
+                          Column(
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
