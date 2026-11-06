@@ -353,6 +353,7 @@ class _GpsFilterTestScreenState
         backgroundColor: AppColors.brown,
         elevation: 0,
         foregroundColor: AppColors.cream,
+        titleTextStyle: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppColors.cream, fontSize: 28),
         title: const Text(
           'GPS Filter Test',
           style: TextStyle(
@@ -371,13 +372,9 @@ class _GpsFilterTestScreenState
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            const Text(
+            Text(
               'GPS FILTER TEST',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.5,
-              ),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 24, letterSpacing: 0.5),
             ),
 
             const SizedBox(height: 20),
