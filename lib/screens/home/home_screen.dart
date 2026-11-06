@@ -365,11 +365,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           children: [
                             Text(
                               'Droobi',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w500,
-                                color: _text,
-                              ),
+                              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 30),
                             ),
                             SizedBox(width: 4),
                             PageHelpButton(
