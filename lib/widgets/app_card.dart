@@ -20,12 +20,8 @@ class AppCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final radius = BorderRadius.circular(borderRadius);
-    return Material(
-      color: AppColors.cream,
-      elevation: 0,
-      borderRadius: radius,
-      child: Container(
-        decoration: BoxDecoration(
+    return Container(
+      decoration: BoxDecoration(
           color: AppColors.cream,
           borderRadius: radius,
           border: Border.all(
@@ -40,10 +36,13 @@ class AppCard extends StatelessWidget {
             ),
           ],
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(1),
-          child: ClipRRect(
-            borderRadius: radius,
+      child: Padding(
+        padding: const EdgeInsets.all(1),
+        child: ClipRRect(
+          borderRadius: radius,
+          child: Material(
+            color: AppColors.cream,
+            clipBehavior: Clip.antiAlias,
             child: InkWell(
               onTap: onTap,
               child: Padding(
