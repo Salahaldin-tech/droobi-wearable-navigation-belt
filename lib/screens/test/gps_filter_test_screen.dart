@@ -767,7 +767,7 @@ class _InfoCard extends StatelessWidget {
         color: AppColors.cream,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: Colors.black12,
+          color: AppColors.brown,
         ),
       ),
       child: Column(
@@ -806,7 +806,7 @@ class _InfoRow extends StatelessWidget {
               label,
               style: const TextStyle(
                 fontSize: 16,
-                color: Colors.black45,
+                color: AppColors.brown,
               ),
             ),
           ),
