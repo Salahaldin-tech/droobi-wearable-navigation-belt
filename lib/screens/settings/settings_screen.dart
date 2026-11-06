@@ -492,12 +492,7 @@ class SettingsScreen extends ConsumerWidget {
   Widget _sectionLabel(String text) {
     return Text(
       text,
-      style: const TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 0.4,
-        color: _muted,
-      ),
+      style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 20, letterSpacing: 0.4),
     );
   }
 
