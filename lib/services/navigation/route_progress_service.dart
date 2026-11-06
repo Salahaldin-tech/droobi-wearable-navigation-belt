@@ -25,6 +25,14 @@ class RouteProgressService {
   /// as a meaningful turn.
   final double turnDetectionAngleDegrees;
 
+  RouteResult? _activeRoute;
+  int _lastSegmentIndex = 0;
+
+  void reset() {
+    _activeRoute = null;
+    _lastSegmentIndex = 0;
+  }
+
   // ================================================================
   // SIMPLE TARGET API
   // ================================================================
@@ -72,10 +80,26 @@ class RouteProgressService {
       );
     }
 
+    if (!identical(_activeRoute, route)) {
+      _activeRoute = route;
+      _lastSegmentIndex = 0;
+    }
+
     final nearest = _findNearestPointOnRoute(
       currentPosition: currentPosition,
       polyline: route.polyline,
+      startIndex: math.max(0, _lastSegmentIndex - 1),
+      endIndex: math.min(
+        route.polyline.length - 2,
+        _lastSegmentIndex + 8,
+      ),
     );
+
+    // Keep progress locally monotonic. A one-segment retreat is tolerated
+    // for GPS jitter; a distant earlier segment cannot steal route matching.
+    if (nearest.segmentIndex >= _lastSegmentIndex - 1) {
+      _lastSegmentIndex = math.max(_lastSegmentIndex, nearest.segmentIndex);
+    }
 
     final adaptiveLookAhead =
         lookAheadMeters ??
@@ -472,6 +496,8 @@ class RouteProgressService {
   _NearestRoutePoint _findNearestPointOnRoute({
     required LatLon currentPosition,
     required List<LatLon> polyline,
+    int startIndex = 0,
+    int? endIndex,
   }) {
     var nearestDistance =
         double.infinity;
@@ -480,9 +506,13 @@ class RouteProgressService {
 
     LatLon? nearestPoint;
 
+    final firstIndex = startIndex.clamp(0, polyline.length - 2);
+    final finalIndex = (endIndex ?? polyline.length - 2)
+        .clamp(firstIndex, polyline.length - 2);
+
     for (
-      var i = 0;
-      i < polyline.length - 1;
+      var i = firstIndex;
+      i <= finalIndex;
       i++
     ) {
       final start =
