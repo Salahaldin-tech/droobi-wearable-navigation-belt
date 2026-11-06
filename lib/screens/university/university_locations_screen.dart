@@ -780,6 +780,7 @@ class _UniversityLocationsScreenState
           ),
         ),
       ),
+      ),
     );
   }
 
