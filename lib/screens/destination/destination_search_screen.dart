@@ -10,6 +10,7 @@ import '../../state/favorites_notifier.dart';
 import '../../widgets/page_help_button.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../widgets/app_card.dart';
 
 class _AppTheme {
   const _AppTheme._();
@@ -513,12 +514,8 @@ class _DestinationSearchScreenState
   }
 
   Widget _buildResultTile(Destination destination) {
-    return Container(
-      decoration: BoxDecoration(
-        color: _AppTheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: _AppTheme.cardShadow,
-      ),
+    return AppCard(
+      padding: EdgeInsets.zero,
       child: ListTile(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         dense: true,
@@ -670,10 +667,14 @@ class _QueryChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Material(
-        color: _AppTheme.fieldFill,
-        shape: const StadiumBorder(),
+        color: AppColors.cream,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: BorderSide(color: AppColors.brown.withValues(alpha: 0.4), width: 1.5),
+        ),
         child: InkWell(
-          customBorder: const StadiumBorder(),
+          borderRadius: BorderRadius.circular(18),
+          overlayColor: WidgetStatePropertyAll(AppColors.brown.withValues(alpha: 0.12)),
           onTap: onTap,
           child: ConstrainedBox(
             constraints: const BoxConstraints(minHeight: 40),
@@ -683,7 +684,7 @@ class _QueryChip extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (icon != null) ...[
-                    Icon(icon, size: 16, color: color),
+                    Icon(icon, size: 16, color: AppColors.brown),
                     const SizedBox(width: 6),
                   ],
                   Flexible(
@@ -691,8 +692,8 @@ class _QueryChip extends StatelessWidget {
                       label,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: color,
+                      style: const TextStyle(
+                        color: AppColors.brown,
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
                       ),
