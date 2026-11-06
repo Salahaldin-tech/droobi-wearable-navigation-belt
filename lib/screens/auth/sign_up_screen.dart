@@ -140,7 +140,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: false,
+      resizeToAvoidBottomInset: true,
       backgroundColor: _AuthTheme.pageBackground,
       body: Stack(
         children: [
@@ -197,7 +197,8 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     ),
                   ),
                 ),
-                _SignUpPanel(
+                Expanded(
+                  child: _SignUpPanel(
                   nameController: _nameController,
                   emailController: _emailController,
                   passwordController: _passwordController,
@@ -217,6 +218,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     if (!_isSubmitting) _submit();
                   },
                   onLoginTap: _isSubmitting ? null : _goToLogin,
+                  ),
                 ),
               ],
             ),
@@ -279,7 +281,8 @@ class _Header extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
+          Expanded(
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
@@ -322,6 +325,7 @@ class _Header extends StatelessWidget {
                 ],
               ),
             ],
+          ),
           ),
           _LoginPill(onTap: onLoginTap),
         ],
@@ -406,10 +410,9 @@ class _SignUpPanel extends StatelessWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
         boxShadow: _AuthTheme.panelShadow,
       ),
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Drag indicator
