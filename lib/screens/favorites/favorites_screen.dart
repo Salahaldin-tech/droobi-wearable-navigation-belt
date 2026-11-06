@@ -684,6 +684,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
           ),
         ),
       ),
+      ),
     );
   }
 }
