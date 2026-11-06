@@ -443,11 +443,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       button: true,
                       label: 'Search destination',
                       hint: 'Open destination search',
-                      child: _glassCard(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.cream,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.brown, width: 1.5),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.brown.withValues(alpha: 0.15),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
                         child: Material(
-                          color: AppColors.brown,
+                          color: AppColors.cream,
+                          borderRadius: BorderRadius.circular(16),
+                          clipBehavior: Clip.antiAlias,
                           child: InkWell(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(16),
                             onTap: () {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
@@ -469,11 +483,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                     color: AppColors.brown,
                                   ),
                                   SizedBox(width: 12),
-                                  Text(
-                                    'Search destination...',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: AppColors.brown,
+                                  Expanded(
+                                    child: Text(
+                                      'Search destination...',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: AppColors.brown.withValues(alpha: 0.6),
+                                      ),
                                     ),
                                   ),
                                 ],
