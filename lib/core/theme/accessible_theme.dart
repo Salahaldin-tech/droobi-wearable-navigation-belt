@@ -48,8 +48,6 @@ class AccessibleTheme {
 
     const headline = TextStyle(
       fontFamily: 'LyonArabic',
-      fontSize: 48,
-      height: 1.25,
       fontWeight: FontWeight.w900,
       color: AppColors.brown,
       fontFamilyFallback: ['IBMPlexSansArabic'],
@@ -68,13 +66,13 @@ class AccessibleTheme {
       cardColor: AppColors.cream,
       dialogBackgroundColor: AppColors.cream,
       fontFamily: 'IBMPlexSansArabic',
-      textTheme: const TextTheme(
-        displayLarge: headline,
-        displayMedium: headline,
-        displaySmall: headline,
-        headlineLarge: headline,
-        headlineMedium: headline,
-        headlineSmall: headline,
+      textTheme: TextTheme(
+        displayLarge: headline.copyWith(fontSize: 48, height: 1.25),
+        displayMedium: headline.copyWith(fontSize: 40, height: 1.2),
+        displaySmall: headline.copyWith(fontSize: 36, height: 1.2),
+        headlineLarge: headline.copyWith(fontSize: 32, height: 1.2),
+        headlineMedium: headline.copyWith(fontSize: 28, height: 1.2),
+        headlineSmall: headline.copyWith(fontSize: 24, height: 1.25),
         titleLarge: headline.copyWith(fontSize: 24, height: 1.25),
         titleMedium: TextStyle(fontFamily: 'IBMPlexSansArabic', fontWeight: FontWeight.w500, color: AppColors.brown),
         titleSmall: TextStyle(fontFamily: 'IBMPlexSansArabic', fontWeight: FontWeight.w500, color: AppColors.brown),
