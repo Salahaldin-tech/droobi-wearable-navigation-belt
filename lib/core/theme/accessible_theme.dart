@@ -86,8 +86,8 @@ class AccessibleTheme {
     );
 
     final outline = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: AppColors.brown),
+      borderRadius: BorderRadius.circular(16),
+      borderSide: BorderSide(color: AppColors.brown.withValues(alpha: 0.6), width: 1.5),
     );
 
     return base.copyWith(
@@ -96,7 +96,7 @@ class AccessibleTheme {
         backgroundColor: AppColors.cream,
         foregroundColor: AppColors.brown,
         surfaceTintColor: AppColors.cream,
-        titleTextStyle: headline.copyWith(fontSize: 30, height: 1.2),
+        titleTextStyle: headline.copyWith(fontSize: 28, height: 1.2),
       ),
       iconTheme: const IconThemeData(color: AppColors.brown),
       primaryIconTheme: const IconThemeData(color: AppColors.brown),
@@ -139,12 +139,16 @@ class AccessibleTheme {
         filled: true,
         fillColor: AppColors.cream,
         labelStyle: const TextStyle(color: AppColors.brown, fontFamily: 'IBMPlexSansArabic'),
-        hintStyle: const TextStyle(color: AppColors.brown, fontFamily: 'IBMPlexSansArabic'),
+        hintStyle: TextStyle(color: AppColors.brown.withValues(alpha: 0.6), fontFamily: 'IBMPlexSansArabic'),
         prefixIconColor: AppColors.brown,
         suffixIconColor: AppColors.brown,
         border: outline,
         enabledBorder: outline,
-        focusedBorder: outline,
+        focusedBorder: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(16)), borderSide: BorderSide(color: AppColors.brown, width: 2)),
+        errorBorder: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(16)), borderSide: BorderSide(color: AppColors.brown, width: 2)),
+        focusedErrorBorder: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(16)), borderSide: BorderSide(color: AppColors.brown, width: 2)),
+        disabledBorder: outline,
+        errorStyle: const TextStyle(color: AppColors.brown, fontFamily: 'IBMPlexSansArabic'),
       ),
       cardTheme: const CardThemeData(color: AppColors.cream, surfaceTintColor: AppColors.cream),
       dialogTheme: const DialogThemeData(backgroundColor: AppColors.cream, surfaceTintColor: AppColors.cream),
