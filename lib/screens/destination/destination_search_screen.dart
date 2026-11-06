@@ -303,13 +303,22 @@ class _DestinationSearchScreenState
         elevation: 0,
         centerTitle: false,
         title: Row(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisSize: MainAxisSize.max,
           children: [
-            Flexible(
-              child: Text(
-                'Search Destination',
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 28),
+            Expanded(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Search Destination',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontFamily: 'LyonArabic',
+                    fontSize: 27,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
               ),
             ),
             SizedBox(width: 4),
