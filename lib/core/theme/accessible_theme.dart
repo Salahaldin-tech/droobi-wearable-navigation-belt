@@ -26,7 +26,6 @@ class AccessibleTheme {
       colorScheme: colorScheme,
       scaffoldBackgroundColor: AppColors.background,
       canvasColor: AppColors.background,
-      fontFamily: 'IBMPlexSansArabic',
       brightness: Brightness.light,
     );
 
@@ -41,8 +40,7 @@ class AccessibleTheme {
         foregroundColor: AppColors.primary,
         surfaceTintColor: Colors.transparent,
         titleTextStyle: TextStyle(
-          fontFamily: 'IBMPlexSansArabic',
-          fontSize: 20,
+              fontSize: 20,
           fontWeight: FontWeight.w700,
           color: AppColors.primary,
         ),
@@ -56,8 +54,7 @@ class AccessibleTheme {
           disabledBackgroundColor: AppColors.disabled,
           disabledForegroundColor: AppColors.background,
           textStyle: const TextStyle(
-            fontFamily: 'IBMPlexSansArabic',
-            fontSize: 16,
+                  fontSize: 16,
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -70,8 +67,7 @@ class AccessibleTheme {
           disabledBackgroundColor: AppColors.disabled,
           disabledForegroundColor: AppColors.background,
           textStyle: const TextStyle(
-            fontFamily: 'IBMPlexSansArabic',
-            fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w700,
           ),
         ),
       ),
