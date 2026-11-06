@@ -648,7 +648,7 @@ class _SectionTitle extends StatelessWidget {
       );
 }
 
-class _QueryChip extends StatelessWidget {
+class _QueryChip extends StatefulWidget {
   const _QueryChip({
     required this.label,
     required this.color,
@@ -662,16 +662,26 @@ class _QueryChip extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
+  State<_QueryChip> createState() => _QueryChipState();
+}
+
+class _QueryChipState extends State<_QueryChip> {
+  bool _pressed = false;
+
+  @override
   Widget build(BuildContext context) => Material(
-        color: AppColors.cream,
+        color: _pressed ? AppColors.brown : AppColors.cream,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(18),
-          side: BorderSide(color: AppColors.brown.withValues(alpha: 0.4), width: 1.5),
+          side: BorderSide(
+            color: AppColors.brown.withValues(alpha: 0.4),
+            width: 1.5,
+          ),
         ),
         child: InkWell(
           borderRadius: BorderRadius.circular(18),
-          overlayColor: WidgetStatePropertyAll(AppColors.brown.withValues(alpha: 0.12)),
-          onTap: onTap,
+          onHighlightChanged: (value) => setState(() => _pressed = value),
+          onTap: widget.onTap,
           child: ConstrainedBox(
             constraints: const BoxConstraints(minHeight: 40),
             child: Padding(
@@ -679,17 +689,21 @@ class _QueryChip extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (icon != null) ...[
-                    Icon(icon, size: 16, color: AppColors.brown),
+                  if (widget.icon != null) ...[
+                    Icon(
+                      widget.icon,
+                      size: 16,
+                      color: _pressed ? AppColors.cream : AppColors.brown,
+                    ),
                     const SizedBox(width: 6),
                   ],
                   Flexible(
                     child: Text(
-                      label,
+                      widget.label,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: AppColors.brown,
+                      style: TextStyle(
+                        color: _pressed ? AppColors.cream : AppColors.brown,
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
                       ),
