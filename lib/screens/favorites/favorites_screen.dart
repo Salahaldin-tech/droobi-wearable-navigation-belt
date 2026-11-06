@@ -616,9 +616,9 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
       label: 'Favorite location: ${favorite.label}',
       child: Material(
         color: _cardColor,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         child: InkWell(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           onTap: () => _openFavoriteNavigation(context, favorite),
           child: Padding(
             padding: const EdgeInsets.all(16),
