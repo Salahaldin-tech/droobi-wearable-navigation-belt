@@ -614,10 +614,7 @@ class _LiveNavigationScreenState
             text,
             key: ValueKey(text),
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.w800,
-            ),
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 28),
           ),
         ),
         const SizedBox(height: 12),
@@ -661,12 +658,9 @@ class _LiveNavigationScreenState
             color: AppColors.brown,
           ),
           const SizedBox(height: 24),
-          const Text(
+          Text(
             'You have arrived',
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.w800,
-            ),
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 28),
           ),
         ],
       ),
