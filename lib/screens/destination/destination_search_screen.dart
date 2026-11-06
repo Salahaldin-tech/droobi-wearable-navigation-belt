@@ -36,7 +36,6 @@ class _Category {
 
   final String label;
   final IconData icon;
-  final Color color;
   final String query;
   final bool isCampus;
 }
@@ -584,7 +583,6 @@ class _DestinationSearchScreenState
             for (final query in _SearchHistory.items)
               _QueryChip(
                 label: query,
-                color: _AppTheme.accent,
                 icon: Icons.history,
                 onTap: () => _submit(query),
               ),
@@ -621,7 +619,6 @@ class _DestinationSearchScreenState
           for (final query in _trendingSearches)
             _QueryChip(
               label: query,
-              color: _AppTheme.trending,
               onTap: () => _submit(query),
             ),
         ],
@@ -647,7 +644,6 @@ class _SectionTitle extends StatelessWidget {
 class _QueryChip extends StatefulWidget {
   const _QueryChip({
     required this.label,
-    required this.color,
     required this.onTap,
     this.icon,
   });
