@@ -1085,7 +1085,7 @@ class _MenuItem extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: active ? FontWeight.w600 : FontWeight.w500,
-                      color: active ? blue : const AppColors.brown,
+                      color: active ? blue : AppColors.brown,
                     ),
                   ),
                 ],
