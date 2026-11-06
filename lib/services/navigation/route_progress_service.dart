@@ -27,10 +27,25 @@ class RouteProgressService {
 
   RouteResult? _activeRoute;
   int _lastSegmentIndex = 0;
+  double _lastProgressMeters = 0;
+
+  double get totalRouteMeters {
+    final route = _activeRoute;
+    if (route == null || route.polyline.length < 2) return 0;
+    var total = 0.0;
+    for (var i = 1; i < route.polyline.length; i++) {
+      total += distanceBetween(route.polyline[i - 1], route.polyline[i]);
+    }
+    return total;
+  }
+
+  double get remainingRouteMeters =>
+      math.max(0.0, totalRouteMeters - _lastProgressMeters);
 
   void reset() {
     _activeRoute = null;
     _lastSegmentIndex = 0;
+    _lastProgressMeters = 0;
   }
 
   // ================================================================
@@ -83,6 +98,7 @@ class RouteProgressService {
     if (!identical(_activeRoute, route)) {
       _activeRoute = route;
       _lastSegmentIndex = 0;
+      _lastProgressMeters = 0;
     }
 
     final nearest = _findNearestPointOnRoute(
@@ -100,6 +116,19 @@ class RouteProgressService {
     if (nearest.segmentIndex >= _lastSegmentIndex - 1) {
       _lastSegmentIndex = math.max(_lastSegmentIndex, nearest.segmentIndex);
     }
+
+    var progressAtProjection = 0.0;
+    for (var i = 0; i < nearest.segmentIndex; i++) {
+      progressAtProjection += distanceBetween(
+        route.polyline[i],
+        route.polyline[i + 1],
+      );
+    }
+    progressAtProjection += distanceBetween(
+      route.polyline[nearest.segmentIndex],
+      nearest.projectedPoint,
+    );
+    _lastProgressMeters = math.max(_lastProgressMeters, progressAtProjection);
 
     final adaptiveLookAhead =
         lookAheadMeters ??
@@ -506,9 +535,9 @@ class RouteProgressService {
 
     LatLon? nearestPoint;
 
-    final firstIndex = startIndex.clamp(0, polyline.length - 2);
+    final firstIndex = startIndex.clamp(0, polyline.length - 2).toInt();
     final finalIndex = (endIndex ?? polyline.length - 2)
-        .clamp(firstIndex, polyline.length - 2);
+        .clamp(firstIndex, polyline.length - 2).toInt();
 
     for (
       var i = firstIndex;
