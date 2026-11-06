@@ -36,6 +36,7 @@ class _Category {
 
   final String label;
   final IconData icon;
+  final Color color;
   final String query;
   final bool isCampus;
 }
@@ -301,7 +302,7 @@ class _DestinationSearchScreenState
         backgroundColor: _AppTheme.background,
         elevation: 0,
         centerTitle: false,
-        title: const Row(
+        title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Flexible(
@@ -649,7 +650,6 @@ class _QueryChip extends StatefulWidget {
   });
 
   final String label;
-  final Color color;
   final IconData? icon;
   final VoidCallback onTap;
 
