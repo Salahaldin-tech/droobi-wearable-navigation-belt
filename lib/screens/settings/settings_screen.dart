@@ -105,7 +105,7 @@ class SettingsScreen extends ConsumerWidget {
                   const SizedBox(height: 28),
 
                   // Device
-                  _sectionLabel('DEVICE'),
+                  _sectionLabel(context, 'DEVICE'),
 
                   const SizedBox(height: 10),
 
@@ -169,7 +169,7 @@ class SettingsScreen extends ConsumerWidget {
                   const SizedBox(height: 28),
 
                   // Voice language
-                  _sectionLabel('VOICE LANGUAGE'),
+                  _sectionLabel(context, 'VOICE LANGUAGE'),
 
                   const SizedBox(height: 10),
 
@@ -252,7 +252,7 @@ class SettingsScreen extends ConsumerWidget {
                   const SizedBox(height: 28),
 
                   // Search city
-                  _sectionLabel('SEARCH CITY'),
+                  _sectionLabel(context, 'SEARCH CITY'),
 
                   const SizedBox(height: 10),
 
@@ -335,7 +335,7 @@ class SettingsScreen extends ConsumerWidget {
                   const SizedBox(height: 28),
 
                   // Account
-                  _sectionLabel('ACCOUNT'),
+                  _sectionLabel(context, 'ACCOUNT'),
 
                   const SizedBox(height: 10),
 
@@ -389,7 +389,7 @@ class SettingsScreen extends ConsumerWidget {
                     const SizedBox(height: 28),
 
                     // Developer tools
-                    _sectionLabel('DEVELOPER'),
+                    _sectionLabel(context, 'DEVELOPER'),
 
                     const SizedBox(height: 10),
 
@@ -488,7 +488,7 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _sectionLabel(String text) {
+  Widget _sectionLabel(BuildContext context, String text) {
     return Text(
       text,
       style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 20, letterSpacing: 0.4),
