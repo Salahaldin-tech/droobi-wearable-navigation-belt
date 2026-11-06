@@ -8,6 +8,7 @@ import '../../state/belt_connection_notifier.dart';
 import '../../state/destination_search_notifier.dart';
 import '../../state/voice_language_notifier.dart';
 import '../../widgets/connection_status_indicator.dart';
+import '../../widgets/app_card.dart';
 import '../../widgets/droobi_bottom_nav.dart';
 import '../../widgets/page_help_button.dart';
 import '../test/dev_test_menu.dart';
@@ -113,14 +114,8 @@ class SettingsScreen extends ConsumerWidget {
 
                   const SizedBox(height: 10),
 
-                  Container(
+                  AppCard(
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: _card,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.brown.withValues(alpha: 0.25)),
-                      boxShadow: [BoxShadow(color: AppColors.brown.withValues(alpha: 0.18), blurRadius: 12, offset: Offset(0, 4))],
-                    ),
                     child: Column(
                       children: [
                         const SizedBox(height: 14),
@@ -183,14 +178,8 @@ class SettingsScreen extends ConsumerWidget {
 
                   const SizedBox(height: 10),
 
-                  Container(
+                  AppCard(
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: _card,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.brown.withValues(alpha: 0.25)),
-                      boxShadow: [BoxShadow(color: AppColors.brown.withValues(alpha: 0.18), blurRadius: 12, offset: Offset(0, 4))],
-                    ),
                     child: Row(
                       children: [
                         const Icon(
@@ -272,14 +261,8 @@ class SettingsScreen extends ConsumerWidget {
 
                   const SizedBox(height: 10),
 
-                  Container(
+                  AppCard(
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: _card,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.brown.withValues(alpha: 0.25)),
-                      boxShadow: [BoxShadow(color: AppColors.brown.withValues(alpha: 0.18), blurRadius: 12, offset: Offset(0, 4))],
-                    ),
                     child: Row(
                       children: [
                         const Icon(
@@ -361,18 +344,15 @@ class SettingsScreen extends ConsumerWidget {
 
                   const SizedBox(height: 10),
 
-                  Container(
-                    decoration: BoxDecoration(
-                      color: _card,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.brown.withValues(alpha: 0.25)),
-                      boxShadow: [BoxShadow(color: AppColors.brown.withValues(alpha: 0.18), blurRadius: 12, offset: Offset(0, 4))],
-                    ),
+                  AppCard(
+                    padding: EdgeInsets.zero,
                     child: Material(
                       color: AppColors.cream,
+                      borderRadius: BorderRadius.circular(16),
+                      clipBehavior: Clip.antiAlias,
                       child: InkWell(
                         borderRadius:
-                            BorderRadius.circular(12),
+                            BorderRadius.circular(16),
                         onTap: () async {
                           await ref
                               .read(authServiceProvider)
@@ -418,18 +398,15 @@ class SettingsScreen extends ConsumerWidget {
 
                     const SizedBox(height: 10),
 
-                    Container(
-                      decoration: BoxDecoration(
-                        color: _card,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.brown.withValues(alpha: 0.25)),
-                        boxShadow: [BoxShadow(color: AppColors.brown.withValues(alpha: 0.18), blurRadius: 12, offset: Offset(0, 4))],
-                      ),
+                    AppCard(
+                      padding: EdgeInsets.zero,
                       child: Material(
                         color: AppColors.cream,
+                        borderRadius: BorderRadius.circular(16),
+                        clipBehavior: Clip.antiAlias,
                         child: InkWell(
                           borderRadius:
-                              BorderRadius.circular(12),
+                              BorderRadius.circular(16),
                           onTap: () {
                             Navigator.of(context).push(
                               MaterialPageRoute(
