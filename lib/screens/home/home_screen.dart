@@ -360,7 +360,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         // APP NAME
                         // --------------------------------------------------
 
-                        const Row(
+                        Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
