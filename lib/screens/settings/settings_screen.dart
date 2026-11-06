@@ -117,7 +117,9 @@ class SettingsScreen extends ConsumerWidget {
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: _card,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.brown.withValues(alpha: 0.25)),
+                      boxShadow: [BoxShadow(color: AppColors.brown.withValues(alpha: 0.18), blurRadius: 12, offset: Offset(0, 4))],
                     ),
                     child: Column(
                       children: [
@@ -361,7 +363,7 @@ class SettingsScreen extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Material(
-                      color: AppColors.brown,
+                      color: AppColors.cream,
                       child: InkWell(
                         borderRadius:
                             BorderRadius.circular(12),
@@ -413,11 +415,12 @@ class SettingsScreen extends ConsumerWidget {
                     Container(
                       decoration: BoxDecoration(
                         color: _card,
-                        borderRadius:
-                            BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.brown.withValues(alpha: 0.25)),
+                        boxShadow: [BoxShadow(color: AppColors.brown.withValues(alpha: 0.18), blurRadius: 12, offset: Offset(0, 4))],
                       ),
                       child: Material(
-                        color: AppColors.brown,
+                        color: AppColors.cream,
                         child: InkWell(
                           borderRadius:
                               BorderRadius.circular(12),
