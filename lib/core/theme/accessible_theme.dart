@@ -85,10 +85,13 @@ class AccessibleTheme {
       ),
     );
 
-    final outline = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(16),
-      borderSide: BorderSide(color: AppColors.brown.withValues(alpha: 0.6), width: 1.5),
-    );
+    OutlineInputBorder outlineBorder() => OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(
+            color: AppColors.brown.withValues(alpha: 0.6),
+            width: 1.5,
+          ),
+        );
 
     return base.copyWith(
       appBarTheme: AppBarTheme(
@@ -142,12 +145,18 @@ class AccessibleTheme {
         hintStyle: TextStyle(color: AppColors.brown.withValues(alpha: 0.6), fontFamily: 'IBMPlexSansArabic'),
         prefixIconColor: AppColors.brown,
         suffixIconColor: AppColors.brown,
-        border: outline,
-        enabledBorder: outline,
+        border: outlineBorder(),
+        enabledBorder: outlineBorder(),
         focusedBorder: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(16)), borderSide: BorderSide(color: AppColors.brown, width: 2)),
         errorBorder: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(16)), borderSide: BorderSide(color: AppColors.brown, width: 2)),
         focusedErrorBorder: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(16)), borderSide: BorderSide(color: AppColors.brown, width: 2)),
-        disabledBorder: outline,
+        disabledBorder: outlineBorder(),
+        suffixIconConstraints: const BoxConstraints(
+          minWidth: 48,
+          minHeight: 48,
+          maxWidth: 48,
+          maxHeight: 48,
+        ),
         errorStyle: const TextStyle(color: AppColors.brown, fontFamily: 'IBMPlexSansArabic'),
       ),
       cardTheme: const CardThemeData(color: AppColors.cream, surfaceTintColor: AppColors.cream),
