@@ -295,7 +295,7 @@ void loop() {
   }
 
   if (heartbeatSeen && millis() - lastHeartbeatMs > HEARTBEAT_TIMEOUT_MS) {
-    if (lastCommand != "STOP") {
+    if (directionCycleActive || arrivalPulseActive || lastCommand != "STOP") {
       Serial.println("[SAFETY] Heartbeat timeout; stopping motors");
       stopMotors();
     }
