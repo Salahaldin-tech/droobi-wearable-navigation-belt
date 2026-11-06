@@ -471,7 +471,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 16,
                               ),
-                              child: const Row(
+                              child: Row(
                                 children: [
                                   Icon(
                                     Icons.search,
