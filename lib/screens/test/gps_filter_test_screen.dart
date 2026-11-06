@@ -348,7 +348,7 @@ class _GpsFilterTestScreenState
     final firstAccepted = _firstAcceptedFix;
 
     return Scaffold(
-      backgroundColor: const AppColors.cream,
+      backgroundColor: AppColors.cream,
       appBar: AppBar(
         backgroundColor: AppColors.brown,
         elevation: 0,
