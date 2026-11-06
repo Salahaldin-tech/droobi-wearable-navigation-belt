@@ -309,11 +309,7 @@ class _DestinationSearchScreenState
               child: Text(
                 'Search Destination',
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: _AppTheme.textPrimary,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 20,
-                ),
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 28),
               ),
             ),
             SizedBox(width: 4),
