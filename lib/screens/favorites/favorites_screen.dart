@@ -405,13 +405,9 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
                               Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Text(
+                                  Text(
                                     'Favorites',
-                                    style: TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.w500,
-                                      color: _textColor,
-                                    ),
+                                    style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 30),
                                   ),
                                   const SizedBox(width: 4),
                                   PageHelpButton(
