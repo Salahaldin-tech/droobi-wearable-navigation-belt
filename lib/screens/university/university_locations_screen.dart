@@ -9,6 +9,7 @@ import '../../models/university_location.dart';
 import '../../screens/navigation/live_navigation_screen.dart';
 import '../../state/university_locations_notifier.dart';
 import '../../widgets/droobi_bottom_nav.dart';
+import '../../widgets/app_card.dart';
 import '../../widgets/page_help_button.dart';
 
 import '../../core/theme/app_colors.dart';
@@ -662,8 +663,8 @@ class _UniversityLocationsScreenState
       itemCount: items.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
         childAspectRatio: 1.5,
       ),
       itemBuilder: (context, index) {
@@ -715,7 +716,9 @@ class _UniversityLocationsScreenState
     final location = _findLocation(item, locations);
     final isAvailable = location != null;
 
-    return Semantics(
+    return AppCard(
+      padding: EdgeInsets.zero,
+      child: Semantics(
       button: true,
       enabled: isAvailable,
       label: item.name,
