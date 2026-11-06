@@ -34,7 +34,8 @@ static constexpr bool MOTOR_ACTIVE_HIGH = true;
 
 // A missing heartbeat stops vibration as a safety measure.
 static constexpr unsigned long HEARTBEAT_TIMEOUT_MS = 10000;
-static constexpr unsigned long DIRECTION_PULSE_MS = 3000;
+static constexpr unsigned long DIRECTION_ON_MS = 3000;
+static constexpr unsigned long DIRECTION_OFF_MS = 10000;
 static constexpr unsigned long ARRIVAL_PULSE_MS = 1200;
 
 BLEServer *bleServer = nullptr;
@@ -50,8 +51,9 @@ String lastCommand = "STOP";
 // Remember the last direction even after its 3-second pulse ends.
 // Repeated writes of the same direction must not restart the timer.
 String lastDirectionCommand = "STOP";
-bool directionPulseActive = false;
-unsigned long directionPulseUntilMs = 0;
+bool directionCycleActive = false;
+bool directionMotorsOn = false;
+unsigned long directionNextTransitionMs = 0;
 
 void setMotor(uint8_t pin, bool enabled) {
   const bool outputHigh = MOTOR_ACTIVE_HIGH ? enabled : !enabled;
@@ -69,16 +71,18 @@ void stopMotors() {
   setAllMotorsOff();
   arrivalPulseActive = false;
   arrivalPulseUntilMs = 0;
-  directionPulseActive = false;
-  directionPulseUntilMs = 0;
+  directionCycleActive = false;
+  directionMotorsOn = false;
+  directionNextTransitionMs = 0;
   lastCommand = "STOP";
   lastDirectionCommand = "STOP";
 }
 
 void pulseAllMotorsForArrival() {
   lastDirectionCommand = "STOP";
-  directionPulseActive = false;
-  directionPulseUntilMs = 0;
+  directionCycleActive = false;
+  directionMotorsOn = false;
+  directionNextTransitionMs = 0;
   setMotor(MOTOR_FRONT_PIN, true);
   setMotor(MOTOR_BACK_PIN, true);
   setMotor(MOTOR_LEFT_PIN, true);
@@ -87,6 +91,30 @@ void pulseAllMotorsForArrival() {
   arrivalPulseUntilMs = millis() + ARRIVAL_PULSE_MS;
   lastCommand = "ARRIVED";
   Serial.println("[ARRIVED] All four motors ON for 1200 ms");
+}
+
+
+void setDirectionMotors(const String &command, bool enabled) {
+  setAllMotorsOff();
+  if (!enabled) return;
+
+  if (command == "F") setMotor(MOTOR_FRONT_PIN, true);
+  else if (command == "B") setMotor(MOTOR_BACK_PIN, true);
+  else if (command == "L") setMotor(MOTOR_LEFT_PIN, true);
+  else if (command == "R") setMotor(MOTOR_RIGHT_PIN, true);
+  else if (command == "FL") {
+    setMotor(MOTOR_FRONT_PIN, true);
+    setMotor(MOTOR_LEFT_PIN, true);
+  } else if (command == "FR") {
+    setMotor(MOTOR_FRONT_PIN, true);
+    setMotor(MOTOR_RIGHT_PIN, true);
+  } else if (command == "BL") {
+    setMotor(MOTOR_BACK_PIN, true);
+    setMotor(MOTOR_LEFT_PIN, true);
+  } else if (command == "BR") {
+    setMotor(MOTOR_BACK_PIN, true);
+    setMotor(MOTOR_RIGHT_PIN, true);
+  }
 }
 
 void applyCommand(String command) {
@@ -133,34 +161,14 @@ void applyCommand(String command) {
   stopMotors();
   lastDirectionCommand = command;
 
-  if (command == "F") {
-    setMotor(MOTOR_FRONT_PIN, true);
-  } else if (command == "B") {
-    setMotor(MOTOR_BACK_PIN, true);
-  } else if (command == "L") {
-    setMotor(MOTOR_LEFT_PIN, true);
-  } else if (command == "R") {
-    setMotor(MOTOR_RIGHT_PIN, true);
-  } else if (command == "FL") {
-    setMotor(MOTOR_FRONT_PIN, true);
-    setMotor(MOTOR_LEFT_PIN, true);
-  } else if (command == "FR") {
-    setMotor(MOTOR_FRONT_PIN, true);
-    setMotor(MOTOR_RIGHT_PIN, true);
-  } else if (command == "BL") {
-    setMotor(MOTOR_BACK_PIN, true);
-    setMotor(MOTOR_LEFT_PIN, true);
-  } else if (command == "BR") {
-    setMotor(MOTOR_BACK_PIN, true);
-    setMotor(MOTOR_RIGHT_PIN, true);
-  }
-
-  directionPulseActive = true;
-  directionPulseUntilMs = millis() + DIRECTION_PULSE_MS;
+  setDirectionMotors(command, true);
+  directionCycleActive = true;
+  directionMotorsOn = true;
+  directionNextTransitionMs = millis() + DIRECTION_ON_MS;
   lastCommand = command;
   Serial.print("[CMD] ");
   Serial.print(command);
-  Serial.println(" - motors ON for 3000 ms");
+  Serial.println(" - cycle started: 3000 ms ON, 10000 ms OFF");
 }
 
 class CommandCallbacks : public BLECharacteristicCallbacks {
@@ -264,13 +272,20 @@ void loop() {
     }
   }
 
-  if (directionPulseActive &&
-      static_cast<long>(millis() - directionPulseUntilMs) >= 0) {
-    setAllMotorsOff();
-    directionPulseActive = false;
-    directionPulseUntilMs = 0;
-    lastCommand = "STOP";
-    Serial.println("[DIRECTION] 3-second pulse complete; motors stopped");
+  if (directionCycleActive &&
+      static_cast<long>(millis() - directionNextTransitionMs) >= 0) {
+    directionMotorsOn = !directionMotorsOn;
+    setDirectionMotors(lastDirectionCommand, directionMotorsOn);
+
+    if (directionMotorsOn) {
+      directionNextTransitionMs = millis() + DIRECTION_ON_MS;
+      lastCommand = lastDirectionCommand;
+      Serial.println("[DIRECTION] 3-second ON phase started");
+    } else {
+      directionNextTransitionMs = millis() + DIRECTION_OFF_MS;
+      lastCommand = "STOP";
+      Serial.println("[DIRECTION] 10-second OFF phase started");
+    }
   }
 
   if (arrivalPulseActive &&
