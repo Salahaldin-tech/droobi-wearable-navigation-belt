@@ -18,12 +18,17 @@ class LiveNavigationScreen extends ConsumerStatefulWidget {
     super.key,
     required this.destination,
     this.campusNavigation = false,
+    this.destinationCandidates,
   });
 
   final LatLon destination;
 
   /// True only when navigation was launched from the University screen.
   final bool campusNavigation;
+
+  /// Alternative QGIS entrance points; the campus router chooses the
+  /// reachable entrance with the shortest pedestrian route.
+  final List<LatLon>? destinationCandidates;
 
   @override
   ConsumerState<LiveNavigationScreen> createState() =>
@@ -94,6 +99,7 @@ class _LiveNavigationScreenState
     try {
       await navigationService.start(
         destination: widget.destination,
+        destinationCandidates: widget.destinationCandidates,
         campusNavigation: widget.campusNavigation,
       );
     } catch (error) {
