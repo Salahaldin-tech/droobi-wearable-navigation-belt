@@ -100,7 +100,7 @@ class DroobiBottomNav extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.cream,
           borderRadius: BorderRadius.circular(18),
-          boxShadow: const [
+          boxShadow: [
             BoxShadow(
               blurRadius: 12,
               offset: Offset(0, 4),
