@@ -140,7 +140,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: false,
+      resizeToAvoidBottomInset: true,
       backgroundColor: _AuthTheme.pageBackground,
       body: Stack(
         children: [
@@ -276,7 +276,7 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+      padding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -409,10 +409,8 @@ class _SignUpPanel extends StatelessWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
         boxShadow: _AuthTheme.panelShadow,
       ),
-      child: SingleChildScrollView(
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
-        child: Column(
+      padding: const EdgeInsets.fromLTRB(24, 12, 24, 12),
+      child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -457,7 +455,7 @@ class _SignUpPanel extends StatelessWidget {
                 enabled: !isSubmitting,
               ),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 10),
             Semantics(
               textField: true,
               label: 'Email address',
@@ -522,9 +520,9 @@ class _SignUpPanel extends StatelessWidget {
               ),
             ],
 
-            const SizedBox(height: 22),
+            const SizedBox(height: 12),
             SizedBox(
-              height: 54,
+              height: 50,
               child: ElevatedButton(
                 onPressed: onSubmit,
                 style: ElevatedButton.styleFrom(
@@ -577,7 +575,6 @@ class _SignUpPanel extends StatelessWidget {
               ],
             ),
           ],
-        ),
       ),
     );
   }
