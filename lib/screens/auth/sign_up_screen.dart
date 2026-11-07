@@ -176,25 +176,23 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
             child: Column(
               children: [
                 _Header(onLoginTap: _isSubmitting ? null : _goToLogin),
-                Expanded(
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'Join Droobi',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 24),
-                        ),
-                        SizedBox(height: 6),
-                        Text(
-                          'Create an account to get started',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: _AuthTheme.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Join Droobi',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 24),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        'Create an account to get started',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 14, color: _AuthTheme.textSecondary),
+                      ),
+                    ],
                   ),
                 ),
                 Expanded(
@@ -443,7 +441,7 @@ class _SignUpPanel extends StatelessWidget {
               'إنشاء حساب',
               style: TextStyle(fontSize: 13, color: _AuthTheme.textSecondary),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 12),
 
             Semantics(
               textField: true,
@@ -467,7 +465,7 @@ class _SignUpPanel extends StatelessWidget {
                 enabled: !isSubmitting,
               ),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 10),
             Semantics(
               textField: true,
               label: 'Password',
@@ -551,7 +549,7 @@ class _SignUpPanel extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 4),
             Wrap(
               alignment: WrapAlignment.center,
               crossAxisAlignment: WrapCrossAlignment.center,
