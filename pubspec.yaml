@@ -42,7 +42,22 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
+  fonts:
+    - family: LyonArabic
+      fonts:
+        - asset: assets/fonts/lyon-arabic-display-black.otf
+          weight: 900
+    - family: IBMPlexSansArabic
+      fonts:
+        - asset: assets/fonts/IBMPlexSansArabic-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/IBMPlexSansArabic-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/IBMPlexSansArabic-Bold.ttf
+          weight: 700
+
   assets:
+    - assets/fonts/
     - assets/images/home_bg.png
     - assets/images/app_logo.png
     - assets/images/Favorites_bg.png
