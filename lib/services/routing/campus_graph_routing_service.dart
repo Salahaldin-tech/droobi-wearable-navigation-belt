@@ -153,7 +153,6 @@ class CampusGraphRoutingService implements RoutingService {
       final segments = <_Segment>[];
       for (final feature in edgeFeatures) {
         if (feature is! Map<String, dynamic>) continue;
-        final properties = feature['properties'] as Map<String, dynamic>? ?? {};
         final geometry = feature['geometry'] as Map<String, dynamic>?;
         if (geometry == null || geometry['type'] != 'LineString') continue;
         final rawCoordinates = geometry['coordinates'] as List<dynamic>?;
@@ -167,7 +166,6 @@ class CampusGraphRoutingService implements RoutingService {
           line.add(LatLon(latitude: lat, longitude: lon));
         }
         if (line.length < 2) continue;
-        final bidirectional = properties['bidirectional'] != false;
         for (var i = 0; i < line.length - 1; i++) {
           final from = line[i];
           final to = line[i + 1];
