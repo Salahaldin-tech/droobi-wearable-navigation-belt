@@ -9,21 +9,24 @@ import '../../state/destination_search_notifier.dart';
 import '../../state/favorites_notifier.dart';
 import '../../widgets/page_help_button.dart';
 
+import '../../core/theme/app_colors.dart';
+import '../../widgets/app_card.dart';
+
 class _AppTheme {
   const _AppTheme._();
 
-  static const background = Color(0xFFF7F7F9);
-  static const surface = Colors.white;
-  static const fieldFill = Color(0xFFF2F3F5);
-  static const fieldBorder = Color(0xFFE6E7EB);
-  static const textPrimary = Color(0xFF16181D);
-  static const textSecondary = Color(0xFF55585F);
-  static const hint = Color(0xFF8B9099);
-  static const accent = Color(0xFF2F6FED);
-  static const trending = Color(0xFF1E9E5A);
-  static const error = Color(0xFFE0483E);
+  static const background = AppColors.cream;
+  static const surface = AppColors.cream;
+  static const fieldFill = AppColors.cream;
+  static const fieldBorder = AppColors.cream;
+  static const textPrimary = AppColors.brown;
+  static const textSecondary = AppColors.brown;
+  static const hint = AppColors.brown;
+  static const accent = AppColors.brown;
+  static const trending = AppColors.brown;
+  static const error = AppColors.brown;
   static const cardShadow = [
-    BoxShadow(color: Color(0x141A1D29), blurRadius: 16, offset: Offset(0, 4)),
+    BoxShadow(color: AppColors.brown, blurRadius: 16, offset: Offset(0, 4)),
   ];
 }
 
@@ -39,14 +42,14 @@ class _Category {
 }
 
 const _categories = [
-  _Category('University', Icons.school, Color(0xFF2F6FED), '', isCampus: true),
-  _Category('Restaurants', Icons.restaurant, Color(0xFFF2994A), 'restaurant'),
-  _Category('Cafés', Icons.local_cafe, Color(0xFF8D6E63), 'cafe'),
-  _Category('Pharmacy', Icons.local_pharmacy, Color(0xFFE0483E), 'pharmacy'),
-  _Category('Hospital', Icons.local_hospital, Color(0xFFEB5757), 'hospital'),
-  _Category('Supermarket', Icons.shopping_cart, Color(0xFF27AE60), 'supermarket'),
-  _Category('Bank', Icons.account_balance, Color(0xFF6C63FF), 'bank'),
-  _Category('Mosque', Icons.mosque, Color(0xFF00897B), 'mosque'),
+  _Category('University', Icons.school, AppColors.brown, '', isCampus: true),
+  _Category('Restaurants', Icons.restaurant, AppColors.brown, 'restaurant'),
+  _Category('Cafés', Icons.local_cafe, AppColors.brown, 'cafe'),
+  _Category('Pharmacy', Icons.local_pharmacy, AppColors.brown, 'pharmacy'),
+  _Category('Hospital', Icons.local_hospital, AppColors.brown, 'hospital'),
+  _Category('Supermarket', Icons.shopping_cart, AppColors.brown, 'supermarket'),
+  _Category('Bank', Icons.account_balance, AppColors.brown, 'bank'),
+  _Category('Mosque', Icons.mosque, AppColors.brown, 'mosque'),
 ];
 
 const _trendingSearches = [
@@ -299,17 +302,22 @@ class _DestinationSearchScreenState
         backgroundColor: _AppTheme.background,
         elevation: 0,
         centerTitle: false,
-        title: const Row(
-          mainAxisSize: MainAxisSize.min,
+        title: Row(
+          mainAxisSize: MainAxisSize.max,
           children: [
-            Flexible(
-              child: Text(
-                'Search Destination',
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: _AppTheme.textPrimary,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 20,
+            Expanded(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Search Destination',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontFamily: 'LyonArabic',
+                    fontSize: 27,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
               ),
             ),
@@ -455,7 +463,7 @@ class _DestinationSearchScreenState
             style: ElevatedButton.styleFrom(
               backgroundColor: _AppTheme.accent,
               disabledBackgroundColor: _AppTheme.accent.withOpacity(0.5),
-              foregroundColor: Colors.white,
+              foregroundColor: AppColors.cream,
               elevation: 0,
               padding: const EdgeInsets.symmetric(horizontal: 20),
               shape: RoundedRectangleBorder(
@@ -511,12 +519,8 @@ class _DestinationSearchScreenState
   }
 
   Widget _buildResultTile(Destination destination) {
-    return Container(
-      decoration: BoxDecoration(
-        color: _AppTheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: _AppTheme.cardShadow,
-      ),
+    return AppCard(
+      padding: EdgeInsets.zero,
       child: ListTile(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         dense: true,
@@ -589,7 +593,6 @@ class _DestinationSearchScreenState
             for (final query in _SearchHistory.items)
               _QueryChip(
                 label: query,
-                color: _AppTheme.accent,
                 icon: Icons.history,
                 onTap: () => _submit(query),
               ),
@@ -626,7 +629,6 @@ class _DestinationSearchScreenState
           for (final query in _trendingSearches)
             _QueryChip(
               label: query,
-              color: _AppTheme.trending,
               onTap: () => _submit(query),
             ),
         ],
@@ -644,35 +646,43 @@ class _SectionTitle extends StatelessWidget {
         header: true,
         child: Text(
           text,
-          style: const TextStyle(
-            color: _AppTheme.textPrimary,
-            fontWeight: FontWeight.w800,
-            fontSize: 18,
-          ),
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 22),
         ),
       );
 }
 
-class _QueryChip extends StatelessWidget {
+class _QueryChip extends StatefulWidget {
   const _QueryChip({
     required this.label,
-    required this.color,
     required this.onTap,
     this.icon,
   });
 
   final String label;
-  final Color color;
   final IconData? icon;
   final VoidCallback onTap;
 
   @override
+  State<_QueryChip> createState() => _QueryChipState();
+}
+
+class _QueryChipState extends State<_QueryChip> {
+  bool _pressed = false;
+
+  @override
   Widget build(BuildContext context) => Material(
-        color: _AppTheme.fieldFill,
-        shape: const StadiumBorder(),
+        color: _pressed ? AppColors.brown : AppColors.cream,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: BorderSide(
+            color: AppColors.brown.withValues(alpha: 0.4),
+            width: 1.5,
+          ),
+        ),
         child: InkWell(
-          customBorder: const StadiumBorder(),
-          onTap: onTap,
+          borderRadius: BorderRadius.circular(18),
+          onHighlightChanged: (value) => setState(() => _pressed = value),
+          onTap: widget.onTap,
           child: ConstrainedBox(
             constraints: const BoxConstraints(minHeight: 40),
             child: Padding(
@@ -680,17 +690,21 @@ class _QueryChip extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (icon != null) ...[
-                    Icon(icon, size: 16, color: color),
+                  if (widget.icon != null) ...[
+                    Icon(
+                      widget.icon,
+                      size: 16,
+                      color: _pressed ? AppColors.cream : AppColors.brown,
+                    ),
                     const SizedBox(width: 6),
                   ],
                   Flexible(
                     child: Text(
-                      label,
+                      widget.label,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: color,
+                        color: _pressed ? AppColors.cream : AppColors.brown,
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
                       ),
