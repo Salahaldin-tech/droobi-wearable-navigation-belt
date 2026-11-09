@@ -45,8 +45,8 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen>
     with TickerProviderStateMixin {
   static const Color _blue = AppColors.brown;
-  static const Color _green = Color(0xFF27AE60);
-  static const Color _grey = Color(0xFF9CA3AF);
+  static const Color _green = AppColors.brown;
+  static const Color _grey = AppColors.brown;
   static const Color _text = AppColors.brown;
   static const Color _muted = AppColors.brown;
 
@@ -306,7 +306,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           BoxShadow(
             blurRadius: 16,
             offset: Offset(0, 6),
-            color: Color(0x14000000),
+            color: AppColors.brown.withValues(alpha: 0.08),
           ),
         ],
       ),
@@ -433,9 +433,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                             t,
                           )!,
                           colors: [
-                            const Color(0xFFDCEBFF).withValues(alpha: 0.55),
+                            const AppColors.cream.withValues(alpha: 0.55),
                             AppColors.cream.withValues(alpha: 0.10),
-                            const Color(0xFFD9F5EA).withValues(alpha: 0.45),
+                            const AppColors.cream.withValues(alpha: 0.45),
                           ],
                         ),
                       ),
@@ -558,7 +558,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       hint: 'Open destination search',
                       child: _glassCard(
                         child: Material(
-                          color: Colors.transparent,
+                          color: AppColors.cream,
                           child: InkWell(
                             borderRadius: BorderRadius.circular(12),
                             onTap: () {
@@ -579,7 +579,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                   Icon(
                                     Icons.search,
                                     size: 22,
-                                    color: Color(0xFF777777),
+                                    color: AppColors.brown,
                                   ),
                                   SizedBox(width: 12),
                                   Text(
@@ -698,7 +698,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                             voiceState.errorMessage ?? '',
                             textAlign: TextAlign.center,
                             style: const TextStyle(
-                              color: Colors.red,
+                              color: AppColors.brown,
                               fontSize: 14,
                             ),
                           ),
@@ -793,8 +793,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          Color(0xFFEAF3FF),
-                          Color(0xFFDDF3EA),
+                          AppColors.cream,
+                          AppColors.cream,
                         ],
                       ),
                     ),
@@ -815,7 +815,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                   BoxShadow(
                                     blurRadius: 12,
                                     offset: Offset(0, 4),
-                                    color: Color(0x18000000),
+                                    color: AppColors.brown.withValues(alpha: 0.09),
                                   ),
                                 ],
                               ),
@@ -844,7 +844,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                               },
                               icon: const Icon(
                                 Icons.close,
-                                color: Color(0xFF555555),
+                                color: AppColors.brown,
                               ),
                             ),
                           ],
@@ -1183,7 +1183,7 @@ class _MenuItem extends StatelessWidget {
         selected: active,
         label: label,
         child: Material(
-          color: active ? blue.withValues(alpha: 0.08) : Colors.transparent,
+          color: active ? blue.withValues(alpha: 0.08) : AppColors.cream,
           borderRadius: BorderRadius.circular(12),
           child: InkWell(
             onTap: onTap,
