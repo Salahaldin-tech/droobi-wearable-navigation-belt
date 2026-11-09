@@ -302,7 +302,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(radius),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
             blurRadius: 16,
             offset: Offset(0, 6),
@@ -433,7 +433,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                             t,
                           )!,
                           colors: [
-                            const AppColors.cream.withValues(alpha: 0.55),
+                            AppColors.cream.withValues(alpha: 0.55),
                             AppColors.cream.withValues(alpha: 0.10),
                             const AppColors.cream.withValues(alpha: 0.45),
                           ],
@@ -811,7 +811,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                               decoration: BoxDecoration(
                                 color: AppColors.cream,
                                 borderRadius: BorderRadius.circular(16),
-                                boxShadow: const [
+                                boxShadow: [
                                   BoxShadow(
                                     blurRadius: 12,
                                     offset: Offset(0, 4),
@@ -1036,7 +1036,7 @@ class _WelcomeFeature extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         ExcludeSemantics(
-          child: Icon(icon, color: const AppColors.brown, size: 25),
+          child: Icon(icon, color: AppColors.brown, size: 25),
         ),
         const SizedBox(width: 12),
         Expanded(
