@@ -8,18 +8,20 @@ import '../../state/belt_connection_notifier.dart';
 import '../../state/destination_search_notifier.dart';
 import '../../state/voice_language_notifier.dart';
 import '../../widgets/connection_status_indicator.dart';
+import '../../widgets/app_card.dart';
 import '../../widgets/droobi_bottom_nav.dart';
 import '../../widgets/page_help_button.dart';
 import '../test/dev_test_menu.dart';
 
+import '../../core/theme/app_colors.dart';
+
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
-  static const Color _blue = Color(0xFF2F80ED);
-  static const Color _red = Color(0xFFEB5757);
-  static const Color _text = Color(0xFF111111);
-  static const Color _muted = Color(0xFF6B7280);
-  static const Color _card = Color(0xFFF5F5F5);
+  static const Color _blue = AppColors.brown;
+  static const Color _red = AppColors.brown;
+  static const Color _text = AppColors.brown;
+  static const Color _muted = AppColors.brown;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -53,7 +55,7 @@ class SettingsScreen extends ConsumerWidget {
         state == BeltConnectionState.connected;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.cream,
       body: SafeArea(
         child: Column(
           children: [
@@ -66,16 +68,12 @@ class SettingsScreen extends ConsumerWidget {
                   16,
                 ),
                 children: [
-                  const Row(
+                  Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         'Settings',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w500,
-                          color: _text,
-                        ),
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 30),
                       ),
                       SizedBox(width: 4),
                       PageHelpButton(
@@ -107,16 +105,12 @@ class SettingsScreen extends ConsumerWidget {
                   const SizedBox(height: 28),
 
                   // Device
-                  _sectionLabel('DEVICE'),
+                  _sectionLabel(context, 'DEVICE'),
 
                   const SizedBox(height: 10),
 
-                  Container(
+                  AppCard(
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: _card,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
                     child: Column(
                       children: [
                         const SizedBox(height: 14),
@@ -175,16 +169,12 @@ class SettingsScreen extends ConsumerWidget {
                   const SizedBox(height: 28),
 
                   // Voice language
-                  _sectionLabel('VOICE LANGUAGE'),
+                  _sectionLabel(context, 'VOICE LANGUAGE'),
 
                   const SizedBox(height: 10),
 
-                  Container(
+                  AppCard(
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: _card,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
                     child: Row(
                       children: [
                         const Icon(
@@ -209,11 +199,11 @@ class SettingsScreen extends ConsumerWidget {
                           height: 40,
                           padding: const EdgeInsets.all(3),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: AppColors.cream,
                             borderRadius:
                                 BorderRadius.circular(10),
                             border: Border.all(
-                              color: const Color(0xFFE5E7EB),
+                              color: AppColors.cream,
                             ),
                           ),
                           child: Row(
@@ -262,16 +252,12 @@ class SettingsScreen extends ConsumerWidget {
                   const SizedBox(height: 28),
 
                   // Search city
-                  _sectionLabel('SEARCH CITY'),
+                  _sectionLabel(context, 'SEARCH CITY'),
 
                   const SizedBox(height: 10),
 
-                  Container(
+                  AppCard(
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: _card,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
                     child: Row(
                       children: [
                         const Icon(
@@ -298,11 +284,11 @@ class SettingsScreen extends ConsumerWidget {
                             horizontal: 10,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: AppColors.cream,
                             borderRadius:
                                 BorderRadius.circular(10),
                             border: Border.all(
-                              color: const Color(0xFFE5E7EB),
+                              color: AppColors.cream,
                             ),
                           ),
                           child: DropdownButtonHideUnderline(
@@ -349,20 +335,19 @@ class SettingsScreen extends ConsumerWidget {
                   const SizedBox(height: 28),
 
                   // Account
-                  _sectionLabel('ACCOUNT'),
+                  _sectionLabel(context, 'ACCOUNT'),
 
                   const SizedBox(height: 10),
 
-                  Container(
-                    decoration: BoxDecoration(
-                      color: _card,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                  AppCard(
+                    padding: EdgeInsets.zero,
                     child: Material(
-                      color: Colors.transparent,
+                      color: AppColors.cream,
+                      borderRadius: BorderRadius.circular(16),
+                      clipBehavior: Clip.antiAlias,
                       child: InkWell(
                         borderRadius:
-                            BorderRadius.circular(12),
+                            BorderRadius.circular(16),
                         onTap: () async {
                           await ref
                               .read(authServiceProvider)
@@ -404,21 +389,19 @@ class SettingsScreen extends ConsumerWidget {
                     const SizedBox(height: 28),
 
                     // Developer tools
-                    _sectionLabel('DEVELOPER'),
+                    _sectionLabel(context, 'DEVELOPER'),
 
                     const SizedBox(height: 10),
 
-                    Container(
-                      decoration: BoxDecoration(
-                        color: _card,
-                        borderRadius:
-                            BorderRadius.circular(12),
-                      ),
+                    AppCard(
+                      padding: EdgeInsets.zero,
                       child: Material(
-                        color: Colors.transparent,
+                        color: AppColors.cream,
+                        borderRadius: BorderRadius.circular(16),
+                        clipBehavior: Clip.antiAlias,
                         child: InkWell(
                           borderRadius:
-                              BorderRadius.circular(12),
+                              BorderRadius.circular(16),
                           onTap: () {
                             Navigator.of(context).push(
                               MaterialPageRoute(
@@ -453,7 +436,7 @@ class SettingsScreen extends ConsumerWidget {
                                   Icons.chevron_right,
                                   size: 20,
                                   color:
-                                      Color(0xFF9CA3AF),
+                                      AppColors.brown,
                                 ),
                               ],
                             ),
@@ -476,7 +459,7 @@ class SettingsScreen extends ConsumerWidget {
                           'Droobi v1.0.0',
                           style: TextStyle(
                             fontSize: 14,
-                            color: Color(0xFF9CA3AF),
+                            color: AppColors.brown,
                           ),
                         ),
 
@@ -486,7 +469,7 @@ class SettingsScreen extends ConsumerWidget {
                           'دروبي',
                           style: TextStyle(
                             fontSize: 14,
-                            color: Color(0xFF9CA3AF),
+                            color: AppColors.brown,
                           ),
                         ),
                       ],
@@ -505,15 +488,10 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _sectionLabel(String text) {
+  Widget _sectionLabel(BuildContext context, String text) {
     return Text(
       text,
-      style: const TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 0.4,
-        color: _muted,
-      ),
+      style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 20, letterSpacing: 0.4),
     );
   }
 
@@ -535,7 +513,7 @@ class SettingsScreen extends ConsumerWidget {
           height: 32,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: selected ? _blue : Colors.white,
+            color: selected ? _blue : AppColors.cream,
             borderRadius: BorderRadius.circular(7),
           ),
           child: Text(
@@ -543,7 +521,7 @@ class SettingsScreen extends ConsumerWidget {
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w500,
-              color: selected ? Colors.white : _text,
+              color: selected ? AppColors.cream : _text,
             ),
           ),
         ),
