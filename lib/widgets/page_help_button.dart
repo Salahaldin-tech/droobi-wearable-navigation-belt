@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../core/theme/app_colors.dart';
+
 /// A reusable, accessible contextual-help button for a page title.
 class PageHelpButton extends StatelessWidget {
   const PageHelpButton({
@@ -10,7 +12,7 @@ class PageHelpButton extends StatelessWidget {
     required this.descriptionAr,
     this.tips = const [],
     this.tipsAr = const [],
-    this.color = const Color(0xFF2F80ED),
+    this.color = AppColors.brown,
   });
 
   final String title;
