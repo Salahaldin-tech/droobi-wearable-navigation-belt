@@ -151,8 +151,17 @@ class CampusGraphRoutingService implements RoutingService {
       final adjacency = <String, List<_Arc>>{};
       final points = <String, LatLon>{};
       final segments = <_Segment>[];
+      var edgeFeatureIndex = 0;
       for (final feature in edgeFeatures) {
-        if (feature is! Map<String, dynamic>) continue;
+        if (feature is! Map<String, dynamic>) {
+          edgeFeatureIndex++;
+          continue;
+        }
+        final properties = feature['properties'] as Map<String, dynamic>? ?? {};
+        final edgeId = (properties['edge_id']?.toString().trim().isNotEmpty ?? false)
+            ? properties['edge_id'].toString().trim()
+            : 'edge_$edgeFeatureIndex';
+        edgeFeatureIndex++;
         final geometry = feature['geometry'] as Map<String, dynamic>?;
         if (geometry == null || geometry['type'] != 'LineString') continue;
         final rawCoordinates = geometry['coordinates'] as List<dynamic>?;
@@ -185,6 +194,7 @@ class CampusGraphRoutingService implements RoutingService {
             from: from,
             to: to,
             lengthMeters: length,
+            edgeId: edgeId,
           ));
         }
       }
@@ -203,17 +213,25 @@ class CampusGraphRoutingService implements RoutingService {
     List<_Segment> segments, {
     int maximumCandidates = 8,
   }) {
-    final snaps = <_Snap>[];
+    // Keep one best geometric snap per QGIS Edge feature. Without this,
+    // eight adjacent LineString sub-segments from one road can crowd out
+    // nearby alternative roads at a junction.
+    final bestByEdge = <String, _Snap>{};
     for (final segment in segments) {
       final projection = _project(position, segment.from, segment.to);
-      snaps.add(_Snap(
+      final snap = _Snap(
         segment: segment,
         point: projection.point,
         fraction: projection.fraction,
         distanceMeters: _distance(position, projection.point),
-      ));
+      );
+      final previous = bestByEdge[segment.edgeId];
+      if (previous == null || snap.distanceMeters < previous.distanceMeters) {
+        bestByEdge[segment.edgeId] = snap;
+      }
     }
-    snaps.sort((a, b) => a.distanceMeters.compareTo(b.distanceMeters));
+    final snaps = bestByEdge.values.toList()
+      ..sort((a, b) => a.distanceMeters.compareTo(b.distanceMeters));
     return snaps.take(maximumCandidates).toList();
   }
 
@@ -336,13 +354,14 @@ class _Arc {
 class _Segment {
   const _Segment({
     required this.fromKey, required this.toKey, required this.from,
-    required this.to, required this.lengthMeters,
+    required this.to, required this.lengthMeters, required this.edgeId,
   });
   final String fromKey;
   final String toKey;
   final LatLon from;
   final LatLon to;
   final double lengthMeters;
+  final String edgeId;
 }
 class _Snap {
   const _Snap({
