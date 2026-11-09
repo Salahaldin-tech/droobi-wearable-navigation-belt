@@ -63,12 +63,45 @@ class CompassService {
     }
 
     final startedAt = DateTime.now();
-    late final List<double> samples;
+    final samples = <double>[];
+    final completed = Completer<void>();
+    StreamSubscription<double>? subscription;
+    final timeoutTimer = Timer(timeout, () {
+      if (!completed.isCompleted) {
+        completed.completeError(TimeoutException(
+          'Compass sampling timed out.',
+          timeout,
+        ));
+      }
+    });
+
     try {
-      samples = await headingStream
-          .take(sampleCount)
-          .toList()
-          .timeout(timeout);
+      subscription = headingStream.listen(
+        (heading) {
+          samples.add(_normalizeHeading(heading));
+          final windowElapsed =
+              DateTime.now().difference(startedAt) >= minimumSamplingWindow;
+          if (samples.length >= sampleCount &&
+              windowElapsed &&
+              !completed.isCompleted) {
+            completed.complete();
+          }
+        },
+        onError: (Object error, StackTrace stackTrace) {
+          if (!completed.isCompleted) {
+            completed.completeError(error, stackTrace);
+          }
+        },
+        onDone: () {
+          if (!completed.isCompleted) {
+            completed.completeError(
+              StateError('Compass stream ended before sampling completed.'),
+            );
+          }
+        },
+      );
+
+      await completed.future;
     } on TimeoutException {
       throw const CompassFailure(
         'Could not collect enough compass readings to establish a stable '
@@ -78,18 +111,9 @@ class CompassService {
       throw const CompassFailure(
         'Compass sensor is not available on this device.',
       );
-    }
-
-    if (samples.length < sampleCount) {
-      throw const CompassFailure(
-        'The compass stopped before enough readings were collected.',
-      );
-    }
-
-    final remainingWindow =
-        minimumSamplingWindow - DateTime.now().difference(startedAt);
-    if (remainingWindow > Duration.zero) {
-      await Future.delayed(remainingWindow);
+    } finally {
+      timeoutTimer.cancel();
+      await subscription?.cancel();
     }
 
     final sinSum = samples.fold<double>(
