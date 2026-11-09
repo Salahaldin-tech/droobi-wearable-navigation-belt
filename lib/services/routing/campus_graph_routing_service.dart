@@ -29,67 +29,106 @@ class CampusGraphRoutingService implements RoutingService {
           'The QGIS campus network contains no usable pedestrian edges.');
     }
 
-    final originSnap = _nearestSegment(origin, graph.segments);
-    final destinationSnap = _nearestSegment(destination, graph.segments);
-    if (originSnap.distanceMeters > maximumSnapMeters) {
+    // GPS can fall almost equally close to parallel or intersecting edges.
+    // Evaluate several nearby candidates instead of committing to one snap.
+    final nearestOriginSnaps = _nearestSegments(origin, graph.segments);
+    final nearestDestinationSnaps =
+        _nearestSegments(destination, graph.segments);
+
+    final nearestOriginDistance =
+        nearestOriginSnaps.first.distanceMeters;
+    final nearestDestinationDistance =
+        nearestDestinationSnaps.first.distanceMeters;
+
+    if (nearestOriginDistance > maximumSnapMeters) {
       throw RoutingFailure(RoutingErrorType.noRouteFound,
-          'You are ' + originSnap.distanceMeters.toStringAsFixed(0) +
-          ' m from the mapped campus paths. Move closer to a mapped path and try again.');
+          'GPS_SNAP_ORIGIN: current position is '
+          '${nearestOriginDistance.toStringAsFixed(1)} m from the nearest '
+          'QGIS path (maximum ${maximumSnapMeters.toStringAsFixed(0)} m).');
     }
-    if (destinationSnap.distanceMeters > maximumSnapMeters) {
+    if (nearestDestinationDistance > maximumSnapMeters) {
       throw RoutingFailure(RoutingErrorType.noRouteFound,
-          'This university destination is ' +
-          destinationSnap.distanceMeters.toStringAsFixed(0) +
-          ' m from the nearest QGIS path and is not covered by the current map.');
+          'GPS_SNAP_DESTINATION: destination is '
+          '${nearestDestinationDistance.toStringAsFixed(1)} m from the nearest '
+          'QGIS path (maximum ${maximumSnapMeters.toStringAsFixed(0)} m). '
+          'A real connecting edge may be missing from the campus map.');
     }
 
-    final adjacency = <String, List<_Arc>>{
-      for (final entry in graph.adjacency.entries)
-        entry.key: List<_Arc>.from(entry.value),
-    };
-    final points = Map<String, LatLon>.from(graph.points);
-    const originKey = '__campus_origin__';
-    const destinationKey = '__campus_destination__';
-    points[originKey] = originSnap.point;
-    points[destinationKey] = destinationSnap.point;
-    adjacency[originKey] = <_Arc>[];
-    adjacency[destinationKey] = <_Arc>[];
+    final originSnaps = nearestOriginSnaps
+        .where((snap) => snap.distanceMeters <= maximumSnapMeters)
+        .toList();
+    final destinationSnaps = nearestDestinationSnaps
+        .where((snap) => snap.distanceMeters <= maximumSnapMeters)
+        .toList();
 
-    _attachOrigin(adjacency, originKey, originSnap);
-    _attachDestination(adjacency, destinationKey, destinationSnap);
+    RouteResult? bestRoute;
 
-    if (identical(originSnap.segment, destinationSnap.segment)) {
-      final delta = (destinationSnap.fraction - originSnap.fraction) *
-          originSnap.segment.lengthMeters;
-      if (originSnap.segment.bidirectional || delta >= 0) {
-        _addArc(adjacency, originKey, destinationKey, delta.abs());
+    // Test combinations because the closest origin edge may belong to a
+    // disconnected spur while the next-nearest edge is connected to the goal.
+    for (final originSnap in originSnaps) {
+      for (final destinationSnap in destinationSnaps) {
+        final adjacency = <String, List<_Arc>>{
+          for (final entry in graph.adjacency.entries)
+            entry.key: List<_Arc>.from(entry.value),
+        };
+        final points = Map<String, LatLon>.from(graph.points);
+        const originKey = '__campus_origin__';
+        const destinationKey = '__campus_destination__';
+        points[originKey] = originSnap.point;
+        points[destinationKey] = destinationSnap.point;
+        adjacency[originKey] = <_Arc>[];
+        adjacency[destinationKey] = <_Arc>[];
+
+        _attachOrigin(adjacency, originKey, originSnap);
+        _attachDestination(adjacency, destinationKey, destinationSnap);
+
+        if (identical(originSnap.segment, destinationSnap.segment)) {
+          final distance = (destinationSnap.fraction -
+                  originSnap.fraction).abs() *
+              originSnap.segment.lengthMeters;
+          _addArc(adjacency, originKey, destinationKey, distance);
+          _addArc(adjacency, destinationKey, originKey, distance);
+        }
+
+        final pathKeys = _shortestPath(adjacency, originKey, destinationKey);
+        if (pathKeys == null || pathKeys.length < 2) continue;
+
+        final routePoints = <LatLon>[origin];
+        for (final key in pathKeys) {
+          final point = points[key];
+          if (point != null) _appendDistinct(routePoints, point);
+        }
+        _appendDistinct(routePoints, destination);
+
+        var distanceMeters = 0.0;
+        for (var i = 1; i < routePoints.length; i++) {
+          distanceMeters += _distance(routePoints[i - 1], routePoints[i]);
+        }
+
+        if (bestRoute == null ||
+            distanceMeters < bestRoute.distanceMeters) {
+          bestRoute = RouteResult(
+            polyline: routePoints,
+            distanceMeters: distanceMeters,
+            durationSeconds: distanceMeters,
+          );
+        }
       }
-      if (originSnap.segment.bidirectional || delta <= 0) {
-        _addArc(adjacency, destinationKey, originKey, delta.abs());
-      }
     }
 
-    final pathKeys = _shortestPath(adjacency, originKey, destinationKey);
-    if (pathKeys == null || pathKeys.length < 2) {
-      throw const RoutingFailure(RoutingErrorType.noRouteFound,
-          'There is no connected walking path between your position and this destination in the current QGIS network. The campus map needs additional connecting edges.');
+    if (bestRoute == null) {
+      throw RoutingFailure(
+        RoutingErrorType.noRouteFound,
+        'GRAPH_CONNECTIVITY: no route was found after testing '
+        '${originSnaps.length} nearby start edges and '
+        '${destinationSnaps.length} nearby destination edges within '
+        '${maximumSnapMeters.toStringAsFixed(0)} m. All QGIS edges are '
+        'treated as bidirectional. Check for a missing connecting edge or '
+        'a coordinate gap in edges.geojson.',
+      );
     }
 
-    final routePoints = <LatLon>[origin];
-    for (final key in pathKeys) {
-      final point = points[key];
-      if (point != null) _appendDistinct(routePoints, point);
-    }
-    _appendDistinct(routePoints, destination);
-    var distance = 0.0;
-    for (var i = 1; i < routePoints.length; i++) {
-      distance += _distance(routePoints[i - 1], routePoints[i]);
-    }
-    return RouteResult(
-      polyline: routePoints,
-      distanceMeters: distance,
-      durationSeconds: distance,
-    );
+    return bestRoute;
   }
 
   Future<_CampusGraph> _loadGraph() async {
@@ -141,14 +180,13 @@ class CampusGraphRoutingService implements RoutingService {
           adjacency.putIfAbsent(fromKey, () => <_Arc>[]);
           adjacency.putIfAbsent(toKey, () => <_Arc>[]);
           _addArc(adjacency, fromKey, toKey, length);
-          if (bidirectional) _addArc(adjacency, toKey, fromKey, length);
+          _addArc(adjacency, toKey, fromKey, length);
           segments.add(_Segment(
             fromKey: fromKey,
             toKey: toKey,
             from: from,
             to: to,
             lengthMeters: length,
-            bidirectional: bidirectional,
           ));
         }
       }
@@ -162,45 +200,47 @@ class CampusGraphRoutingService implements RoutingService {
     }
   }
 
-  _Snap _nearestSegment(LatLon position, List<_Segment> segments) {
-    _Snap? best;
+  List<_Snap> _nearestSegments(
+    LatLon position,
+    List<_Segment> segments, {
+    int maximumCandidates = 8,
+  }) {
+    final snaps = <_Snap>[];
     for (final segment in segments) {
       final projection = _project(position, segment.from, segment.to);
-      final distance = _distance(position, projection.point);
-      if (best == null || distance < best.distanceMeters) {
-        best = _Snap(segment: segment, point: projection.point,
-            fraction: projection.fraction, distanceMeters: distance);
-      }
+      snaps.add(_Snap(
+        segment: segment,
+        point: projection.point,
+        fraction: projection.fraction,
+        distanceMeters: _distance(position, projection.point),
+      ));
     }
-    if (best == null) {
-      throw const RoutingFailure(RoutingErrorType.noRouteFound,
-          'The QGIS campus map has no valid line segments.');
-    }
-    return best;
+    snaps.sort((a, b) => a.distanceMeters.compareTo(b.distanceMeters));
+    return snaps.take(maximumCandidates).toList();
   }
 
   void _attachOrigin(Map<String, List<_Arc>> graph, String key, _Snap snap) {
     final segment = snap.segment;
     final toStart = snap.fraction * segment.lengthMeters;
     final toEnd = (1 - snap.fraction) * segment.lengthMeters;
-    if (segment.bidirectional) {
-      _addArc(graph, key, segment.fromKey, toStart);
-      _addArc(graph, key, segment.toKey, toEnd);
-    } else {
-      _addArc(graph, key, segment.toKey, toEnd);
-    }
+    _addArc(graph, key, segment.fromKey, toStart);
+    _addArc(graph, segment.fromKey, key, toStart);
+    _addArc(graph, key, segment.toKey, toEnd);
+    _addArc(graph, segment.toKey, key, toEnd);
   }
 
-  void _attachDestination(Map<String, List<_Arc>> graph, String key, _Snap snap) {
+  void _attachDestination(
+    Map<String, List<_Arc>> graph,
+    String key,
+    _Snap snap,
+  ) {
     final segment = snap.segment;
     final toStart = snap.fraction * segment.lengthMeters;
     final toEnd = (1 - snap.fraction) * segment.lengthMeters;
-    if (segment.bidirectional) {
-      _addArc(graph, segment.fromKey, key, toStart);
-      _addArc(graph, segment.toKey, key, toEnd);
-    } else {
-      _addArc(graph, segment.fromKey, key, toStart);
-    }
+    _addArc(graph, segment.fromKey, key, toStart);
+    _addArc(graph, key, segment.fromKey, toStart);
+    _addArc(graph, segment.toKey, key, toEnd);
+    _addArc(graph, key, segment.toKey, toEnd);
   }
 
   List<String>? _shortestPath(Map<String, List<_Arc>> graph, String start, String goal) {
@@ -298,14 +338,13 @@ class _Arc {
 class _Segment {
   const _Segment({
     required this.fromKey, required this.toKey, required this.from,
-    required this.to, required this.lengthMeters, required this.bidirectional,
+    required this.to, required this.lengthMeters,
   });
   final String fromKey;
   final String toKey;
   final LatLon from;
   final LatLon to;
   final double lengthMeters;
-  final bool bidirectional;
 }
 class _Snap {
   const _Snap({
