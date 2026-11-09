@@ -5,6 +5,8 @@ import '../screens/home/home_screen.dart';
 import '../screens/settings/settings_screen.dart';
 import '../screens/university/university_locations_screen.dart';
 
+import '../core/theme/app_colors.dart';
+
 enum DroobiNavItem {
   home,
   favorites,
@@ -96,13 +98,13 @@ class DroobiBottomNav extends StatelessWidget {
           horizontal: 8,
         ),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.cream,
           borderRadius: BorderRadius.circular(18),
-          boxShadow: const [
+          boxShadow: [
             BoxShadow(
               blurRadius: 12,
               offset: Offset(0, 4),
-              color: Color(0x18000000),
+              color: AppColors.brown.withValues(alpha: 0.18),
             ),
           ],
         ),
@@ -181,8 +183,8 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const activeColor = Color(0xFF2F80ED);
-    const inactiveColor = Color(0xFF777777);
+    const activeColor = AppColors.brown;
+    const inactiveColor = AppColors.brown;
 
     return Semantics(
       button: true,
@@ -206,8 +208,8 @@ class _NavItem extends StatelessWidget {
             ),
             decoration: BoxDecoration(
               color: active
-                  ? activeColor.withValues(alpha: 0.10)
-                  : Colors.transparent,
+                  ? activeColor.withValues(alpha: 0.12)
+                  : AppColors.cream,
               borderRadius:
                   BorderRadius.circular(12),
             ),
