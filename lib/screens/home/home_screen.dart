@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/enums/belt_connection_state.dart';
+import '../../core/theme/app_colors.dart';
 import '../../core/enums/voice_command_state.dart';
 import '../../state/auth_state_notifier.dart';
 import '../../state/belt_connection_notifier.dart';
@@ -43,11 +44,11 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen>
     with TickerProviderStateMixin {
-  static const Color _blue = Color(0xFF2F80ED);
+  static const Color _blue = AppColors.brown;
   static const Color _green = Color(0xFF27AE60);
   static const Color _grey = Color(0xFF9CA3AF);
-  static const Color _text = Color(0xFF111111);
-  static const Color _muted = Color(0xFF6B7280);
+  static const Color _text = AppColors.brown;
+  static const Color _muted = AppColors.brown;
 
   late final AnimationController _entranceController;
   late final AnimationController _backgroundController;
@@ -192,7 +193,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 },
                 style: FilledButton.styleFrom(
                   backgroundColor: _blue,
-                  foregroundColor: Colors.white,
+                  foregroundColor: AppColors.cream,
                   minimumSize: const Size.fromHeight(48),
                 ),
                 child: const Text("Let's Get Started"),
@@ -315,10 +316,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.68),
+              color: AppColors.cream.withValues(alpha: 0.68),
               borderRadius: BorderRadius.circular(radius),
               border: Border.all(
-                color: Colors.white.withValues(alpha: 0.75),
+                color: AppColors.cream.withValues(alpha: 0.75),
               ),
             ),
             child: child,
@@ -368,7 +369,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     });
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.cream,
       body: Stack(
         children: [
           // ================================================================
@@ -397,7 +398,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
           Positioned.fill(
             child: Container(
-              color: Colors.white.withValues(
+              color: AppColors.cream.withValues(
                 alpha: 0.10,
               ),
             ),
@@ -433,7 +434,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           )!,
                           colors: [
                             const Color(0xFFDCEBFF).withValues(alpha: 0.55),
-                            Colors.white.withValues(alpha: 0.10),
+                            AppColors.cream.withValues(alpha: 0.10),
                             const Color(0xFFD9F5EA).withValues(alpha: 0.45),
                           ],
                         ),
@@ -516,7 +517,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           button: true,
                           label: 'Open menu',
                           child: Material(
-                            color: Colors.white,
+                            color: AppColors.cream,
                             borderRadius: BorderRadius.circular(10),
                             elevation: 3,
                             child: InkWell(
@@ -585,7 +586,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                     'Search destination...',
                                     style: TextStyle(
                                       fontSize: 14,
-                                      color: Color(0xFF666666),
+                                      color: AppColors.brown,
                                     ),
                                   ),
                                 ],
@@ -732,7 +733,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       context: context,
       barrierDismissible: true,
       barrierLabel: 'Close menu',
-      barrierColor: Colors.black.withValues(
+      barrierColor: AppColors.brown.withValues(
         alpha: 0.50,
       ),
       transitionDuration: const Duration(milliseconds: 300),
@@ -764,7 +765,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         return Align(
           alignment: Alignment.centerLeft,
           child: Material(
-            color: Colors.white,
+            color: AppColors.cream,
             elevation: 12,
             clipBehavior: Clip.antiAlias,
             borderRadius: const BorderRadius.horizontal(
@@ -808,7 +809,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                               height: 56,
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: AppColors.cream,
                                 borderRadius: BorderRadius.circular(16),
                                 boxShadow: const [
                                   BoxShadow(
@@ -1035,7 +1036,7 @@ class _WelcomeFeature extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         ExcludeSemantics(
-          child: Icon(icon, color: const Color(0xFF2F80ED), size: 25),
+          child: Icon(icon, color: const AppColors.brown, size: 25),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -1173,7 +1174,7 @@ class _MenuItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const blue = Color(0xFF2F80ED);
+    const blue = AppColors.brown;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
@@ -1206,7 +1207,7 @@ class _MenuItem extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: active ? FontWeight.w600 : FontWeight.w500,
-                      color: active ? blue : const Color(0xFF111111),
+                      color: active ? blue : const AppColors.brown,
                     ),
                   ),
                 ],
