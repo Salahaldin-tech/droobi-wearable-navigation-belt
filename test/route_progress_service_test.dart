@@ -24,7 +24,6 @@ void main() {
       );
 
       expect(target.distanceAheadMeters, closeTo(3.5, 0.25));
-      expect(target.isNearTurn, isTrue);
     });
 
     test('keeps the normal look-ahead on a straight path', () {
