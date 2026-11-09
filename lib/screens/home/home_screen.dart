@@ -435,7 +435,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           colors: [
                             AppColors.cream.withValues(alpha: 0.55),
                             AppColors.cream.withValues(alpha: 0.10),
-                            const AppColors.cream.withValues(alpha: 0.45),
+                            AppColors.cream.withValues(alpha: 0.45),
                           ],
                         ),
                       ),
@@ -1207,7 +1207,7 @@ class _MenuItem extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: active ? FontWeight.w600 : FontWeight.w500,
-                      color: active ? blue : const AppColors.brown,
+                      color: active ? blue : AppColors.brown,
                     ),
                   ),
                 ],
