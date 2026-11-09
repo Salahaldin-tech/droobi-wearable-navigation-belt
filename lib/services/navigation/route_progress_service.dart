@@ -6,9 +6,9 @@ import '../../models/route_result.dart';
 
 class RouteProgressService {
   RouteProgressService({
-    this.defaultLookAheadMeters = 8.0,
-    this.minimumLookAheadMeters = 4.0,
-    this.maximumLookAheadMeters = 10.0,
+    this.defaultLookAheadMeters = 7.5,
+    this.minimumLookAheadMeters = 3.5,
+    this.maximumLookAheadMeters = 9.0,
     this.turnDetectionAngleDegrees = 35.0,
   });
 
@@ -275,12 +275,12 @@ class RouteProgressService {
 
     // Turn is approaching.
     if (turnDistance <= 15.0) {
-      return 5.0;
+      return 4.5;
     }
 
     // Turn exists but is still far enough away.
     if (turnDistance <= 25.0) {
-      return 7.0;
+      return 6.5;
     }
 
     return maximumLookAheadMeters;
