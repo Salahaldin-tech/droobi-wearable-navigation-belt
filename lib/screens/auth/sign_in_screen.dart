@@ -8,6 +8,8 @@ import '../../state/auth_state_notifier.dart';
 import '../../widgets/page_help_button.dart';
 import 'sign_up_screen.dart';
 
+import '../../core/theme/app_colors.dart';
+
 // ---------------------------------------------------------------------------
 // THEME
 // Light, off-white base with a soft ambient shadow + cyan glow behind the
@@ -16,23 +18,23 @@ import 'sign_up_screen.dart';
 class _AuthTheme {
   const _AuthTheme._();
 
-  static const pageBackground = Color(0xFFF7F7F9);
-  static const panelBackground = Colors.white;
-  static const fieldFill = Color(0xFFF2F3F5);
-  static const fieldBorder = Color(0xFFE6E7EB);
+  static const pageBackground = AppColors.cream;
+  static const panelBackground = AppColors.cream;
+  static const fieldFill = AppColors.cream;
+  static const fieldBorder = AppColors.cream;
 
-  static const textPrimary = Color(0xFF1E3A8A);
-  static const textSecondary = Color(0xFF5B7FDE);
+  static const textPrimary = AppColors.brown;
+  static const textSecondary = AppColors.brown;
 
-  static const loginButton = Color(0xFF2F6FED);
-  static const error = Color(0xFFE0483E);
+  static const loginButton = AppColors.brown;
+  static const error = AppColors.brown;
 
-  static const ambientShadow = Color(0xFF2B2E36);
-  static const glowCyan = Color(0xFF34D8D1);
+  static const ambientShadow = AppColors.brown;
+  static const glowCyan = AppColors.brown;
 
   static const panelShadow = [
     BoxShadow(
-      color: Color(0x1F16181D),
+      color: AppColors.brown,
       blurRadius: 40,
       offset: Offset(0, -8),
     ),
@@ -150,14 +152,10 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   child: Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
-                      children: const [
+                      children: [
                         Text(
                           'Welcome back',
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w700,
-                            color: _AuthTheme.textPrimary,
-                          ),
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 24),
                         ),
                         SizedBox(height: 6),
                         Text(
@@ -251,17 +249,13 @@ class _Header extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
               Text(
                 'Droobi',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w800,
-                  color: _AuthTheme.textPrimary,
-                  letterSpacing: -0.5,
-                ),
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 30),
               ),
               SizedBox(height: 4),
               Row(
@@ -296,7 +290,8 @@ class _Header extends StatelessWidget {
                   ),
                 ],
               ),
-            ],
+              ],
+            ),
           ),
           _SignUpPill(onTap: onSignUpTap),
         ],
@@ -313,10 +308,13 @@ class _SignUpPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(24),
-      elevation: 2,
-      shadowColor: const Color(0x1A16181D),
+      color: AppColors.cream,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        side: const BorderSide(color: AppColors.brown, width: 1.5),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      shadowColor: AppColors.brown,
       child: InkWell(
         borderRadius: BorderRadius.circular(24),
         onTap: onTap,
@@ -372,6 +370,7 @@ class _LoginPanel extends StatelessWidget {
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Drag indicator
@@ -381,7 +380,7 @@ class _LoginPanel extends StatelessWidget {
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 28),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFD8DADF),
+                  color: AppColors.cream,
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
@@ -463,7 +462,7 @@ class _LoginPanel extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _AuthTheme.loginButton,
                   disabledBackgroundColor: _AuthTheme.loginButton.withOpacity(0.5),
-                  foregroundColor: Colors.white,
+                  foregroundColor: AppColors.cream,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
@@ -476,7 +475,7 @@ class _LoginPanel extends StatelessWidget {
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           semanticsLabel: 'Signing in',
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.cream),
                         ),
                       )
                     : const Text(
@@ -485,8 +484,6 @@ class _LoginPanel extends StatelessWidget {
                       ),
               ),
             ),
-
-            const SizedBox(height: 28),
 
             const SizedBox(height: 28),
             Wrap(
@@ -542,8 +539,8 @@ class _RoundedField extends StatelessWidget {
 
   OutlineInputBorder _border(Color color) {
     return OutlineInputBorder(
-      borderRadius: BorderRadius.circular(14),
-      borderSide: BorderSide(color: color, width: 1),
+      borderRadius: BorderRadius.circular(16),
+      borderSide: BorderSide(color: color, width: color == AppColors.brown ? 2 : 1.5),
     );
   }
 
@@ -559,15 +556,10 @@ class _RoundedField extends StatelessWidget {
       style: const TextStyle(fontSize: 15, color: _AuthTheme.textPrimary),
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle: const TextStyle(color: Color(0xFFB0B3BA), fontSize: 15),
-        suffixIcon: suffixIcon,
-        filled: true,
-        fillColor: _AuthTheme.fieldFill,
+        suffixIcon: suffixIcon == null
+            ? null
+            : SizedBox(width: 48, height: 48, child: suffixIcon),
         contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-        border: _border(_AuthTheme.fieldBorder),
-        enabledBorder: _border(_AuthTheme.fieldBorder),
-        focusedBorder: _border(_AuthTheme.textPrimary),
-        disabledBorder: _border(_AuthTheme.fieldBorder),
       ),
     );
   }
