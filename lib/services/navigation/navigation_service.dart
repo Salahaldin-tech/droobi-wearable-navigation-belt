@@ -551,6 +551,9 @@ class NavigationService {
       if (!_isNavigating || replacement.polyline.isEmpty) return;
       _route = replacement;
       _offRouteSamples = 0;
+      // A replacement route starts a new arrival evaluation window.
+      _arrivalFixCount = 0;
+      _lastArrivalFixTimestamp = null;
       _confirmedDirection = null;
       _candidateDirection = null;
       _candidateDirectionCount = 0;
