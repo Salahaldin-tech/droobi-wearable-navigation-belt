@@ -330,7 +330,7 @@ class NavigationService {
       // ------------------------------------------------------------
 
       final initialHeading =
-          await _compassService.getCurrentHeading();
+          await _compassService.getStableHeading();
 
       _resetCompassSmoothing();
 
