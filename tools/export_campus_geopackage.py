@@ -80,16 +80,46 @@ def export_layers(gpkg_path: Path, output_dir: Path) -> None:
     line_features: list[dict[str, Any]] = []
     layer_report: list[dict[str, Any]] = []
 
+    point_layers = []
+    line_layers = []
     for layer_index in range(source.GetLayerCount()):
         layer = source.GetLayerByIndex(layer_index)
         if layer is None:
             continue
+        geometry_type = ogr.GT_Flatten(layer.GetGeomType())
+        if geometry_type in (ogr.wkbPoint, ogr.wkbMultiPoint):
+            point_layers.append(layer)
+        elif geometry_type in (ogr.wkbLineString, ogr.wkbMultiLineString):
+            line_layers.append(layer)
 
+    def choose_layers(candidates, preferred_names, label):
+        preferred = [
+            layer for layer in candidates
+            if any(token in normalized_field_name(layer.GetName()) for token in preferred_names)
+        ]
+        if preferred:
+            return preferred
+        if len(candidates) == 1:
+            return candidates
+        names = [layer.GetName() for layer in candidates]
+        raise RuntimeError(
+            f"Could not safely choose the {label} layers from {names}. "
+            "Rename the intended QGIS layer to include a recognized name or "
+            "adapt this exporter explicitly."
+        )
+
+    selected_points = choose_layers(
+        point_layers, ("nodes", "campusnetwork", "campusnodes"), "point/node"
+    )
+    selected_lines = choose_layers(
+        line_layers, ("edges", "pedestrian", "walkway", "walkingpath", "paths"), "pedestrian-line"
+    )
+    selected_layers = selected_points + selected_lines
+
+    for layer in selected_layers:
         geometry_type = ogr.GT_Flatten(layer.GetGeomType())
         is_point = geometry_type in (ogr.wkbPoint, ogr.wkbMultiPoint)
         is_line = geometry_type in (ogr.wkbLineString, ogr.wkbMultiLineString)
-        if not (is_point or is_line):
-            continue
 
         source_srs = layer.GetSpatialRef()
         if source_srs is None:
