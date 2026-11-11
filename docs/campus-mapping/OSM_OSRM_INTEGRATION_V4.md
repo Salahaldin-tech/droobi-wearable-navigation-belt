@@ -54,6 +54,8 @@ The campus OSRM endpoint is supplied at build/run time:
 - Physical Android phone on the same LAN: `--dart-define=CAMPUS_OSRM_BASE_URL=http://<COMPUTER_LAN_IP>:5001`
 - iOS simulator: `--dart-define=CAMPUS_OSRM_BASE_URL=http://127.0.0.1:5001`
 
+Debug Android builds allow local HTTP for this endpoint. Release builds keep cleartext traffic disabled; deploy the OSRM service behind HTTPS before configuring a release build.
+
 Do not use `localhost` from a physical phone; it points to the phone itself. Campus navigation deliberately fails with a configuration error if this endpoint is absent. It must not silently fall back to the public demo or to the old QGIS graph.
 
 The campus OSRM client uses the `foot` route profile and a bounded 20 m snap radius for both endpoints. If OSRM cannot snap an endpoint within this radius, routing should fail rather than inventing a long straight-line connector.
