@@ -11,9 +11,13 @@ import 'routing_service.dart';
 /// Edge LineStrings are the routing graph; explicit from_node/to_node IDs define junctions when they match the node layer;
 /// shared coordinates remain the fallback for edges without usable endpoint IDs.
 class CampusGraphRoutingService implements RoutingService {
-  CampusGraphRoutingService({this.maximumSnapMeters = 45.0});
+  CampusGraphRoutingService({
+    this.maximumSnapMeters = 45.0,
+    Future<String> Function(String assetPath)? assetLoader,
+  }) : _assetLoader = assetLoader ?? rootBundle.loadString;
 
   final double maximumSnapMeters;
+  final Future<String> Function(String assetPath) _assetLoader;
   Future<_CampusGraph>? _graphFuture;
 
   @override
@@ -138,11 +142,11 @@ class CampusGraphRoutingService implements RoutingService {
       // GeoPackage blob. There is deliberately no V2, Firestore, OSRM, or
       // alternate-asset fallback for campus navigation.
       final nodesJson = CampusMapSource.decodeAndValidate(
-        await rootBundle.loadString(CampusMapSource.nodesAsset),
+        await _assetLoader(CampusMapSource.nodesAsset),
         expectedLayer: CampusMapSource.nodesLayer,
       );
       final edgesJson = CampusMapSource.decodeAndValidate(
-        await rootBundle.loadString(CampusMapSource.edgesAsset),
+        await _assetLoader(CampusMapSource.edgesAsset),
         expectedLayer: CampusMapSource.edgesLayer,
       );
       final nodeFeatures = nodesJson['features'] as List<dynamic>? ?? const [];
