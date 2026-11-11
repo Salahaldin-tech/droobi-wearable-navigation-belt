@@ -12,7 +12,7 @@ import 'routing_service.dart';
 /// separately; endpoint offsets are never bridged with invented geometry.
 class CampusGraphRoutingService implements RoutingService {
   CampusGraphRoutingService({
-    this.maximumSnapMeters = 20.0,
+    this.maximumSnapMeters = 30.0,
     this.maximumDestinationSnapMeters = 12.0,
     this.ambiguousSnapMarginMeters = 1.25,
   })  : assert(maximumSnapMeters > 0),
@@ -294,6 +294,54 @@ class CampusGraphRoutingService implements RoutingService {
       if (segments.isEmpty) {
         throw const FormatException('The QGIS map has no usable edge segments.');
       }
+
+      // The current campus pilot must load the complete ED01..ED020 export
+      // and all 28 surveyed node features, rather than silently routing on a
+      // partial asset bundle.
+      final expectedEdgeIds = <String>{
+        'ED01', 'ED02', 'ED03', 'ED04', 'ED05',
+        'ED06', 'ED07', 'ED08', 'ED09', 'ED010',
+        'ED011', 'ED012', 'ED013', 'ED014', 'ED015',
+        'ED016', 'ED017', 'ED018', 'ED019', 'ED020',
+      };
+      final missingEdgeIds = expectedEdgeIds.difference(edgeIds);
+      if (missingEdgeIds.isNotEmpty ||
+          edgeIds.length != expectedEdgeIds.length) {
+        throw FormatException(
+          'Incomplete campus edge export: expected 20 edges ED01..ED020; '
+          'loaded ${edgeIds.length}, missing ${missingEdgeIds.toList()}.',
+        );
+      }
+      if (nodes.length != 28) {
+        throw FormatException(
+          'Incomplete campus node export: expected 28 nodes; loaded ${nodes.length}.',
+        );
+      }
+
+      final referencedNodeIds = <String>{
+        for (final feature in rawEdges)
+          if (feature is Map<String, dynamic>)
+            canonicalReference(
+              ((feature['properties'] as Map<String, dynamic>? ?? const {})['from_node']
+                  ?? '').toString(),
+            ),
+        for (final feature in rawEdges)
+          if (feature is Map<String, dynamic>)
+            canonicalReference(
+              ((feature['properties'] as Map<String, dynamic>? ?? const {})['to_node']
+                  ?? '').toString(),
+            ),
+      };
+      final unusedNodeIds = nodes.keys
+          .where((nodeId) => !referencedNodeIds.contains(nodeId))
+          .toList()
+        ..sort();
+      if (unusedNodeIds.isNotEmpty) {
+        warnings.add(
+          'QGIS nodes without an attached edge: ${unusedNodeIds.join(', ')}.',
+        );
+      }
+
       final weak = _buildWeakAdjacency(adjacency);
       final componentCount = _countComponents(weak);
       if (componentCount > 1) {
