@@ -443,7 +443,6 @@ class NavigationService {
       );
 
       _lastCompassAt = DateTime.now();
-      _compassStreamHealthy = true;
       _startCompassStream();
       _startLocationStream();
       _startPolicyTimer();
