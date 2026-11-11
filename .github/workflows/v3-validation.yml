@@ -1,0 +1,59 @@
+name: V3 Flutter Validation
+
+on:
+  push:
+    branches:
+      - v3
+  pull_request:
+    branches:
+      - v3
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  flutter-validation:
+    name: Format, analyze and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Show toolchain
+        run: flutter --version
+
+      - name: Resolve dependencies
+        run: flutter pub get --enforce-lockfile
+
+      - name: Parse and format changed navigation sources
+        run: |
+          dart format \
+            lib/models/location_fix.dart \
+            lib/services/location/location_service.dart \
+            lib/services/location/gps_filter_service.dart \
+            lib/services/location/position_filter_service.dart \
+            lib/services/navigation/navigation_trace_logger.dart \
+            lib/services/navigation/route_progress_service.dart \
+            lib/services/navigation/navigation_service.dart \
+            lib/services/routing/campus_graph_routing_service.dart \
+            lib/screens/university/university_locations_screen.dart \
+            lib/services/ble/belt_navigation_bridge.dart \
+            lib/screens/navigation/live_navigation_screen.dart \
+            test/campus_graph_routing_service_test.dart \
+            test/route_progress_service_test.dart \
+            test/gps_filter_service_test.dart \
+            test/navigation_trace_logger_test.dart
+
+      - name: Analyze
+        run: flutter analyze --no-pub
+
+      - name: Run unit tests
+        run: flutter test --no-pub --reporter expanded
