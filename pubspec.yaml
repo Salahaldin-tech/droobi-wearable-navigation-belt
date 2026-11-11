@@ -58,7 +58,7 @@ flutter:
           weight: 700
 
   assets:
-    - assets/campus_map_v3/
+    - assets/campus_map_v3/exported/
     - assets/fonts/
     - assets/images/home_bg.png
     - assets/images/app_logo.png
