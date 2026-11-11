@@ -2,12 +2,10 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/lat_lon.dart';
-import '../../models/university_location.dart';
+import '../../services/campus_map/campus_map_source.dart';
 import '../../screens/navigation/live_navigation_screen.dart';
-import '../../state/university_locations_notifier.dart';
 import '../../widgets/droobi_bottom_nav.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/app_search_bar.dart';
@@ -15,19 +13,19 @@ import '../../widgets/page_help_button.dart';
 
 import '../../core/theme/app_colors.dart';
 
-class UniversityLocationsScreen extends ConsumerStatefulWidget {
+class UniversityLocationsScreen extends StatefulWidget {
   const UniversityLocationsScreen({super.key, this.initialQuery});
 
   /// Optional query supplied by destination search (for example, "Gate 3").
   final String? initialQuery;
 
   @override
-  ConsumerState<UniversityLocationsScreen> createState() =>
+  State<UniversityLocationsScreen> createState() =>
       _UniversityLocationsScreenState();
 }
 
 class _UniversityLocationsScreenState
-    extends ConsumerState<UniversityLocationsScreen>
+    extends State<UniversityLocationsScreen>
     with SingleTickerProviderStateMixin {
   static const Color _primaryBlue = AppColors.brown;
   static const Color _pageBackground = AppColors.cream;
@@ -48,11 +46,12 @@ class _UniversityLocationsScreenState
   // Picking a category just changes which of the existing lists is
   // rendered; typing a search query just narrows that list by name.
   // ---------------------------------------------------------------------
-  static const List<String> _categories = ['Colleges', 'Gates', 'Facilities'];
-  String _selectedCategory = _categories.first;
   final _searchController = TextEditingController();
   String _searchQuery = '';
-  List<UniversityLocation> _qgisLocations = [];
+  String _selectedCategory = '';
+  List<_CampusLocation> _campusLocations = [];
+  bool _isLoadingLocations = true;
+  Object? _loadError;
 
   @override
   void initState() {
@@ -132,233 +131,29 @@ class _UniversityLocationsScreenState
     );
   }
 
-  // ===========================================================================
-  // FIGMA DATA
-  // ===========================================================================
+  // All selectable destinations and category labels are read from the
+  // verified V3 campus GeoJSON. No campus names or coordinates are hardcoded.
+  List<String> get _categories => _campusLocations
+      .map((location) => location.category)
+      .toSet()
+      .toList()
+    ..sort();
 
-  static const List<_UniversityItem> _colleges = [
-    _UniversityItem(
-      name: 'Faculty of Allied Medical Sciences',
-      nameAr: 'كلية العلوم الطبية المساعدة',
-      aliases: [
-        'Faculty of Allied Medical Sciences',
-        'Allied Medical Sciences',
-        'AMS',
-      ],
-    ),
-    _UniversityItem(
-      name: 'Faculty of Arts and Education',
-      nameAr: 'كلية الآداب والتربية',
-      aliases: [
-        'Faculty of Arts and Education',
-        'Faculty of Arts and Sciences',
-        'Faculty of Arts',
-        'Arts and Education',
-        'Arts and Sciences',
-        'كلية الآداب والعلوم',
-        'كلية الآداب والتربية',
-      ],
-    ),
-    _UniversityItem(
-      name: 'Faculty of Business',
-      nameAr: 'كلية الأعمال',
-      aliases: [
-        'Faculty of Business',
-        'Business',
-      ],
-    ),
-    _UniversityItem(
-      name: 'Faculty of Dentistry',
-      nameAr: 'كلية طب الأسنان',
-      aliases: [
-        'Faculty of Dentistry',
-        'Dentistry',
-        'DEN-A',
-        'DEN-B',
-      ],
-    ),
-    _UniversityItem(
-      name: 'Faculty of Engineering',
-      nameAr: 'كلية الهندسة',
-      aliases: [
-        'Faculty of Engineering',
-        'Faculty of Engineering and Information Technology',
-        'Faculty of Engineering and IT',
-        'Engineering and Information Technology',
-        'EIT',
-      ],
-    ),
-    _UniversityItem(
-      name: 'Faculty of Information Technology',
-      nameAr: 'كلية تكنولوجيا المعلومات',
-      aliases: [
-        'Faculty of Information Technology',
-        'Information Technology',
-        'IT',
-        'EIT',
-      ],
-    ),
-    _UniversityItem(
-      name: 'Faculty of Law',
-      nameAr: 'كلية القانون',
-      aliases: [
-        'Faculty of Law',
-        'Law',
-        'LAW',
-      ],
-    ),
-    _UniversityItem(
-      name: 'Faculty of Medicine',
-      nameAr: 'كلية الطب',
-      aliases: [
-        'Faculty of Medicine',
-        'Medicine',
-      ],
-    ),
-    _UniversityItem(
-      name: 'Faculty of Nursing',
-      nameAr: 'كلية التمريض',
-      aliases: [
-        'Faculty of Nursing',
-        'Nursing',
-      ],
-    ),
-    _UniversityItem(
-      name: 'Faculty of Pharmacy',
-      nameAr: 'كلية الصيدلة',
-      aliases: [
-        'Faculty of Pharmacy',
-        'Pharmacy',
-      ],
-    ),
-    _UniversityItem(
-      name: 'Faculty of Science',
-      nameAr: 'كلية العلوم',
-      aliases: [
-        'Faculty of Science',
-        'Faculty of Sciences',
-        'Science',
-        'A&S',
-      ],
-    ),
-    _UniversityItem(
-      name: 'Faculty of Sports Sciences',
-      nameAr: 'كلية علوم الرياضة',
-      aliases: [
-        'Faculty of Sports Sciences',
-        'Sports Sciences',
-      ],
-    ),
-  ];
+  List<_CampusLocation> _itemsForCategory(String category) =>
+      _campusLocations
+          .where((location) => location.category == category)
+          .toList();
 
-  static const List<_UniversityItem> _gates = [
-    _UniversityItem(
-      name: 'Gate 1',
-      nameAr: 'البوابة ١',
-      aliases: [
-        'Gate 1',
-        'G1',
-      ],
-    ),
-    _UniversityItem(
-      name: 'Gate 2',
-      nameAr: 'البوابة ٢',
-      aliases: [
-        'Gate 2',
-        'G2',
-      ],
-    ),
-    _UniversityItem(
-      name: 'Gate 3',
-      nameAr: 'البوابة ٣',
-      aliases: [
-        'Gate 3',
-        'G3',
-        'Gate 3 University Visitors Gate',
-      ],
-    ),
-    _UniversityItem(
-      name: 'Gate 4',
-      nameAr: 'البوابة ٤',
-      aliases: [
-        'Gate 4',
-        'G4',
-      ],
-    ),
-    _UniversityItem(
-      name: 'Gate 5',
-      nameAr: 'البوابة ٥',
-      aliases: [
-        'Gate 5',
-        'G5',
-      ],
-    ),
-  ];
-
-  static const List<_UniversityItem> _facilities = [
-    _UniversityItem(
-      name: 'Cafeteria',
-      nameAr: 'الكافتيريا',
-      aliases: [
-        'Cafeteria',
-        'Shopping Center',
-        'SC',
-      ],
-    ),
-    _UniversityItem(
-      name: 'Administration',
-      nameAr: 'الإدارة',
-      aliases: [
-        'Administration',
-        'Administrative Departments Building',
-        'AD',
-        'Presidential Building',
-        'PR',
-      ],
-    ),
-    _UniversityItem(
-      name: 'Library',
-      nameAr: 'المكتبة',
-      aliases: [
-        'Library',
-      ],
-    ),
-  ];
-
-  List<_UniversityItem> _itemsForCategory(String category) {
-    switch (category) {
-      case 'Gates':
-        return _gates;
-      case 'Facilities':
-        return _facilities;
-      case 'Colleges':
-      default:
-        return _colleges;
-    }
-  }
-
-  List<_UniversityItem> _visibleItems() {
-    // While searching, look across every category (not just the selected
-    // pill) so a query always finds a match regardless of which filter is
-    // active. With no query, fall back to just the selected category.
-    final items = _searchQuery.isEmpty
+  List<_CampusLocation> _visibleItems() {
+    final items = _searchQuery.isEmpty || _selectedCategory.isEmpty
         ? _itemsForCategory(_selectedCategory)
-        : [..._colleges, ..._gates, ..._facilities];
-
-    if (_searchQuery.isEmpty) {
-      return items;
-    }
-
-    return items
-        .where(
-          (item) =>
-              item.name.toLowerCase().contains(_searchQuery) ||
-              item.nameAr.contains(_searchQuery) ||
-              item.aliases.any(
-                (alias) => alias.toLowerCase().contains(_searchQuery),
-              ),
-        )
-        .toList();
+        : _campusLocations;
+    if (_searchQuery.isEmpty) return items;
+    return items.where((item) {
+      return item.name.toLowerCase().contains(_searchQuery) ||
+          item.nameAr.toLowerCase().contains(_searchQuery) ||
+          item.aliases.any((alias) => alias.toLowerCase().contains(_searchQuery));
+    }).toList();
   }
 
   // ===========================================================================
@@ -367,8 +162,6 @@ class _UniversityLocationsScreenState
 
   @override
   Widget build(BuildContext context) {
-    final locationsAsync = ref.watch(universityLocationsProvider);
-
     return Scaffold(
       backgroundColor: _pageBackground,
       body: Stack(
@@ -439,15 +232,13 @@ class _UniversityLocationsScreenState
           // =====================================================================
 
           SafeArea(
-            child: locationsAsync.when(
-              loading: () => const Center(
-                child: CircularProgressIndicator(
-                  color: _primaryBlue,
-                ),
-              ),
-              error: (error, _) => _buildErrorState(error),
-              data: (locations) => _buildCard(context, locations),
-            ),
+            child: _isLoadingLocations
+                ? const Center(
+                    child: CircularProgressIndicator(color: _primaryBlue),
+                  )
+                : _loadError != null
+                    ? _buildErrorState(_loadError!)
+                    : _buildCard(context),
           ),
         ],
       ),
@@ -458,10 +249,7 @@ class _UniversityLocationsScreenState
   // CARD CONTENT (fixed header/search/filters + scroll-if-needed grid)
   // ===========================================================================
 
-  Widget _buildCard(
-    BuildContext context,
-    List<UniversityLocation> locations,
-  ) {
+  Widget _buildCard(BuildContext context) {
     int order = 0;
 
     return Column(
@@ -483,7 +271,6 @@ class _UniversityLocationsScreenState
         Expanded(
           child: _buildGrid(
             context,
-            locations,
             startIndex: order,
           ),
         ),
@@ -619,8 +406,7 @@ class _UniversityLocationsScreenState
   // ===========================================================================
 
   Widget _buildGrid(
-    BuildContext context,
-    List<UniversityLocation> locations, {
+    BuildContext context, {
     required int startIndex,
   }) {
     final items = _visibleItems();
@@ -664,55 +450,39 @@ class _UniversityLocationsScreenState
   /// Picks a more specific icon per place instead of reusing one generic
   /// pin for every card — colleges get a school icon, gates get a door
   /// icon, and each facility gets its own icon by name.
-  IconData _iconForItem(_UniversityItem item) {
-    if (_colleges.contains(item)) {
-      return Icons.school_outlined;
-    }
-    if (_gates.contains(item)) {
+  IconData _iconForItem(_CampusLocation item) {
+    final category = item.category.toLowerCase();
+    if (category.contains('gate') || category.contains('entrance')) {
       return Icons.sensor_door_outlined;
     }
-
-    switch (item.name) {
-      case 'Cafeteria':
-        return Icons.local_cafe_outlined;
-      case 'Administration':
-        return Icons.apartment_outlined;
-      case 'Library':
-        return Icons.menu_book_outlined;
-      default:
-        return Icons.place_outlined;
+    if (category.contains('college') || category.contains('faculty') ||
+        category.contains('building')) {
+      return Icons.school_outlined;
     }
+    if (category.contains('food') || category.contains('cafe')) {
+      return Icons.local_cafe_outlined;
+    }
+    return Icons.place_outlined;
   }
 
   Widget _buildLocationCard({
     required BuildContext context,
-    required _UniversityItem item,
-    required List<UniversityLocation> locations,
+    required _CampusLocation item,
   }) {
-    final location = _findLocation(item, locations);
-    final isAvailable = location != null;
 
     return AppCard(
       padding: EdgeInsets.zero,
       child: Semantics(
       button: true,
-      enabled: isAvailable,
+      enabled: true,
       label: item.name,
-      hint: isAvailable
-          ? 'Double tap to select this location.'
-          : 'This location is not available yet.',
+      hint: 'Double tap to navigate to this mapped campus location.',
       child: Material(
         color: _cardColor,
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: isAvailable
-              ? () {
-                  _handleLocationSelect(context, item, location);
-                }
-              : () {
-                  _showUnavailableMessage(context, item);
-                },
+          onTap: () => _handleLocationSelect(context, item),
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Column(
@@ -723,15 +493,13 @@ class _UniversityLocationsScreenState
                   width: 30,
                   height: 30,
                   decoration: BoxDecoration(
-                    color: _primaryBlue.withValues(alpha: isAvailable ? 0.14 : 0.06),
+                    color: _primaryBlue.withValues(alpha: 0.14),
                     borderRadius: BorderRadius.circular(9),
                   ),
                   child: Icon(
                     _iconForItem(item),
                     size: 16,
-                    color: isAvailable
-                        ? _primaryBlue
-                        : _primaryBlue.withValues(alpha: 0.4),
+                    color: _primaryBlue,
                   ),
                 ),
                 Column(
@@ -744,9 +512,7 @@ class _UniversityLocationsScreenState
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: isAvailable
-                            ? _textColor
-                            : _textColor.withValues(alpha: 0.55),
+                        color: _textColor,
                       ),
                     ),
                   ],
@@ -760,114 +526,146 @@ class _UniversityLocationsScreenState
     );
   }
 
-  // ===========================================================================
-  // FIND LOCATION
-  // ===========================================================================
+  Future<void> _loadQgisLocations() async {
+    try {
+      final source = await rootBundle.loadString(
+        CampusMapSource.nodesAsset,
+      );
+      final collection = CampusMapSource.decodeAndValidate(
+        source,
+        expectedLayer: CampusMapSource.nodesLayer,
+      );
+      final features = collection['features'] as List<dynamic>;
+      final grouped = <String, List<_CampusNodeRecord>>{};
 
-  UniversityLocation? _findLocation(
-    _UniversityItem item,
-    List<UniversityLocation> locations,
-  ) {
-    // Destination coordinates are sourced from the QGIS nodes layer.
-    // Junction nodes are intentionally excluded from the University cards.
-    final nodeIds = switch (item.name) {
-      'Cafeteria' => const ['C1', 'C2', 'C3'],
-      'Gate 1' => const ['G1'],
-      'Gate 3' => const ['G3'],
-      'Faculty of Information Technology' => const ['IT1'],
-      'Faculty of Arts and Education' => const ['AR1'],
-      'Faculty of Engineering' => const ['E1'],
-      _ => const <String>[],
-    };
+      for (final feature in features) {
+        if (feature is! Map<String, dynamic>) continue;
+        final properties = feature['properties'] as Map<String, dynamic>? ?? {};
+        final geometry = feature['geometry'] as Map<String, dynamic>?;
+        if (geometry == null || geometry['type'] != 'Point') continue;
+        final coordinates = geometry['coordinates'] as List<dynamic>?;
+        if (coordinates == null || coordinates.length < 2) continue;
+        final longitude = (coordinates[0] as num?)?.toDouble();
+        final latitude = (coordinates[1] as num?)?.toDouble();
+        if (latitude == null || longitude == null ||
+            latitude < -90 || latitude > 90 ||
+            longitude < -180 || longitude > 180) continue;
 
-    for (final nodeId in nodeIds) {
-      for (final node in _qgisLocations) {
-        if (node.id == nodeId) return node;
+        final id = _readMapProperty(
+          properties,
+          const ['node_id', 'nodeid', 'id', 'node', '_source_fid'],
+        );
+        if (id == null || id.isEmpty) continue;
+        final rawName = _readMapProperty(
+          properties,
+          const ['name', 'node_name', 'building_name', 'label', 'description'],
+        );
+        final name = (rawName == null || rawName.isEmpty) ? id : rawName;
+        final nameAr = _readMapProperty(
+              properties,
+              const ['name_ar', 'namearabic', 'label_ar', 'building_name_ar'],
+            ) ?? name;
+        final rawCategory = _readMapProperty(
+          properties,
+          const ['category', 'location_category', 'node_type', 'feature_type', 'type'],
+        );
+        final category = _displayCategory(rawCategory);
+        final rawAliases = _readMapProperty(
+          properties,
+          const ['aliases', 'alias', 'search_terms'],
+        );
+        final aliases = rawAliases == null
+            ? <String>[]
+            : rawAliases.split(RegExp(r'[;,|]')).map((value) => value.trim())
+                .where((value) => value.isNotEmpty).toList();
+        final groupId = _readMapProperty(
+          properties,
+          const ['place_id', 'location_id', 'building_id', 'parent_id', 'group_id'],
+        );
+        final groupKey = (groupId == null || groupId.isEmpty)
+            ? _normalize(name)
+            : groupId.trim().toLowerCase();
+        final record = _CampusNodeRecord(
+          id: id,
+          name: name,
+          nameAr: nameAr,
+          category: category,
+          point: LatLon(latitude: latitude, longitude: longitude),
+          aliases: aliases,
+        );
+        grouped.putIfAbsent(groupKey, () => <_CampusNodeRecord>[]).add(record);
       }
-    }
 
-    // Keep Firestore-backed locations for destinations not yet mapped in QGIS.
-    for (final location in locations) {
-      final locationName = _normalize(location.name);
-      for (final alias in item.aliases) {
-        final normalizedAlias = _normalize(alias);
-        if (locationName == normalizedAlias ||
-            locationName.contains(normalizedAlias) ||
-            normalizedAlias.contains(locationName)) {
-          return location;
+      final parsed = grouped.values.map((records) {
+        final first = records.first;
+        final uniqueAliases = records.expand((record) => record.aliases).toSet().toList();
+        return _CampusLocation(
+          id: first.id,
+          name: first.name,
+          nameAr: first.nameAr,
+          category: first.category,
+          aliases: uniqueAliases,
+          points: records.map((record) => record.point).toList(),
+        );
+      }).toList()
+        ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+
+      if (parsed.isEmpty) {
+        throw const FormatException(
+          'The verified main-branch campus map contains no selectable point locations.',
+        );
+      }
+      if (!mounted) return;
+      setState(() {
+        _campusLocations = parsed;
+        final categories = _categories;
+        if (_selectedCategory.isEmpty && categories.isNotEmpty) {
+          _selectedCategory = categories.first;
         }
+        _isLoadingLocations = false;
+        _loadError = null;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _isLoadingLocations = false;
+        _loadError = error;
+      });
+    }
+  }
+
+  String? _readMapProperty(
+    Map<String, dynamic> properties,
+    List<String> candidates,
+  ) {
+    final normalized = <String, dynamic>{
+      for (final entry in properties.entries)
+        entry.key.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), ''):
+            entry.value,
+    };
+    for (final candidate in candidates) {
+      final value = normalized[
+        candidate.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '')
+      ];
+      if (value != null && value.toString().trim().isNotEmpty) {
+        return value.toString().trim();
       }
     }
     return null;
   }
 
-  Future<void> _loadQgisLocations() async {
-    try {
-      String source;
-      try {
-        source = await rootBundle.loadString(
-          'assets/campus_map_v3/exported/nodes.geojson',
-        );
-      } on FlutterError {
-        source = await rootBundle.loadString(
-          'docs/campus-mapping/nodes.geojson',
-        );
-      }
-      final collection = jsonDecode(source) as Map<String, dynamic>;
-      final features = collection['features'] as List<dynamic>? ?? const [];
-      final parsed = <UniversityLocation>[];
-
-      for (final feature in features) {
-        if (feature is! Map<String, dynamic>) continue;
-        final properties =
-            feature['properties'] as Map<String, dynamic>? ?? const {};
-        final geometry = feature['geometry'] as Map<String, dynamic>?;
-        if (geometry == null || geometry['type'] != 'Point') continue;
-
-        final nodeType = (properties['node_type'] ?? '')
-            .toString()
-            .toLowerCase();
-        if (nodeType.contains('junction')) continue;
-
-        final coordinates = geometry['coordinates'] as List<dynamic>?;
-        if (coordinates == null || coordinates.length < 2) continue;
-        final longitude = (coordinates[0] as num?)?.toDouble();
-        final latitude = (coordinates[1] as num?)?.toDouble();
-        final id = (properties['node_id'] ??
-                properties['nodeid'] ??
-                properties['id'] ??
-                properties['node'] ??
-                '')
-            .toString()
-            .trim();
-        final name = (properties['name'] ?? properties['node_name'] ?? id)
-            .toString()
-            .trim();
-        if (longitude == null || latitude == null || id.isEmpty) continue;
-
-        parsed.add(UniversityLocation(
-          id: id,
-          name: name,
-          latitude: latitude,
-          longitude: longitude,
-        ));
-      }
-
-      if (mounted) {
-        setState(() => _qgisLocations = parsed);
-      }
-    } catch (error) {
-      debugPrint('Could not load QGIS campus nodes: $error');
-    }
+  String _displayCategory(String? value) {
+    if (value == null || value.trim().isEmpty) return 'Campus';
+    final words = value.trim().replaceAll(RegExp(r'[_-]+'), ' ')
+        .replaceAll(RegExp(r'\\s+'), ' ').split(' ');
+    return words.map((word) => word.isEmpty
+        ? word
+        : word[0].toUpperCase() + word.substring(1).toLowerCase()).join(' ');
   }
 
-  String _normalize(String value) {
-    return value
-        .trim()
-        .toLowerCase()
-        .replaceAll(RegExp(r'[-_]+'), ' ')
-        .replaceAll(RegExp(r'\s+'), ' ');
-  }
+  String _normalize(String value) => value.trim().toLowerCase()
+      .replaceAll(RegExp(r'[-_]+'), ' ')
+      .replaceAll(RegExp(r'\\s+'), ' ');
 
   // ===========================================================================
   // LOCATION SELECT
@@ -875,48 +673,18 @@ class _UniversityLocationsScreenState
 
   void _handleLocationSelect(
     BuildContext context,
-    _UniversityItem item,
-    UniversityLocation location,
+    _CampusLocation item,
   ) {
+    final candidates = item.points;
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => LiveNavigationScreen(
-          destination: LatLon(
-            latitude: location.latitude,
-            longitude: location.longitude,
-          ),
-          destinationCandidates: item.name == 'Cafeteria'
-              ? _qgisLocations
-                  .where((node) => const ['C1', 'C2', 'C3'].contains(node.id))
-                  .map((node) => LatLon(
-                        latitude: node.latitude,
-                        longitude: node.longitude,
-                      ))
-                  .toList()
-              : null,
+          destination: candidates.first,
+          destinationCandidates: candidates.length > 1 ? candidates : null,
           campusNavigation: true,
         ),
       ),
     );
-  }
-
-  // ===========================================================================
-  // UNAVAILABLE LOCATION
-  // ===========================================================================
-
-  void _showUnavailableMessage(
-    BuildContext context,
-    _UniversityItem item,
-  ) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(
-            '${item.name} is not available yet.',
-          ),
-        ),
-      );
   }
 
   // ===========================================================================
@@ -964,18 +732,38 @@ class _UniversityLocationsScreenState
   }
 }
 
-// ==============================================================================
-// UNIVERSITY ITEM
-// ==============================================================================
-
-class _UniversityItem {
-  const _UniversityItem({
+class _CampusNodeRecord {
+  const _CampusNodeRecord({
+    required this.id,
     required this.name,
     required this.nameAr,
+    required this.category,
+    required this.point,
     required this.aliases,
   });
 
+  final String id;
   final String name;
   final String nameAr;
+  final String category;
+  final LatLon point;
   final List<String> aliases;
+}
+
+class _CampusLocation {
+  const _CampusLocation({
+    required this.id,
+    required this.name,
+    required this.nameAr,
+    required this.category,
+    required this.aliases,
+    required this.points,
+  });
+
+  final String id;
+  final String name;
+  final String nameAr;
+  final String category;
+  final List<String> aliases;
+  final List<LatLon> points;
 }
