@@ -7,13 +7,26 @@ class CompassService {
   CompassService({
     Stream<double>? headingSource,
     this.headingCorrectionDegrees = 0.0,
-  })  : _headingSource = headingSource,
-        assert(headingCorrectionDegrees.isFinite);
+  })  : _headingSource = headingSource {
+    if (!headingCorrectionDegrees.isFinite) {
+      throw ArgumentError.value(
+        headingCorrectionDegrees,
+        'headingCorrectionDegrees',
+        'Must be finite.',
+      );
+    }
+  }
 
-  /// Additive correction that converts the device's magnetic heading toward
-  /// the local true-north reference. Keep at zero until calibrated for the
-  /// device/location; do not assume a universal fixed declination.
-  final double headingCorrectionDegrees;
+  /// Additive correction from magnetic north to local true north.
+  /// NavigationService supplies the location/time-specific WMM2025 value.
+  double headingCorrectionDegrees;
+
+  void updateHeadingCorrection(double degrees) {
+    if (!degrees.isFinite) {
+      throw ArgumentError.value(degrees, 'degrees', 'Must be finite.');
+    }
+    headingCorrectionDegrees = degrees;
+  }
 
   double? lastStabilityResultantVector;
   int lastStabilitySampleCount = 0;
