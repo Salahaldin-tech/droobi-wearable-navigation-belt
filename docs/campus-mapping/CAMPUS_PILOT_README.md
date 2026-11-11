@@ -1,5 +1,7 @@
 # Campus Mapping Pilot — Field Test
 
+> **Historical V2 pilot documentation:** the `nodes.geojson` and `edges.geojson` described in this file are not used by the current university page or campus router on `feature/engine-v2-start-direction-main-map`. The current runtime accepts only the provenance-validated V3 exports derived from `main/assets/campus_map_v3/campus_network.gpkg`. These notes are retained for historical reference only.
+
 This branch contains a QGIS-exported snapshot of the current campus pilot map for field inspection.
 
 ## Files
