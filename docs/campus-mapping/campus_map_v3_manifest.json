@@ -12,12 +12,13 @@
     "edges": 20,
     "buildings": 7,
     "barriers": 16,
-    "weakComponents": 3,
-    "mainComponentEdges": 18,
-    "isolatedEdges": [
+    "geometryOnlyWeakComponents": 3,
+    "geometryOnlyMainComponentEdges": 18,
+    "geometryOnlyIsolatedEdges": [
       "ED011",
       "ED012"
-    ]
+    ],
+    "graphConnectivityVerified": false
   },
   "policy": [
     "Preserve source IDs and geometries.",
@@ -38,6 +39,7 @@
   "routingTopology": {
     "connectivityAuthority": "canonical from_node/to_node IDs",
     "maximumNodeAttachmentMeters": 5,
-    "connectorPolicy": "explicit connector geometry for endpoint offsets above 0.20m; reject offsets above 5.0m"
+    "connectorPolicy": "explicit connector geometry for endpoint offsets above 0.20m; reject offsets above 5.0m",
+    "interiorVertexPolicy": "edge-local vertex keys; no cross-edge coordinate-based joins"
   }
 }
