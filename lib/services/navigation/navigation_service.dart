@@ -563,6 +563,8 @@ class NavigationService {
       // Do not continue issuing directions along a stale route after the
       // user has left it and QGIS cannot find a connected replacement.
       _isNavigating = false;
+      _navigationTicker?.cancel();
+      _navigationTicker = null;
       _publish(NavigationSnapshot(
         state: NavigationState.routeUnavailable,
         currentPosition: fix.position,
@@ -950,8 +952,8 @@ class NavigationService {
       return _confirmedDirection!;
     }
 
-    // Compass streams can emit ~30 samples/second. A time window avoids
-    // confirming a new direction from three adjacent samples in milliseconds.
+    // Decisions are evaluated every 500 ms. Require both three distinct
+    // evaluations and at least 900 ms before changing the confirmed cue.
     _candidateDirectionCount++;
     final since = _candidateDirectionSince;
     if (since != null &&
