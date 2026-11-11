@@ -226,11 +226,37 @@ class CampusGraphRoutingService implements RoutingService {
 
         final startOffset = _distance(line.first, fromPoint);
         final endOffset = _distance(line.last, toPoint);
-        if (startOffset > 1.0 || endOffset > 1.0) {
-          warnings.add(
-            '$edgeId endpoint offset: from=${startOffset.toStringAsFixed(2)}m, '
-            'to=${endOffset.toStringAsFixed(2)}m.',
+        const maximumNodeAttachmentMeters = 5.0;
+        if (startOffset > maximumNodeAttachmentMeters ||
+            endOffset > maximumNodeAttachmentMeters) {
+          throw FormatException(
+            '$edgeId cannot attach to its declared QGIS nodes: '
+            'from offset=${startOffset.toStringAsFixed(2)}m, '
+            'to offset=${endOffset.toStringAsFixed(2)}m '
+            '(maximum ${maximumNodeAttachmentMeters.toStringAsFixed(1)}m).',
           );
+        }
+
+        // Node IDs, not coordinate coincidence, define graph connectivity.
+        // Where a surveyed line endpoint is slightly offset from its declared
+        // node, retain an explicit short connector in the route geometry.
+        if (startOffset > 0.20) {
+          line.insert(0, fromPoint);
+          warnings.add(
+            '$edgeId uses a ${startOffset.toStringAsFixed(2)}m '
+            'connector to node $fromId.',
+          );
+        } else {
+          line[0] = fromPoint;
+        }
+        if (endOffset > 0.20) {
+          line.add(toPoint);
+          warnings.add(
+            '$edgeId uses a ${endOffset.toStringAsFixed(2)}m '
+            'connector to node $toId.',
+          );
+        } else {
+          line[line.length - 1] = toPoint;
         }
 
         final bidirectional = _asBool(properties['bidirectional']);
@@ -242,8 +268,9 @@ class CampusGraphRoutingService implements RoutingService {
           final second = line[i + 1];
           final length = _distance(first, second);
           if (!length.isFinite || length < 0.05) continue;
-          final fromKey = _key(first);
-          final toKey = _key(second);
+          final fromKey = i == 0 ? _nodeKey(fromId) : _key(first);
+          final toKey =
+              i == line.length - 2 ? _nodeKey(toId) : _key(second);
           points[fromKey] = first;
           points[toKey] = second;
           adjacency.putIfAbsent(fromKey, () => <_Arc>[]);
@@ -522,8 +549,10 @@ class CampusGraphRoutingService implements RoutingService {
     graph.putIfAbsent(from, () => <_Arc>[]).add(_Arc(to, weight));
   }
 
+  static String _nodeKey(String nodeId) => 'node:$nodeId';
+
   static String _key(LatLon point) =>
-      '${point.latitude.toStringAsFixed(6)},'
+      'vertex:${point.latitude.toStringAsFixed(6)},'
       '${point.longitude.toStringAsFixed(6)}';
 
   static _Projection _project(LatLon point, LatLon start, LatLon end) {
