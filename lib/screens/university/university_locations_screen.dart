@@ -310,17 +310,17 @@ class _UniversityLocationsScreenState
               title: 'University',
               titleAr: 'الجامعة',
               description:
-                'The page is arranged from top to bottom: the campus title, a search field, a horizontally scrolling row of category filters, then campus location cards in a two-column grid. The bottom navigation bar stays at the bottom.',
+                'The page shows destinations loaded from the verified campus map. Use the search field to find a mapped place, or choose one of the category filters generated from the map data. The bottom navigation bar stays at the bottom.',
               descriptionAr:
-                'ترتيب الصفحة من الأعلى للأسفل: عنوان الجامعة، ثم حقل البحث، ثم صف أفقي قابل للتمرير لأزرار التصنيفات، وبعده بطاقات مواقع الجامعة ضمن شبكة من عمودين. يبقى شريط التنقل في الأسفل.',
+                'تعرض الصفحة الوجهات الموجودة في خريطة الجامعة المعتمدة. استخدم البحث للوصول إلى موقع مرسوم على الخريطة، أو اختر أحد التصنيفات المستخرجة من بيانات الخريطة. يبقى شريط التنقل في الأسفل.',
               tips: [
                   'Near the top, tap the search field labeled “Search buildings, gates, facilities” and type a name. Matching locations remain in the grid below; if none match, a “No matches” message appears.',
-                  'Directly below the search field, swipe the category chips left or right and tap Colleges, Gates, or Facilities. The selected chip turns blue and the grid refreshes.',
+                  'Below the search field, swipe the map-derived category chips and select a category to filter the mapped destinations.',
                   'Below the filters, browse the campus cards arranged in two columns. Tap a card to select that location; if the location is available, the app opens its next location/navigation action. Unavailable locations show an unavailable message.',
                 ],
               tipsAr: [
                   'قرب أعلى الشاشة، اضغط حقل “Search buildings, gates, facilities” واكتب اسمًا. تبقى المواقع المطابقة في الشبكة أسفل الحقل؛ وإذا لم توجد نتائج تظهر رسالة “No matches”.',
-                  'أسفل حقل البحث مباشرة، مرّر أزرار التصنيفات أفقيًا يمينًا أو يسارًا، ثم اضغط Colleges أو Gates أو Facilities. يتحول التصنيف المحدد إلى الأزرق وتتحدث الشبكة.',
+                  'أسفل حقل البحث، مرّر تصنيفات المواقع المستخرجة من الخريطة واختر تصنيفًا لعرض وجهاته فقط.',
                   'أسفل التصنيفات، تصفح بطاقات مواقع الجامعة المرتبة في عمودين. اضغط بطاقة لاختيار الموقع؛ إذا كان متاحًا يفتح التطبيق إجراء الموقع أو الملاحة التالي، وإذا لم يكن متاحًا تظهر رسالة توضح ذلك.',
                 ],
               color: _primaryBlue,
@@ -668,7 +668,7 @@ class _UniversityLocationsScreenState
 
   String _normalize(String value) => value.trim().toLowerCase()
       .replaceAll(RegExp(r'[-_]+'), ' ')
-      .replaceAll(RegExp(r'\\s+'), ' ');
+      .replaceAll(RegExp(r'\s+'), ' ');
 
   // ===========================================================================
   // LOCATION SELECT
