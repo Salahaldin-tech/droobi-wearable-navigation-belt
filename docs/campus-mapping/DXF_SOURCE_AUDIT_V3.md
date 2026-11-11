@@ -1,36 +1,29 @@
-# DXF Source Audit — Campus Navigation V3
+# DXF Source Audit — Drawing1.dxf — Campus Navigation V3
 
-## File inspected
+## Authoritative file for this audit
 
-- File: ماستر بلان2.dxf
-- Format: AutoCAD DXF R14 / AC1015
-- Size: 11,436,474 bytes
-- DXF modelspace entities: 13,702
-- No source geometry was modified during inspection.
+This audit is based only on the newly uploaded file:
 
-## Coordinate-system findings
+- Filename: Drawing1.dxf
+- Size: 11,425,872 bytes
+- SHA-256: 96cdeca1fd2d7ed0423e1041fd43f3c57afa54b4fc9c536c34281f24df6132ac
+- DXF version: AC1032 (AutoCAD 2018 format)
+- Modelspace entities: 13,702
 
-The DXF does not provide enough embedded metadata to declare its CRS conclusively:
+This file is the active DXF candidate for the V3 workflow. Do not substitute an earlier DXF or reuse its audit conclusions.
 
-- $INSUNITS is absent.
+## Header and units
+
+- $INSUNITS = 6, which declares drawing units as meters.
+- $MEASUREMENT = 1.
+- $EXTMIN = (182225.579473, 201062.231054, 0.0)
+- $EXTMAX = (183013.207051, 201957.831054, 824.369888)
 - No GEODATA entity was found.
-- The file's $EXTMIN is approximately X=182225.579, Y=201062.231.
-- The file's $EXTMAX is approximately X=182921.179, Y=201957.831.
-- $MEASUREMENT is 1, but this alone is not proof of a particular coordinate reference system or linear unit.
+- The header does not conclusively identify a geographic CRS or datum.
 
-A diagnostic transformation of the drawing bounds from EPSG:28191 (Palestine Grid) to WGS84 produces an approximate extent:
+The meter unit declaration is useful, but it does not prove that the XY coordinates are Palestine Grid or any other specific CRS. The coordinate system must be established from authoritative drawing metadata or multiple independent geographic control points. No transformation is approved at this stage.
 
-- southwest: latitude 32.403434, longitude 35.340178;
-- northeast: latitude 32.411502, longitude 35.347584;
-- drawing center: latitude 32.407468, longitude 35.343881.
-
-This places the transformed extent in the vicinity of the Arab American University Jenin campus. It makes EPSG:28191 a plausible working hypothesis, not a confirmed CRS. The transformation must be checked against several independent control points before any OSM/DXF merge or routing export.
-
-A public OSM-derived listing places the university node at approximately 32.40816, 35.34251 (OSM node 431717960). This is a useful candidate control point, but a campus label point is not necessarily a surveyed point represented in the DXF. It must not be used as the only georeferencing control.
-
-## Entity inventory
-
-Modelspace entity counts:
+## Modelspace entity inventory
 
 | Entity type | Count |
 |---|---:|
@@ -48,46 +41,46 @@ Modelspace entity counts:
 | SPLINE | 4 |
 | **Total** | **13,702** |
 
-Potentially useful layers (these are candidates, not yet approved routing geometry):
+## Relevant layer inventory
 
 | Layer | Entities | Initial interpretation / review need |
 |---|---:|---|
-| BUILDING | 297 | Building outlines; distinguish closed footprints from construction/detail lines |
-| GATE | 5 | Candidate gate geometry; verify which entities define actual passable openings |
-| STAIR | 1,439 | Stair detail; not automatically an accessible pedestrian path |
-| RAMP | 13 | Candidate ramps; verify continuity, slope, and endpoints |
-| PARKING | 409 | Parking geometry; may help identify circulation areas but not all lines are walkable |
-| TRAV | 105 | Contains labels such as B1, B2, U-16 and elevation-like values; semantic meaning must be confirmed |
-| CWALL | 1,609 | Wall geometry; likely useful for barriers, but entity semantics and continuity need review |
-| FENCE | 34 | Candidate barriers/boundaries |
-| HOUSE | 198 | Mixed geometry and hatches; inspect before interpreting as buildings |
-| CW | 155 | Mixed line/arc/spline geometry; meaning not confirmed |
-| CS | 648 | Mixed geometry; meaning not confirmed |
-| GRIL | 251 | Candidate grille/fence details; meaning not confirmed |
-| ZENK | 140 | Meaning not confirmed |
-| LS | 120 | Meaning not confirmed |
-| AS | 28 | Meaning not confirmed |
+| MANHOLE | 2,649 | Utility infrastructure; not pedestrian routing edges |
+| TREE | 1,711 | Tree symbols/labels; may inform obstacles only after interpretation |
+| CWALL | 1,609 | Candidate walls/barriers; verify continuity and meaning |
+| STAIR | 1,439 | Stair details; not automatically accessible paths |
+| V-NODE | 1,206 | Proxy entities; inspect source application/proxy meaning |
+| CS | 648 | Meaning not yet confirmed |
+| POLE | 482 | Utility/site furniture candidates |
+| PARKING | 409 | Parking geometry; not all lines are walkable |
+| CONT-MJR | 385 | Major contour lines |
+| LEVEL | 315 | Elevation/level annotations |
+| BUILDING | 297 | Candidate building outlines; distinguish footprints from drafting detail |
+| GRIL | 251 | Meaning not yet confirmed |
+| HOUSE | 198 | Mixed geometry and hatches; inspect before interpreting |
+| CW | 155 | Mixed geometry; meaning not yet confirmed |
+| ZENK | 140 | Meaning not yet confirmed |
+| TRAV | 105 | Mixed text/circle/polyline entities; semantic meaning not yet confirmed |
+| BORDER | 76 | Candidate boundary geometry |
+| FENCE | 34 | Candidate fences/barriers |
+| RAMP | 13 | Candidate ramps; verify endpoints, continuity, and accessibility |
+| GATE | 5 | Five entities, not necessarily five distinct gates |
 
-The GATE layer contains one LWPOLYLINE and four LINE entities. It does not yet establish five distinct gates. The layer must be interpreted geometrically and checked against OSM/field evidence.
+The GATE layer consists of four LINE entities and one LWPOLYLINE. Its geometry must be interpreted; entity count is not a gate count.
 
-The HOUSE layer includes a HATCH whose reported bounding extent reaches X≈172467 while the main drawing extent begins at X≈182225. This is a large outlier and should be investigated as a possible malformed hatch boundary or stray geometry. Do not let this entity define the campus AOI.
+The RAMP layer consists of eleven LINE entities and two LWPOLYLINE entities. Confirm whether these represent ramp centerlines, outlines, or drafting annotations before using them in routing.
 
-## OSM-first workflow implications
+The BUILDING layer contains 143 LWPOLYLINE, 144 LINE, nine ARC, and one POLYLINE entities. These are not automatically 297 complete building footprints.
 
-- Use Overpass to obtain an immutable, timestamped OSM snapshot for the verified campus AOI.
-- Use JOSM to inspect OSM objects and tags; do not treat a partial Overpass download as a complete editable OSM dataset.
-- Keep DXF-derived candidates in a separate project-owned layer until georeferencing, access, and source rights are confirmed.
-- Do not upload imported DXF content to OSM as a bulk import.
-- Build the pedestrian graph only from verified walkable paths and actual junctions, gates, and entrances.
+## Required next steps
 
-## Next required actions
+1. Obtain the intended CRS/datum from the DXF author or university engineering office, if possible.
+2. Identify at least three well-distributed, unambiguous control points shared between this drawing and trusted geographic data; use additional points where possible.
+3. Fit the transformation and report residual errors. Reserve independent check points that are not used to fit it.
+4. Inspect candidate pedestrian geometry and relevant layers, especially access paths, gates, ramps, stairs, walls, and fences.
+5. Only after CRS validation, define the campus AOI and obtain a timestamped OSM extract through Overpass.
+6. Keep raw OSM data and DXF-derived candidate geometry separate until reconciliation is complete.
 
-1. Confirm the DXF's intended coordinate system and units from the drawing provider or authoritative metadata.
-2. Identify at least three well-distributed control points that can be matched unambiguously between the DXF and trusted geographic data. Prefer more than three and check residuals.
-3. Verify the transformation using independent check points not used to fit it.
-4. Inspect the BUILDING, GATE, RAMP, STAIR, PARKING, CWALL, and FENCE layers in detail.
-5. Only after CRS approval, define the Overpass AOI and extract OSM roads, footways, buildings, entrances, and relevant campus features.
+## Current audit status
 
-## Audit status
-
-**Preliminary inspection complete; CRS not confirmed; OSM extraction and graph construction intentionally not started.**
+**Structural inspection of Drawing1.dxf completed. Units are declared as meters. Geographic CRS is not confirmed. No OSM extraction, georeferencing transformation, merged map, or routing graph has been created.**
