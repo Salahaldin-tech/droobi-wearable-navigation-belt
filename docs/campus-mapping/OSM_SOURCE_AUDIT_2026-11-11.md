@@ -67,6 +67,17 @@ The query used a bounding-box filter, but Overpass returns full geometry for way
 
 The output contains no relations. Campus boundary, building access, pedestrian permissions, crossing safety, and internal path semantics remain incomplete or unverified.
 
+## Preliminary spatial comparison with Drawing1.dxf
+
+The five OSM highway=footway ways were transformed to the provisional EPSG:28191 coordinate space and compared geometrically with DXF linework clipped to the DXF modelspace extent.
+
+- The five footway geometries are near several DXF layers, including STAIR, CWALL, CW and CS.
+- Some footway segments are within approximately 0–3 m of those DXF geometries.
+- These are proximity observations only. The DXF layer meanings and whether the nearby geometry represents a walkable centerline, stair edge, wall, kerb, or drafting detail are not fully established.
+- The comparison does not validate EPSG:28191 or establish route continuity/accessibility. Do not merge these geometries or create graph edges from proximity alone.
+
+The DXF does not expose a clearly named pedestrian-path layer in the inspected layer inventory. Candidate geometry requires semantic review before routing use.
+
 ## Recommended reconciliation actions
 
 1. Preserve the raw OSM snapshot unchanged and retain its timestamp and ODbL attribution.
