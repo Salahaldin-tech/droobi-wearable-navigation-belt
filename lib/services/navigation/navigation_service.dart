@@ -9,6 +9,7 @@ import '../location/gps_filter_service.dart';
 import '../location/location_service.dart';
 import '../routing/routing_service.dart';
 import 'compass_service.dart';
+import 'wmm2025/magnetic_declination.dart';
 import 'direction_calculator.dart';
 import 'route_progress_service.dart';
 import 'navigation_trace_logger.dart';
@@ -368,7 +369,39 @@ class NavigationService {
       });
 
       // ------------------------------------------------------------
-      // 3. INITIAL COMPASS
+      // 3. LOCAL MAGNETIC DECLINATION (WMM2025)
+      // ------------------------------------------------------------
+      //
+      // flutter_compass reports magnetic heading. Convert it to true north
+      // using the offline WMM2025 model at the accepted GPS fix. This uses
+      // no additional sensor, network request, or hard-coded +5 degree bias.
+
+      final declinationField = MagneticDeclination.field(
+        latitude: filteredFix.position.latitude,
+        longitude: filteredFix.position.longitude,
+        altitudeMeters: 0,
+        date: DateTime.now().toUtc(),
+      );
+      if (!declinationField.isWithinValidity ||
+          !declinationField.declination.isFinite) {
+        throw const NavigationFailure(
+          'The bundled WMM2025 magnetic model is outside its validity window. '
+          'Update the model before starting compass-guided navigation.',
+        );
+      }
+      _compassService.updateHeadingCorrection(
+        declinationField.declination,
+      );
+      _traceLogger.record('magnetic_declination_applied', fields: {
+        'model': 'WMM2025',
+        'declination_deg': declinationField.declination,
+        'inclination_deg': declinationField.inclination,
+        'horizontal_intensity_nt': declinationField.horizontalIntensity,
+        'model_valid': declinationField.isWithinValidity,
+      });
+
+      // ------------------------------------------------------------
+      // 4. INITIAL COMPASS
       // ------------------------------------------------------------
 
       final initialHeading =
