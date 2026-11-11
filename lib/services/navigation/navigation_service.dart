@@ -69,6 +69,7 @@ class NavigationService {
     RoutingService? campusRoutingService,
     required CompassService compassService,
     GpsFilterService? gpsFilterService,
+    GpsFilterService? campusGpsFilterService,
     RouteProgressService? routeProgressService,
     DirectionCalculator? directionCalculator,
 
@@ -102,6 +103,8 @@ class NavigationService {
         _compassService = compassService,
         _gpsFilterService =
             gpsFilterService ?? GpsFilterService(),
+        _campusGpsFilterService =
+            campusGpsFilterService ?? GpsFilterService(),
         _routeProgressService =
             routeProgressService ?? RouteProgressService(),
         _directionCalculator =
@@ -127,6 +130,10 @@ class NavigationService {
   final CompassService _compassService;
 
   final GpsFilterService _gpsFilterService;
+
+  final GpsFilterService _campusGpsFilterService;
+
+  GpsFilterService? _activeGpsFilterService;
 
   final RouteProgressService _routeProgressService;
 
@@ -242,14 +249,14 @@ class NavigationService {
     await stop();
 
     _isCampusNavigation = campusNavigation;
+    _activeGpsFilterService =
+        campusNavigation ? _campusGpsFilterService : _gpsFilterService;
     _activeRoutingService = campusNavigation
         ? _campusRoutingService
         : _routingService;
     if (_activeRoutingService == null) {
       throw const NavigationFailure(
-        'Campus OSRM is not configured. Start the app with '
-        '--dart-define=CAMPUS_OSRM_BASE_URL=http://<HOST>:5001 '
-        'after building the campus OSRM dataset.',
+        'Campus routing service is unavailable.',
       );
     }
     _destination = destination;
@@ -412,7 +419,7 @@ class NavigationService {
             await _locationService.getCurrentLocationFix();
 
         final filtered =
-            _gpsFilterService.process(rawFix);
+            _activeGpsFilterService!.process(rawFix);
 
         if (filtered != null) {
           return filtered;
@@ -468,7 +475,7 @@ class NavigationService {
     }
 
     final filteredFix =
-        _gpsFilterService.process(rawFix);
+        _activeGpsFilterService!.process(rawFix);
 
     if (filteredFix == null) {
       // Ignore rejected GPS samples without stopping navigation.
@@ -478,8 +485,8 @@ class NavigationService {
     _lastAcceptedFix = filteredFix;
 
     if (_isCampusNavigation) {
-      await _maybeRerouteCampus(filteredFix);
-      if (!_isNavigating) return;
+      final routeReady = await _maybeRerouteCampus(filteredFix);
+      if (!routeReady) return;
     }
 
     final heading = _latestHeading;
@@ -508,13 +515,13 @@ class NavigationService {
   // CAMPUS OFF-ROUTE RECOVERY
   // ================================================================
 
-  Future<void> _maybeRerouteCampus(LocationFix fix) async {
+  Future<bool> _maybeRerouteCampus(LocationFix fix) async {
     final route = _route;
     final destination = _destination;
     final router = _activeRoutingService;
     if (!_isNavigating || route == null || destination == null ||
         router == null || _isRerouting) {
-      return;
+      return true;
     }
 
     final progress = _routeProgressService.getNextTarget(
@@ -534,11 +541,11 @@ class NavigationService {
       return;
     }
 
-    if (_offRouteSamples < _campusOffRouteSamplesRequired) return;
+    if (_offRouteSamples < _campusOffRouteSamplesRequired) return true;
     final now = DateTime.now();
     if (_lastCampusRerouteAt != null &&
         now.difference(_lastCampusRerouteAt!) < _campusRerouteCooldown) {
-      return;
+      return true;
     }
 
     _isRerouting = true;
@@ -559,18 +566,21 @@ class NavigationService {
       _confirmedDirection = null;
       _candidateDirection = null;
       _candidateDirectionCount = 0;
+      return true;
     } catch (error) {
-      // Do not continue issuing directions along a stale route after the
-      // user has left it and OSRM cannot find a replacement on the OSM graph.
-      _isNavigating = false;
+      // A failed reroute must not terminate the navigation session.
+      // Pause guidance for this fix, keep the last accepted route, and
+      // retry recovery when another trustworthy GPS fix arrives.
+      _offRouteSamples = 0;
       _publish(NavigationSnapshot(
-        state: NavigationState.routeUnavailable,
+        state: NavigationState.recovering,
         currentPosition: fix.position,
         accuracyMeters: fix.accuracyMeters,
         route: _route,
         heading: _latestHeading,
-        errorMessage: 'Could not reconnect to the OSM campus pedestrian network: $error',
+        errorMessage: 'Campus route recovery is temporarily unavailable: $error',
       ));
+      return false;
     } finally {
       _isRerouting = false;
     }
@@ -952,7 +962,8 @@ class NavigationService {
     await _compassSubscription?.cancel();
     _compassSubscription = null;
 
-    _gpsFilterService.reset();
+    _activeGpsFilterService?.reset();
+    _activeGpsFilterService = null;
 
     _lastAcceptedFix = null;
     _latestHeading = null;
