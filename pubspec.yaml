@@ -58,7 +58,6 @@ flutter:
 
   assets:
     - assets/fonts/
-    - assets/images/home_bg.png
     - assets/images/app_logo.png
     - assets/images/Favorites_bg.png
     - assets/images/uni_bg.png
