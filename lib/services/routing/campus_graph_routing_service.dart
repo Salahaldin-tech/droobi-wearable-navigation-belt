@@ -14,8 +14,10 @@ class CampusGraphRoutingService implements RoutingService {
   CampusGraphRoutingService({this.maximumSnapMeters = 45.0});
 
   final double maximumSnapMeters;
-  static const String _edgesAsset = 'docs/campus-mapping/edges.geojson';
-  static const String _nodesAsset = 'docs/campus-mapping/nodes.geojson';
+  static const String _v3EdgesAsset = 'assets/campus_map_v3/exported/edges.geojson';
+  static const String _v3NodesAsset = 'assets/campus_map_v3/exported/nodes.geojson';
+  static const String _v2EdgesAsset = 'docs/campus-mapping/edges.geojson';
+  static const String _v2NodesAsset = 'docs/campus-mapping/nodes.geojson';
   Future<_CampusGraph>? _graphFuture;
 
   @override
@@ -133,10 +135,21 @@ class CampusGraphRoutingService implements RoutingService {
 
   Future<_CampusGraph> _loadGraph() async {
     try {
-      final edgesJson = jsonDecode(await rootBundle.loadString(_edgesAsset))
-          as Map<String, dynamic>;
-      final nodesJson = jsonDecode(await rootBundle.loadString(_nodesAsset))
-          as Map<String, dynamic>;
+      Map<String, dynamic> edgesJson;
+      Map<String, dynamic> nodesJson;
+      try {
+        // Prefer the exported V3 GeoPackage layers whenever both files exist.
+        edgesJson = jsonDecode(await rootBundle.loadString(_v3EdgesAsset))
+            as Map<String, dynamic>;
+        nodesJson = jsonDecode(await rootBundle.loadString(_v3NodesAsset))
+            as Map<String, dynamic>;
+      } on FlutterError {
+        // Keep the V2 pilot usable until the V3 GeoPackage export is committed.
+        edgesJson = jsonDecode(await rootBundle.loadString(_v2EdgesAsset))
+            as Map<String, dynamic>;
+        nodesJson = jsonDecode(await rootBundle.loadString(_v2NodesAsset))
+            as Map<String, dynamic>;
+      }
       final nodeFeatures = nodesJson['features'] as List<dynamic>? ?? const [];
       final validNodeCount = nodeFeatures.where((feature) {
         if (feature is! Map<String, dynamic>) return false;
