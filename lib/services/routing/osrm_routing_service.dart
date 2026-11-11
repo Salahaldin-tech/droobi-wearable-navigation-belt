@@ -15,7 +15,9 @@ class OsrmRoutingService implements RoutingService {
     String baseUrl = 'https://router.project-osrm.org',
     this.maxSnapRadiusMeters,
     http.Client? httpClient,
-  })  : _baseUrl = baseUrl,
+  })  : _baseUrl = baseUrl.endsWith('/')
+            ? baseUrl.substring(0, baseUrl.length - 1)
+            : baseUrl,
         _client = httpClient ?? http.Client() {
     if (maxSnapRadiusMeters != null && maxSnapRadiusMeters! <= 0) {
       throw ArgumentError.value(
