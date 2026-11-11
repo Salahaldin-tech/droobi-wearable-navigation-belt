@@ -26,10 +26,9 @@ import 'AboutUsScreen.dart';
 
 /// Droobi Home Screen.
 ///
-/// Light and airy design on top of the original map background:
-/// - soft animated gradient over the map
+/// Minimal home screen on the brand cream background:
 /// - fade/slide-in entrance for the header, search bar and belt card
-/// - frosted-glass search bar and belt card
+/// - soft cream search bar and belt card
 /// - animated belt status dot
 /// - side menu with a welcome header and slide-in animation
 ///
@@ -51,8 +50,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   static const Color _muted = AppColors.brown;
 
   late final AnimationController _entranceController;
-  late final AnimationController _backgroundController;
-
   late final Animation<double> _headerAnimation;
   late final Animation<double> _searchAnimation;
   late final Animation<double> _beltAnimation;
@@ -73,11 +70,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     _entranceController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 900),
-    );
-
-    _backgroundController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 10),
     );
 
     _headerAnimation = CurvedAnimation(
@@ -105,23 +97,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
     if (reduceMotion) {
       _entranceController.value = 1.0;
-      _backgroundController.stop();
     } else {
       if (!_entranceStarted) {
         _entranceStarted = true;
         _entranceController.forward();
       }
 
-      if (!_backgroundController.isAnimating) {
-        _backgroundController.repeat(reverse: true);
-      }
     }
   }
 
   @override
   void dispose() {
     _entranceController.dispose();
-    _backgroundController.dispose();
     super.dispose();
   }
 
@@ -294,7 +281,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     );
   }
 
-  /// Frosted-glass container: blurred map behind a translucent white layer.
+  /// Soft cream container with a subtle brand-colour border and shadow.
   Widget _glassCard({
     required Widget child,
     double radius = 12,
@@ -372,79 +359,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       backgroundColor: AppColors.cream,
       body: Stack(
         children: [
-          // ================================================================
-          // MAP BACKGROUND
-          // ================================================================
-
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/home_bg.png',
-              fit: BoxFit.cover,
-              excludeFromSemantics: true,
-              errorBuilder: (
-                context,
-                error,
-                stackTrace,
-              ) {
-                return const SizedBox.shrink();
-              },
-            ),
-          ),
-
-          // ================================================================
-          // WHITE OVERLAY
-          // Keeps the map visible but subtle.
-          // ================================================================
-
-          Positioned.fill(
-            child: Container(
-              color: AppColors.cream.withValues(
-                alpha: 0.10,
-              ),
-            ),
-          ),
-
-          // ================================================================
-          // SOFT ANIMATED GRADIENT
-          // Very light blue and mint tints that drift slowly.
-          // ================================================================
-
-          Positioned.fill(
-            child: IgnorePointer(
-              child: RepaintBoundary(
-                child: AnimatedBuilder(
-                  animation: _backgroundController,
-                  builder: (context, child) {
-                    final t = Curves.easeInOut.transform(
-                      _backgroundController.value,
-                    );
-
-                    return DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.lerp(
-                            Alignment.topLeft,
-                            Alignment.topRight,
-                            t,
-                          )!,
-                          end: Alignment.lerp(
-                            Alignment.bottomRight,
-                            Alignment.bottomLeft,
-                            t,
-                          )!,
-                          colors: [
-                            AppColors.cream.withValues(alpha: 0.55),
-                            AppColors.cream.withValues(alpha: 0.10),
-                            AppColors.cream.withValues(alpha: 0.45),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
-          ),
+          // Home uses the brand cream background with no decorative image.
 
           // ================================================================
           // HOME UI
