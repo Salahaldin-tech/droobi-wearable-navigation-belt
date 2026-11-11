@@ -78,6 +78,7 @@ Detailed data facts and known limitations are recorded in `docs/campus-mapping/C
 ### F. Navigation state machine and direction policy
 - Guidance decisions run on a fixed 500 ms policy timer.
 - GPS and compass callbacks update data; they do not issue direction decisions directly.
+- The 500ms policy tick refreshes the compass-relative cue, while route projection/progress and off-route map matching are recomputed only when a distinct GPS fix arrives.
 - Added PositionUncertain, OffRoute, Approaching and ArrivalCandidate states.
 - Stale or poor-quality GPS, stale/failed compass, map-match failures, progress jumps and missing route bearings suppress directional guidance.
 - Initial compass qualification now collects at least 12 samples over at least 1s and requires a circular resultant vector of 0.95; sample count, window, resultant and reported sensor accuracy are recorded.
