@@ -837,6 +837,8 @@ class NavigationService {
         ),
       );
       _isNavigating = false;
+      _navigationTicker?.cancel();
+      _navigationTicker = null;
       return;
     }
 
@@ -953,6 +955,7 @@ class NavigationService {
     _candidateDirectionCount++;
     final since = _candidateDirectionSince;
     if (since != null &&
+        _candidateDirectionCount >= directionConfirmationSamples &&
         now.difference(since) >= const Duration(milliseconds: 900)) {
       _confirmedDirection = candidate;
       _candidateDirection = null;
@@ -981,6 +984,7 @@ class NavigationService {
 
     _lastAcceptedFix = null;
     _latestHeading = null;
+    _magneticDeclinationDegrees = 0.0;
 
     _route = null;
     _destination = null;
