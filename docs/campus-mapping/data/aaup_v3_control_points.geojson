@@ -1,0 +1,84 @@
+{
+  "type": "FeatureCollection",
+  "name": "aaup_v3_user_control_points",
+  "crs": {
+    "type": "name",
+    "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+    }
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": "CP_GATE_3",
+      "properties": {
+        "name": "Gate 3",
+        "kind": "gate",
+        "source": "user-provided GPS coordinate",
+        "status": "reference_observation",
+        "accuracy_m": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.341274899549745,
+          32.40740417658937
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "CP_GATE_5",
+      "properties": {
+        "name": "Gate 5",
+        "kind": "gate",
+        "source": "user-provided GPS coordinate",
+        "status": "reference_observation",
+        "accuracy_m": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.3439330384187,
+          32.41068251057309
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "CP_FACULTY_ARTS_MAIN_ENTRANCE",
+      "properties": {
+        "name": "Faculty of Arts — main entrance",
+        "kind": "building_entrance",
+        "source": "user-provided GPS coordinate",
+        "status": "reference_observation",
+        "accuracy_m": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.34462720764019,
+          32.407989460739536
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "CP_GATE_1",
+      "properties": {
+        "name": "Gate 1",
+        "kind": "gate",
+        "source": "user-provided GPS coordinate",
+        "status": "reference_observation",
+        "accuracy_m": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.342153277196914,
+          32.405534019978944
+        ]
+      }
+    }
+  ]
+}
