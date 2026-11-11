@@ -75,7 +75,7 @@ def export_layers(gpkg_path: Path, output_dir: Path) -> None:
         raise FileNotFoundError(f"GeoPackage not found: {gpkg_path}")
 
     gpkg_bytes = gpkg_path.read_bytes()
-    git_blob_payload = b"blob " + str(len(gpkg_bytes)).encode("ascii") + b"\\0" + gpkg_bytes
+    git_blob_payload = b"blob " + str(len(gpkg_bytes)).encode("ascii") + bytes([0]) + gpkg_bytes
     actual_blob_sha1 = hashlib.sha1(git_blob_payload).hexdigest()
     if actual_blob_sha1 != EXPECTED_GPKG_BLOB_SHA1:
         raise RuntimeError(
