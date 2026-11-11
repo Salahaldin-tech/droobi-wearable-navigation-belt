@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   flutter-validation:
@@ -29,6 +29,21 @@ jobs:
 
       - name: Show toolchain
         run: flutter --version
+
+      - name: Repair QGIS project relative datasource paths
+        run: python3 tooling/fix_qgis_project_paths.py
+
+      - name: Commit the QGIS project path repair
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/campus_map_v3/AAUP_Campus_Network.qgz
+          if ! git diff --cached --quiet; then
+            git commit -m "fix(map): repair QGIS project relative data paths"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          else
+            echo "No QGIS project path repair needed."
+          fi
 
       - name: Validate QGIS source, runtime exports and project paths
         run: |
