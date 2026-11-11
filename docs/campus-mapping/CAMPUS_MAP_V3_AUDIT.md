@@ -52,7 +52,7 @@ No source node ID or geometry is renamed or moved by this branch.
 
 ## Connectivity and source limitations
 
-- Graph connectivity is now keyed by canonical `from_node` / `to_node` IDs. Shared coordinates remain the mechanism for connecting interior vertices within each LineString, not the authority for joining declared edge endpoints.
+- Graph connectivity is now keyed by canonical `from_node` / `to_node` IDs. Interior vertices are private to their own Edge; coordinate coincidence cannot join separate Edges.
 - A declared edge endpoint may be attached to its QGIS node only when the endpoint offset is at most 5m. Offsets above 5m fail graph loading; offsets above 0.2m are represented as explicit short connector geometry and logged as warnings.
 - A prior geometry-only review identified three weak components (18 edges in the largest geometry component, with ED011 and ED012 isolated). This is a geometry observation only, not a validation of the current Node-ID graph.
 - ED011 references `J4` → `MED`; ED012 references `J5` → `AWS_B` (alias `AMS_B`). These source fragments have no shared declared endpoint IDs with the other listed edges and are not joined by software.
