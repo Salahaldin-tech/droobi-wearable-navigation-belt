@@ -181,6 +181,8 @@ class NavigationService {
   static const Duration _policyInterval = Duration(milliseconds: 500);
   static const Duration _maximumFixAgeForGuidance = Duration(seconds: 12);
   static const Duration _maximumCompassAgeForGuidance = Duration(seconds: 5);
+  static const double _minimumOffRouteThresholdMeters = 8.0;
+  static const double _maximumOffRouteThresholdMeters = 18.0;
 
   final StreamController<NavigationSnapshot>
       _snapshotController =
@@ -390,8 +392,7 @@ class NavigationService {
       _runPolicyTick();
     } catch (e) {
       _isNavigating = false;
-      _policyTimer?.cancel();
-      _policyTimer = null;
+      _cancelPolicyAndSensorStreams();
 
       _publish(
         NavigationSnapshot(
@@ -531,10 +532,7 @@ class NavigationService {
       speedMetersPerSecond: fix.speedMetersPerSecond,
       horizontalAccuracyMeters: fix.accuracyMeters,
     );
-    final offRouteThreshold = math.max(
-      _campusOffRouteMinimumMeters,
-      fix.accuracyMeters * 1.5,
-    );
+    final offRouteThreshold = _offRouteThresholdFor(fix);
 
     if (progress.progressJumpDetected) {
       _publish(NavigationSnapshot(
@@ -593,6 +591,7 @@ class NavigationService {
       // Do not continue issuing directions along a stale route after the
       // user has left it and QGIS cannot find a connected replacement.
       _isNavigating = false;
+      _cancelPolicyAndSensorStreams();
       _publish(NavigationSnapshot(
         state: NavigationState.routeUnavailable,
         currentPosition: fix.position,
@@ -709,6 +708,36 @@ class NavigationService {
   // ================================================================
   // FIXED-CADENCE NAVIGATION POLICY
   // ================================================================
+
+  double _offRouteThresholdFor(LocationFix fix) {
+    // A poor GPS accuracy estimate allows a little more cross-track error,
+    // but the tolerance is capped so a very noisy fix cannot authorize
+    // continued guidance far away from a pedestrian path.
+    return math.max(
+      _minimumOffRouteThresholdMeters,
+      math.min(
+        _maximumOffRouteThresholdMeters,
+        fix.accuracyMeters * 0.75,
+      ),
+    ).toDouble();
+  }
+
+  void _cancelPolicyAndSensorStreams() {
+    _policyTimer?.cancel();
+    _policyTimer = null;
+
+    final locationSubscription = _locationSubscription;
+    _locationSubscription = null;
+    if (locationSubscription != null) {
+      unawaited(locationSubscription.cancel());
+    }
+
+    final compassSubscription = _compassSubscription;
+    _compassSubscription = null;
+    if (compassSubscription != null) {
+      unawaited(compassSubscription.cancel());
+    }
+  }
 
   void _startPolicyTimer() {
     _policyTimer?.cancel();
@@ -888,10 +917,7 @@ class NavigationService {
       return;
     }
 
-    final offRouteThreshold = math.max(
-      _campusOffRouteMinimumMeters,
-      fix.accuracyMeters * 1.5,
-    );
+    final offRouteThreshold = _offRouteThresholdFor(fix);
     if (target.distanceFromRouteMeters > offRouteThreshold) {
       _publish(NavigationSnapshot(
         state: NavigationState.offRoute,
@@ -975,6 +1001,7 @@ class NavigationService {
         ),
       );
       _isNavigating = false;
+      _cancelPolicyAndSensorStreams();
       return;
     }
 
