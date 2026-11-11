@@ -196,7 +196,8 @@ OSM data is available under the Open Database License (ODbL) and requires approp
 
 - Feature branch created from merge/engine-v2-with-brand-theme.
 - The implementation strategy and gates are recorded in this document.
-- The uploaded DXF has received a preliminary structural audit; see DXF_SOURCE_AUDIT_V3.md.
-- EPSG:28191 is a plausible coordinate-system hypothesis based on the drawing bounds, but it is not confirmed. No georeferencing transform is approved yet.
-- No OSM extract has been acquired yet; the AOI will be fixed only after the DXF CRS and control points are validated.
-- No V3 graph has been generated and no routing-engine code has been changed yet.
+- The current uploaded source, Drawing1.dxf, has received a structural audit and a direct-coordinate comparison against four user-supplied AAUP control points; see DXF_SOURCE_AUDIT_V3.md.
+- EPSG:28191 is now a strong provisional CRS candidate: all four points fall within approximately 0.30–2.00 m of plausible local DXF geometry, including a 0.57 m match to a GATE-layer line at Gate 5. This is not formal CRS certification; source survey metadata and independent check points remain desirable.
+- A preliminary WGS84 extraction envelope has been calculated from the DXF extents: 32.40342–32.41151 N, 35.34017–35.34857 E. It is not yet a verified campus AOI.
+- Public OSM-derived references identify the campus polygon as way 888585504 (amenity=university), which can seed AOI discovery; a raw, timestamped Overpass snapshot has not yet been acquired.
+- No approved georeferencing transformation, merged dataset, V3 graph, or routing-engine code change has been made.
