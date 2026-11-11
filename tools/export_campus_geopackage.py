@@ -21,6 +21,7 @@ from osgeo import ogr, osr
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_INPUT = ROOT / "assets" / "campus_map_v3" / "campus_network.gpkg"
 DEFAULT_OUTPUT = ROOT / "assets" / "campus_map_v3" / "exported"
+DEFAULT_PROJECT = ROOT / "assets" / "campus_map_v3" / "AAUP_Campus_Network.qgz"
 EXPECTED_GPKG_BLOB_SHA1 = "a1eb1b7652d6e6f6251a2dce9f0e7c99d4decf41"
 EXPECTED_PROJECT_BLOB_SHA1 = "ae94aaf49c669bc5e8147ec94b863711a8f3d998"
 EXPECTED_POINT_LAYER = "campus_network"
@@ -82,6 +83,21 @@ def export_layers(gpkg_path: Path, output_dir: Path) -> None:
             "The supplied GeoPackage is not the exact campus_network.gpkg "
             "blob copied from main. Expected " + EXPECTED_GPKG_BLOB_SHA1 +
             ", received " + actual_blob_sha1 + "."
+        )
+
+    if not DEFAULT_PROJECT.is_file():
+        raise FileNotFoundError(f"QGIS project not found: {DEFAULT_PROJECT}")
+    project_bytes = DEFAULT_PROJECT.read_bytes()
+    project_blob_payload = (
+        b"blob " + str(len(project_bytes)).encode("ascii") +
+        bytes([0]) + project_bytes
+    )
+    actual_project_sha1 = hashlib.sha1(project_blob_payload).hexdigest()
+    if actual_project_sha1 != EXPECTED_PROJECT_BLOB_SHA1:
+        raise RuntimeError(
+            "The QGIS project is not the exact AAUP_Campus_Network.qgz "
+            "blob copied from main. Expected " + EXPECTED_PROJECT_BLOB_SHA1 +
+            ", received " + actual_project_sha1 + "."
         )
 
     source = ogr.Open(str(gpkg_path), 0)
