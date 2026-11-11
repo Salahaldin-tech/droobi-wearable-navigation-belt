@@ -456,8 +456,8 @@ class NavigationService {
           return;
         }
 
+        _gpsStreamHealthy = false;
         _publish(
-          _gpsStreamHealthy = false;
           NavigationSnapshot(
             state: NavigationState.gpsUnavailable,
             currentPosition: _lastAcceptedFix?.position,
