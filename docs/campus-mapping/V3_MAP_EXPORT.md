@@ -20,7 +20,9 @@ python tools/export_campus_geopackage.py
 ```
 3. The exporter verifies both source-file hashes, selects only the exact
    `campus_network` point layer and `edges` line layer, converts geometries to
-   EPSG:4326, preserves their attributes, and writes:
+   EPSG:4326, preserves their attributes, and writes. The two GeoJSON files
+   currently in the branch are empty build-safe placeholders; overwrite them
+   with the exporter output before launching the app:
    - `assets/campus_map_v3/exported/nodes.geojson`
    - `assets/campus_map_v3/exported/edges.geojson`
 4. Commit both generated GeoJSON files to this branch.
