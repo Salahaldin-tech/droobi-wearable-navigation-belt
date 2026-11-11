@@ -4,8 +4,20 @@ import 'dart:math' as math;
 import 'package:flutter_compass/flutter_compass.dart';
 
 class CompassService {
-  CompassService({Stream<double>? headingSource})
-      : _headingSource = headingSource;
+  CompassService({
+    Stream<double>? headingSource,
+    this.headingCorrectionDegrees = 0.0,
+  })  : _headingSource = headingSource,
+        assert(headingCorrectionDegrees.isFinite);
+
+  /// Additive correction that converts the device's magnetic heading toward
+  /// the local true-north reference. Keep at zero until calibrated for the
+  /// device/location; do not assume a universal fixed declination.
+  final double headingCorrectionDegrees;
+
+  double? lastStabilityResultantVector;
+  int lastStabilitySampleCount = 0;
+  Duration? lastStabilitySamplingWindow;
 
   // Injectable source keeps compass sampling deterministic in unit tests.
   final Stream<double>? _headingSource;
@@ -13,7 +25,7 @@ class CompassService {
   Stream<double> get headingStream {
     final source = _headingSource;
     if (source != null) {
-      return source.map(_normalizeHeading);
+      return source.map(_applyHeadingCorrection);
     }
 
     final events = FlutterCompass.events;
@@ -24,7 +36,7 @@ class CompassService {
     return events
         .map((event) => event.heading)
         .where((heading) => heading != null)
-        .map((heading) => _normalizeHeading(heading!));
+        .map((heading) => _applyHeadingCorrection(heading!));
   }
 
   Future<double> getCurrentHeading() async {
@@ -49,10 +61,10 @@ class CompassService {
   /// sampling window avoids treating a burst of immediately emitted events as
   /// a meaningful stability check.
   Future<double> getStableHeading({
-    int sampleCount = 8,
-    Duration minimumSamplingWindow = const Duration(milliseconds: 400),
+    int sampleCount = 12,
+    Duration minimumSamplingWindow = const Duration(seconds: 1),
     Duration timeout = const Duration(seconds: 5),
-    double minimumResultantVector = 0.80,
+    double minimumResultantVector = 0.95,
   }) async {
     if (sampleCount < 3) {
       throw ArgumentError.value(
@@ -126,6 +138,9 @@ class CompassService {
     );
     final resultantVector =
         math.sqrt(sinSum * sinSum + cosSum * cosSum) / samples.length;
+    lastStabilityResultantVector = resultantVector;
+    lastStabilitySampleCount = samples.length;
+    lastStabilitySamplingWindow = DateTime.now().difference(startedAt);
 
     if (!resultantVector.isFinite ||
         resultantVector < minimumResultantVector) {
@@ -139,6 +154,9 @@ class CompassService {
     if (mean < 0) mean += 360.0;
     return _normalizeHeading(mean);
   }
+
+  double _applyHeadingCorrection(double heading) =>
+      _normalizeHeading(heading + headingCorrectionDegrees);
 
   double _normalizeHeading(double heading) {
     var normalized = heading % 360;
