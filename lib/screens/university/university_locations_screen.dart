@@ -771,7 +771,9 @@ class _UniversityLocationsScreenState
       'Faculty of Arts and Education' => const ['AR1'],
       'Faculty of Engineering' => const ['E1'],
       'Faculty of Allied Medical Sciences' => const ['AMS_A', 'AMS_B'],
-      'Faculty of Medicine' => const ['MED'],
+      // MED is present in QGIS, but its only edge (ED011) is disconnected
+      // from the mapped main network. Keep it unavailable until QGIS adds
+      // a real connecting pedestrian path.
       _ => const <String>[],
     };
   }
@@ -889,13 +891,15 @@ class _UniversityLocationsScreenState
     BuildContext context,
     _UniversityItem item,
   ) {
+    final message = item.name == 'Faculty of Medicine'
+        ? 'The Faculty of Medicine entrance exists in QGIS, but its path is not connected to the campus pedestrian network yet.'
+        : '${item.name} is not available in the current QGIS campus map.';
+
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text(
-            '${item.name} is not available yet.',
-          ),
+          content: Text(message),
         ),
       );
   }

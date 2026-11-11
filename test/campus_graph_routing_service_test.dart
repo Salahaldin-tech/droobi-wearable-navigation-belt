@@ -134,5 +134,64 @@ void main() {
         ),
       );
     });
+
+    test('routes to the connected mapped University destinations', () async {
+      final service = CampusGraphRoutingService();
+      const gateThree = LatLon(
+        latitude: 32.407343612351234,
+        longitude: 35.34132248882196,
+      );
+      const destinations = <LatLon>[
+        // Arts Faculty AR1.
+        LatLon(latitude: 32.40798931227382, longitude: 35.34459590815139),
+        // Engineering E1.
+        LatLon(latitude: 32.40830546890924, longitude: 35.34564986940725),
+        // Gate 1.
+        LatLon(latitude: 32.4055253160422, longitude: 35.342239729578615),
+        // Gate 2.
+        LatLon(latitude: 32.40616771233306, longitude: 35.34154870278381),
+        // Allied Medical Sciences entrance AMS_A.
+        LatLon(latitude: 32.4071651284486, longitude: 35.34412952070336),
+      ];
+
+      for (final destination in destinations) {
+        final route = await service.computeRoute(
+          origin: gateThree,
+          destination: destination,
+        );
+        expect(route.polyline.length, greaterThan(2));
+        expect(route.distanceMeters, greaterThan(0));
+      }
+    });
+
+    test('does not invent connections to isolated QGIS destinations', () async {
+      final service = CampusGraphRoutingService();
+      const gateThree = LatLon(
+        latitude: 32.407343612351234,
+        longitude: 35.34132248882196,
+      );
+      const isolatedDestinations = <LatLon>[
+        // MED, connected only to the isolated ED011 fragment.
+        LatLon(latitude: 32.407006828855685, longitude: 35.34492687872492),
+        // AMS_B, connected only to the isolated ED012 fragment.
+        LatLon(latitude: 32.40649595534037, longitude: 35.34454701758947),
+      ];
+
+      for (final destination in isolatedDestinations) {
+        await expectLater(
+          service.computeRoute(
+            origin: gateThree,
+            destination: destination,
+          ),
+          throwsA(
+            isA<RoutingFailure>().having(
+              (failure) => failure.message,
+              'message',
+              contains('GRAPH_CONNECTIVITY'),
+            ),
+          ),
+        );
+      }
+    });
   });
 }

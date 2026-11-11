@@ -45,7 +45,9 @@ Detailed source findings: `docs/campus-mapping/CAMPUS_MAP_V3_AUDIT.md`.
 - Navigable places resolve only through explicit node IDs.
 - Added QGIS-backed entries for Gate 2, Medicine and Allied Medical Sciences.
 - Cafeteria and Allied Medical Sciences use their registered entrance alternatives; the route engine chooses among reachable candidates.
-- Unmapped destinations remain unavailable rather than using guessed coordinates.
+- The MED point is present, but its only edge ED011 is disconnected from the main network; the University screen keeps Medicine unavailable and explains why.
+- AMS_B is similarly on isolated ED012; Allied Medical Sciences can use the connected AMS_A entrance.
+- Unmapped or disconnected destinations remain unavailable rather than using guessed coordinates.
 
 ### 3. Campus router V3
 - Builds the path graph from shared LineString vertices; validates edge references separately.
