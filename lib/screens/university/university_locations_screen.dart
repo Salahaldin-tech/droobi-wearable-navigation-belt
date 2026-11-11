@@ -52,7 +52,7 @@ class _UniversityLocationsScreenState
   String _selectedCategory = _categories.first;
   final _searchController = TextEditingController();
   String _searchQuery = '';
-  List<UniversityLocation> _qgisLocations = [];
+  List<UniversityLocation> _osmEntrances = [];
 
   @override
   void initState() {
@@ -69,7 +69,7 @@ class _UniversityLocationsScreenState
       _searchQuery = initialQuery.toLowerCase();
     }
 
-    _loadQgisLocations();
+    _loadOsmEntrances();
 
     _searchController.addListener(() {
       setState(() {
@@ -768,25 +768,28 @@ class _UniversityLocationsScreenState
     _UniversityItem item,
     List<UniversityLocation> locations,
   ) {
-    // Destination coordinates are sourced from the QGIS nodes layer.
-    // Junction nodes are intentionally excluded from the University cards.
-    final nodeIds = switch (item.name) {
-      'Cafeteria' => const ['C1', 'C2', 'C3'],
-      'Gate 1' => const ['G1'],
-      'Gate 3' => const ['G3'],
-      'Faculty of Information Technology' => const ['IT1'],
-      'Faculty of Arts and Education' => const ['AR1'],
-      'Faculty of Engineering' => const ['E1'],
+    // Prefer the explicit entrance nodes mapped in the current OSM snapshot.
+    // These are exact door anchors, not building centroids.
+    final entranceRefs = switch (item.name) {
+      'Cafeteria' => const ['cafeteria main door'],
+      'Faculty of Information Technology' => const ['IT main door'],
+      'Faculty of Arts and Education' => const ['Arts main door'],
+      'Faculty of Engineering' => const ['Engineering main door'],
+      'Faculty of Allied Medical Sciences' => const ['AMS_A main door'],
       _ => const <String>[],
     };
 
-    for (final nodeId in nodeIds) {
-      for (final node in _qgisLocations) {
-        if (node.id == nodeId) return node;
+    for (final entranceRef in entranceRefs) {
+      for (final entrance in _osmEntrances) {
+        if (_normalize(entrance.name) == _normalize(entranceRef)) {
+          return entrance;
+        }
       }
     }
 
-    // Keep Firestore-backed locations for destinations not yet mapped in QGIS.
+    // Keep existing Firestore locations for campus destinations that have
+    // not yet received an explicit entrance node in the OSM map. Campus
+    // OSRM still applies its bounded snap radius before returning a route.
     for (final location in locations) {
       final locationName = _normalize(location.name);
       for (final alias in item.aliases) {
@@ -801,10 +804,10 @@ class _UniversityLocationsScreenState
     return null;
   }
 
-  Future<void> _loadQgisLocations() async {
+  Future<void> _loadOsmEntrances() async {
     try {
       final source = await rootBundle.loadString(
-        'docs/campus-mapping/nodes.geojson',
+        'docs/campus-mapping/osm/aaup-campus-entrances.geojson',
       );
       final collection = jsonDecode(source) as Map<String, dynamic>;
       final features = collection['features'] as List<dynamic>? ?? const [];
@@ -816,19 +819,18 @@ class _UniversityLocationsScreenState
             feature['properties'] as Map<String, dynamic>? ?? const {};
         final geometry = feature['geometry'] as Map<String, dynamic>?;
         if (geometry == null || geometry['type'] != 'Point') continue;
-
-        final nodeType = (properties['node_type'] ?? '')
-            .toString()
-            .toLowerCase();
-        if (nodeType.contains('junction')) continue;
+        if ((properties['entrance'] ?? '').toString() != 'main') continue;
+        if ((properties['access'] ?? 'yes').toString() == 'no') continue;
 
         final coordinates = geometry['coordinates'] as List<dynamic>?;
         if (coordinates == null || coordinates.length < 2) continue;
         final longitude = (coordinates[0] as num?)?.toDouble();
         final latitude = (coordinates[1] as num?)?.toDouble();
-        final id = (properties['node_id'] ?? '').toString();
-        final name = (properties['name'] ?? id).toString();
-        if (longitude == null || latitude == null || id.isEmpty) continue;
+        final id = (properties['osm_id'] ?? '').toString();
+        final name = (properties['ref'] ?? '').toString();
+        if (longitude == null || latitude == null || id.isEmpty || name.isEmpty) {
+          continue;
+        }
 
         parsed.add(UniversityLocation(
           id: id,
@@ -839,10 +841,10 @@ class _UniversityLocationsScreenState
       }
 
       if (mounted) {
-        setState(() => _qgisLocations = parsed);
+        setState(() => _osmEntrances = parsed);
       }
     } catch (error) {
-      debugPrint('Could not load QGIS campus nodes: $error');
+      debugPrint('Could not load OSM campus entrances: $error');
     }
   }
 
@@ -870,15 +872,6 @@ class _UniversityLocationsScreenState
             latitude: location.latitude,
             longitude: location.longitude,
           ),
-          destinationCandidates: item.name == 'Cafeteria'
-              ? _qgisLocations
-                  .where((node) => const ['C1', 'C2', 'C3'].contains(node.id))
-                  .map((node) => LatLon(
-                        latitude: node.latitude,
-                        longitude: node.longitude,
-                      ))
-                  .toList()
-              : null,
           campusNavigation: true,
         ),
       ),
