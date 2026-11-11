@@ -22,12 +22,122 @@ import 'routing_service.dart';
 class OsrmRoutingService implements RoutingService {
   OsrmRoutingService({
     String baseUrl = 'https://router.project-osrm.org',
+    this.maxSnapRadiusMeters,
     http.Client? httpClient,
-  })  : _baseUrl = baseUrl,
-        _client = httpClient ?? http.Client();
+  })  : _baseUrl = baseUrl.replaceFirst(RegExp(r'/+
+
+  @override
+  Future<RouteResult> computeRoute({
+    required LatLon origin,
+    required LatLon destination,
+  }) async {
+    // OSRM expects "lon,lat" order, NOT "lat,lon".
+    final coordinates =
+        '${origin.longitude},${origin.latitude};'
+        '${destination.longitude},${destination.latitude}';
+
+    final queryParameters = <String, String>{
+      'overview': 'full',
+      'geometries': 'geojson',
+    };
+    if (maxSnapRadiusMeters != null) {
+      final radius = maxSnapRadiusMeters!.toStringAsFixed(1);
+      queryParameters['radiuses'] = '$radius;$radius';
+    }
+
+    final uri = Uri.parse('$_baseUrl/route/v1/foot/$coordinates').replace(
+      queryParameters: queryParameters,
+    );
+
+    late final http.Response response;
+    try {
+      response = await _client.get(uri).timeout(const Duration(seconds: 15));
+    } on SocketException {
+      throw const RoutingFailure(
+        RoutingErrorType.networkError,
+        'Network error while calculating route. Please check your connection.',
+      );
+    } on Exception {
+      throw const RoutingFailure(
+        RoutingErrorType.networkError,
+        'Could not reach the routing service.',
+      );
+    }
+
+    if (response.statusCode != 200) {
+      throw RoutingFailure(
+        RoutingErrorType.apiError,
+        'Routing failed (status ${response.statusCode}).',
+      );
+    }
+
+    final Map<String, dynamic> body;
+    try {
+      body = jsonDecode(response.body) as Map<String, dynamic>;
+    } on FormatException {
+      throw const RoutingFailure(
+        RoutingErrorType.apiError,
+        'Received an unexpected response from the routing service.',
+      );
+    }
+
+    if (body['code'] != 'Ok') {
+      throw RoutingFailure(
+        RoutingErrorType.noRouteFound,
+        'No walking route found between those points '
+        '(OSRM code: ${body['code']}).',
+      );
+    }
+
+    final routes = body['routes'] as List<dynamic>?;
+    if (routes == null || routes.isEmpty) {
+      throw const RoutingFailure(
+        RoutingErrorType.noRouteFound,
+        'No route found between those points.',
+      );
+    }
+
+    final route = routes.first as Map<String, dynamic>;
+    final geometry = route['geometry'] as Map<String, dynamic>;
+    final rawCoordinates = geometry['coordinates'] as List<dynamic>;
+
+    final polyline = rawCoordinates.map((point) {
+      final pair = point as List<dynamic>;
+
+      // GeoJSON order is [lon, lat] - swapped back to LatLon here.
+      return LatLon(
+        latitude: (pair[1] as num).toDouble(),
+        longitude: (pair[0] as num).toDouble(),
+      );
+    }).toList();
+
+    return RouteResult(
+      polyline: polyline,
+      distanceMeters: (route['distance'] as num).toDouble(),
+      durationSeconds: (route['duration'] as num).toDouble(),
+    );
+  }
+
+  void dispose() {
+    _client.close();
+  }
+}), ''),
+        _client = httpClient ?? http.Client() {
+    if (maxSnapRadiusMeters != null && maxSnapRadiusMeters! <= 0) {
+      throw ArgumentError.value(
+        maxSnapRadiusMeters,
+        'maxSnapRadiusMeters',
+        'Must be greater than zero.',
+      );
+    }
+  }
 
   final String _baseUrl;
   final http.Client _client;
+
+  /// Optional maximum snap radius for both route endpoints.
+  /// Campus routing uses this to prevent long, unsafe off-network snaps.
+  final double? maxSnapRadiusMeters;
 
   @override
   Future<RouteResult> computeRoute({
