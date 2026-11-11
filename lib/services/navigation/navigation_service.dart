@@ -9,10 +9,10 @@ import '../location/gps_filter_service.dart';
 import '../location/location_service.dart';
 import '../routing/routing_service.dart';
 import 'compass_service.dart';
-import 'wmm2025/magnetic_declination.dart';
 import 'direction_calculator.dart';
-import 'route_progress_service.dart';
 import 'navigation_trace_logger.dart';
+import 'route_progress_service.dart';
+import 'wmm2025/magnetic_declination.dart';
 
 enum NavigationState {
   idle,
