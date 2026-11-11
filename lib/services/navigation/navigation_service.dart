@@ -173,11 +173,7 @@ class NavigationService {
   StreamSubscription<double>? _compassSubscription;
   Timer? _policyTimer;
   DateTime? _lastCompassAt;
-  bool _gpsStreamHealthy = true;
-  bool _compassStreamHealthy = true;
   static const Duration _policyInterval = Duration(milliseconds: 500);
-  static const Duration _maximumFixAgeForGuidance = Duration(seconds: 12);
-  static const Duration _maximumCompassAgeForGuidance = Duration(seconds: 5);
 
   final StreamController<NavigationSnapshot>
       _snapshotController =
@@ -302,7 +298,6 @@ class NavigationService {
 
       _lastAcceptedFix = filteredFix;
       _lastAcceptedGpsTimestamp = filteredFix.timestamp;
-      _gpsStreamHealthy = true;
       _traceLogger.record('gps_initial_fix', fields: {
         'accuracy_m': filteredFix.accuracyMeters,
         'speed_mps': filteredFix.speedMetersPerSecond,
@@ -526,18 +521,11 @@ class NavigationService {
           return;
         }
 
-        _gpsStreamHealthy = false;
-        _publish(
-          NavigationSnapshot(
-            state: NavigationState.gpsUnavailable,
-            currentPosition: _lastAcceptedFix?.position,
-            accuracyMeters:
-                _lastAcceptedFix?.accuracyMeters,
-            route: _route,
-            heading: _latestHeading,
-            errorMessage: error.toString(),
-          ),
-        );
+        // Keep the last accepted fix through a transient stream error.
+        _traceLogger.record('gps_stream_error', fields: {
+          'error': error.toString(),
+          'retaining_last_fix': _lastAcceptedFix != null,
+        });
       },
     );
   }
@@ -563,7 +551,6 @@ class NavigationService {
         : filteredFix.timestamp.difference(previousGpsTimestamp);
     _lastAcceptedFix = filteredFix;
     _lastAcceptedGpsTimestamp = filteredFix.timestamp;
-    _gpsStreamHealthy = true;
     _traceLogger.record('gps_accepted', fields: {
       'interval_ms': gpsInterval?.inMilliseconds,
       'accuracy_m': filteredFix.accuracyMeters,
@@ -618,7 +605,8 @@ class NavigationService {
         heading: _latestHeading,
         progressMeters: progress.progressMeters,
         remainingRouteMeters: progress.remainingRouteMeters,
-        errorMessage: 'Campus position is not confidently matched to the active path. Guidance is paused.',
+        direction: _confirmedDirection,
+        errorMessage: 'Campus position is being rematched to mapped paths. Keeping the last confirmed guidance cue.',
       ));
     } else {
       _offRouteSamples = 0;
@@ -671,20 +659,20 @@ class NavigationService {
       _candidateDirection = null;
       _candidateDirectionCount = 0;
     } catch (error) {
-      // Do not continue issuing directions along a stale route after the
-      // user has left it and QGIS cannot find a connected replacement.
-      _isNavigating = false;
-      _cancelPolicyAndSensorStreams();
+      // A failed reroute is logged, but does not shut down navigation.
+      // Retain the active route and last confirmed guidance cue.
       _traceLogger.record('campus_reroute_failed', fields: {
         'error': error.toString(),
+        'retaining_active_route': _route != null,
       });
       _publish(NavigationSnapshot(
-        state: NavigationState.routeUnavailable,
+        state: NavigationState.recovering,
         currentPosition: fix.position,
         accuracyMeters: fix.accuracyMeters,
         route: _route,
         heading: _latestHeading,
-        errorMessage: 'Could not reconnect to the campus paths: $error',
+        direction: _confirmedDirection,
+        errorMessage: 'Could not calculate a replacement path. Keeping the last confirmed guidance cue.',
       ));
     } finally {
       _isRerouting = false;
@@ -727,6 +715,7 @@ class NavigationService {
         accuracyMeters: _lastAcceptedFix?.accuracyMeters,
         route: _route,
         heading: _latestHeading,
+        direction: _confirmedDirection,
       ));
       return;
     }
@@ -734,39 +723,22 @@ class NavigationService {
     final route = _route;
     final fix = _lastAcceptedFix;
     final heading = _latestHeading;
-    if (!_gpsStreamHealthy || !_compassStreamHealthy ||
-        route == null || fix == null || heading == null) {
+    if (route == null || fix == null || heading == null) {
       _publish(NavigationSnapshot(
         state: NavigationState.positionUncertain,
         currentPosition: fix?.position,
         accuracyMeters: fix?.accuracyMeters,
         route: route,
         heading: heading,
-        errorMessage: 'Waiting for reliable GPS and compass readings. Guidance is paused.',
+        direction: _confirmedDirection,
+        errorMessage: 'Waiting for the initial GPS position and compass heading.',
       ));
       return;
     }
 
-    final now = DateTime.now();
-    final gpsAge = now.difference(fix.timestamp);
-    final compassAge = _lastCompassAt == null
-        ? _maximumCompassAgeForGuidance
-        : now.difference(_lastCompassAt!);
-    if (gpsAge > _maximumFixAgeForGuidance ||
-        gpsAge < const Duration(seconds: -2) ||
-        compassAge > _maximumCompassAgeForGuidance ||
-        !fix.accuracyMeters.isFinite ||
-        fix.accuracyMeters > 25) {
-      _publish(NavigationSnapshot(
-        state: NavigationState.positionUncertain,
-        currentPosition: fix.position,
-        accuracyMeters: fix.accuracyMeters,
-        route: route,
-        heading: heading,
-        errorMessage: 'GPS or compass data is stale or inaccurate. Guidance is paused.',
-      ));
-      return;
-    }
+    // Once navigation has started, delayed or temporarily inaccurate sensor
+    // updates do not pause the belt. Keep using the last accepted GPS fix
+    // and last valid heading until newer readings arrive.
     _updateNavigation(fix, heading);
   }
 
@@ -781,20 +753,11 @@ class NavigationService {
           return;
         }
 
-        _compassStreamHealthy = false;
-        _lastCompassAt = null;
-        _resetCompassSmoothing();
-        _publish(
-          NavigationSnapshot(
-            state: NavigationState.positionUncertain,
-            currentPosition: _lastAcceptedFix?.position,
-            accuracyMeters:
-                _lastAcceptedFix?.accuracyMeters,
-            route: _route,
-            heading: _latestHeading,
-            errorMessage: 'Compass error: $error',
-          ),
-        );
+        // Retain the last valid heading and confirmed belt cue.
+        _traceLogger.record('compass_stream_error', fields: {
+          'error': error.toString(),
+          'retaining_last_heading': _latestHeading != null,
+        });
       },
     );
   }
@@ -817,7 +780,6 @@ class NavigationService {
 
     _latestHeading = smoothedHeading;
     _lastCompassAt = DateTime.now();
-    _compassStreamHealthy = true;
     _traceLogger.record('compass_heading', fields: {
       'heading_deg': smoothedHeading,
       'reported_accuracy_deg':
@@ -1008,20 +970,23 @@ class NavigationService {
     final target = _lastRouteTarget!;
 
     final offRouteThreshold = _offRouteThresholdFor(fix);
-    if (target.progressJumpDetected ||
-        target.distanceFromRouteMeters > offRouteThreshold) {
+    final nearRouteEnd =
+        target.remainingRouteMeters <= math.max(20.0, fix.accuracyMeters);
+    if ((target.progressJumpDetected ||
+            target.distanceFromRouteMeters > offRouteThreshold) &&
+        !nearRouteEnd) {
+      // A transient GPS jump must not silence a previously confirmed cue.
       _publish(NavigationSnapshot(
-        state: target.progressJumpDetected
-            ? NavigationState.positionUncertain
-            : NavigationState.offRoute,
+        state: NavigationState.recovering,
         currentPosition: fix.position,
         accuracyMeters: fix.accuracyMeters,
         route: route,
         distanceFromRouteMeters: target.distanceFromRouteMeters,
         heading: heading,
+        direction: _confirmedDirection,
         progressMeters: target.progressMeters,
         remainingRouteMeters: target.remainingRouteMeters,
-        errorMessage: 'Position is not confidently on the mapped route. Guidance is paused.',
+        errorMessage: 'Matching your position to the campus paths. Keeping the last confirmed guidance cue.',
       ));
       return;
     }
@@ -1243,7 +1208,7 @@ class NavigationService {
       _candidateDirection = candidate;
       _candidateDirectionCount = 1;
       _candidateDirectionSince = now;
-      return null;
+      return _confirmedDirection;
     }
     _candidateDirectionCount++;
     final since = _candidateDirectionSince;
@@ -1256,7 +1221,9 @@ class NavigationService {
       _candidateDirectionSince = null;
       return _confirmedDirection;
     }
-    return null;
+    // Keep the previous confirmed cue while a new direction is being
+    // verified, avoiding a silent belt gap during rapid heading changes.
+    return _confirmedDirection;
   }
 
   // ================================================================
