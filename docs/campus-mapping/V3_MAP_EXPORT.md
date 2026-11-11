@@ -19,6 +19,8 @@ python tools/export_campus_geopackage.py
    - `assets/campus_map_v3/exported/edges.geojson`
 4. Commit both generated GeoJSON files to this branch. The app prefers the V3
    exports when both exist and otherwise falls back to the V2 pilot exports.
+5. Run `flutter pub get` from the project root so the new WMM2025 dependency is
+   resolved and `pubspec.lock` is refreshed.
 
 The exporter deliberately does not create connections between separated lines.
 A route is valid only when the QGIS edge geometries actually connect. The
