@@ -812,6 +812,8 @@ class NavigationService {
     _compassStreamHealthy = true;
     _traceLogger.record('compass_heading', fields: {
       'heading_deg': smoothedHeading,
+      'reported_accuracy_deg':
+          _compassService.lastReportedAccuracyDegrees,
     });
   }
 
