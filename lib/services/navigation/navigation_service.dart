@@ -409,6 +409,8 @@ class NavigationService {
 
       _traceLogger.record('compass_initial_stability', fields: {
         'resultant_vector': _compassService.lastStabilityResultantVector,
+        'reported_accuracy_deg':
+            _compassService.lastReportedAccuracyDegrees,
         'sample_count': _compassService.lastStabilitySampleCount,
         'sampling_window_ms':
             _compassService.lastStabilitySamplingWindow?.inMilliseconds,
