@@ -268,9 +268,11 @@ class CampusGraphRoutingService implements RoutingService {
           final second = line[i + 1];
           final length = _distance(first, second);
           if (!length.isFinite || length < 0.05) continue;
-          final fromKey = i == 0 ? _nodeKey(fromId) : _key(first);
-          final toKey =
-              i == line.length - 2 ? _nodeKey(toId) : _key(second);
+          final fromKey =
+              i == 0 ? _nodeKey(fromId) : _edgeVertexKey(edgeId, i);
+          final toKey = i == line.length - 2
+              ? _nodeKey(toId)
+              : _edgeVertexKey(edgeId, i + 1);
           points[fromKey] = first;
           points[toKey] = second;
           adjacency.putIfAbsent(fromKey, () => <_Arc>[]);
@@ -551,9 +553,8 @@ class CampusGraphRoutingService implements RoutingService {
 
   static String _nodeKey(String nodeId) => 'node:$nodeId';
 
-  static String _key(LatLon point) =>
-      'vertex:${point.latitude.toStringAsFixed(6)},'
-      '${point.longitude.toStringAsFixed(6)}';
+  static String _edgeVertexKey(String edgeId, int vertexIndex) =>
+      'edge:$edgeId:vertex:$vertexIndex';
 
   static _Projection _project(LatLon point, LatLon start, LatLon end) {
     const meters = 111320.0;
