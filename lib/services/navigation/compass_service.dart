@@ -30,6 +30,7 @@ class CompassService {
 
   double? lastStabilityResultantVector;
   int lastStabilitySampleCount = 0;
+  double? lastReportedAccuracyDegrees;
   Duration? lastStabilitySamplingWindow;
 
   // Injectable source keeps compass sampling deterministic in unit tests.
@@ -47,9 +48,14 @@ class CompassService {
     }
 
     return events
-        .map((event) => event.heading)
-        .where((heading) => heading != null)
-        .map((heading) => _applyHeadingCorrection(heading!));
+        .map((event) {
+          lastReportedAccuracyDegrees = event.accuracy;
+          return event;
+        })
+        .where((event) =>
+            event.heading != null &&
+            (event.accuracy == null || event.accuracy! <= 25.0))
+        .map((event) => _applyHeadingCorrection(event.heading!));
   }
 
   Future<double> getCurrentHeading() async {
