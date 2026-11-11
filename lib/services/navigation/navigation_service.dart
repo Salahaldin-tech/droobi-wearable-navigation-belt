@@ -688,6 +688,17 @@ class NavigationService {
   }
 
   double _offRouteThresholdFor(LocationFix fix) {
+    if (_isCampusNavigation) {
+      // Phone GPS can drift noticeably between adjacent campus walkways.
+      // Scale the cross-track tolerance with the reported horizontal accuracy
+      // so a fix that is still plausibly on ED018/another mapped edge is not
+      // immediately classified as off-route.
+      return math.max(
+        12.0,
+        math.min(30.0, fix.accuracyMeters * 1.2),
+      ).toDouble();
+    }
+
     return math.max(
       _minimumOffRouteThresholdMeters,
       math.min(_maximumOffRouteThresholdMeters, fix.accuracyMeters * 0.75),
