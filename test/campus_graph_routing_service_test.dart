@@ -1,92 +1,161 @@
+import 'dart:convert';
+
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:droobi/models/lat_lon.dart';
+import 'package:droobi/services/campus_map/campus_map_source.dart';
 import 'package:droobi/services/routing/campus_graph_routing_service.dart';
 import 'package:droobi/services/routing/routing_service.dart';
+
+Map<String, dynamic> _metadata(String layer) => {
+      'source_repository': CampusMapSource.repository,
+      'source_branch': CampusMapSource.sourceBranch,
+      'source_path': CampusMapSource.sourcePath,
+      'source_git_blob_sha1': CampusMapSource.sourceGitBlobSha1,
+      'source_project_path': CampusMapSource.projectPath,
+      'source_project_git_blob_sha1': CampusMapSource.projectGitBlobSha1,
+      'source_layer': layer,
+      'crs': CampusMapSource.coordinateReferenceSystem,
+    };
+
+String _nodesGeoJson({String? sourceSha}) => jsonEncode({
+      'type': 'FeatureCollection',
+      'metadata': {
+        ..._metadata(CampusMapSource.nodesLayer),
+        if (sourceSha != null) 'source_git_blob_sha1': sourceSha,
+      },
+      'features': [
+        {
+          'type': 'Feature',
+          'geometry': {
+            'type': 'Point',
+            'coordinates': [34.0, 31.0],
+          },
+          'properties': {
+            'node_id': 'N1',
+            'name': 'Node One',
+            'category': 'Test locations',
+            '_source_layer': 'campus_network',
+          },
+        },
+        {
+          'type': 'Feature',
+          'geometry': {
+            'type': 'Point',
+            'coordinates': [34.001, 31.0],
+          },
+          'properties': {
+            'node_id': 'N2',
+            'name': 'Node Two',
+            'category': 'Test locations',
+            '_source_layer': 'campus_network',
+          },
+        },
+      ],
+    });
+
+String _edgesGeoJson() => jsonEncode({
+      'type': 'FeatureCollection',
+      'metadata': _metadata(CampusMapSource.edgesLayer),
+      'features': [
+        {
+          'type': 'Feature',
+          'geometry': {
+            'type': 'LineString',
+            'coordinates': [
+              [34.0, 31.0],
+              [34.001, 31.0],
+            ],
+          },
+          'properties': {
+            'edge_id': 'E1',
+            'from_node': 'N1',
+            'to_node': 'N2',
+            '_source_layer': 'edges',
+          },
+        },
+      ],
+    });
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  group('CampusGraphRoutingService', () {
-    test('calculates a route from Gate 3 to the QGIS cafeteria entrance', () async {
-      final service = CampusGraphRoutingService();
-      const origin = LatLon(
-        latitude: 32.407314121188996,
-        longitude: 35.341274227489635,
-      );
-      const destination = LatLon(
-        latitude: 32.40699249396461,
-        longitude: 35.34216978223841,
+  group('CampusGraphRoutingService main-map source', () {
+    test('routes using only the verified main GeoPackage exports', () async {
+      final requestedAssets = <String>[];
+      final service = CampusGraphRoutingService(
+        maximumSnapMeters: 5,
+        assetLoader: (path) async {
+          requestedAssets.add(path);
+          if (path == CampusMapSource.nodesAsset) return _nodesGeoJson();
+          if (path == CampusMapSource.edgesAsset) return _edgesGeoJson();
+          throw FlutterError('Unexpected campus asset requested: $path');
+        },
       );
 
       final route = await service.computeRoute(
-        origin: origin,
-        destination: destination,
+        origin: const LatLon(latitude: 31.0, longitude: 34.0),
+        destination: const LatLon(latitude: 31.0, longitude: 34.001),
       );
 
-      expect(route.polyline.length, greaterThan(2));
-      expect(route.polyline.first.latitude, origin.latitude);
-      expect(route.polyline.first.longitude, origin.longitude);
-      expect(route.distanceMeters, greaterThan(0));
+      expect(route.distanceMeters, greaterThan(100));
+      expect(requestedAssets, [
+        CampusMapSource.nodesAsset,
+        CampusMapSource.edgesAsset,
+      ]);
+      expect(
+        requestedAssets.any((path) => path.contains('docs/campus-mapping')),
+        isFalse,
+      );
     });
 
-    test('rejects a GPS position outside the QGIS campus map coverage', () async {
-      final service = CampusGraphRoutingService();
-      const outsideCampus = LatLon(latitude: 32.5, longitude: 35.5);
-      const destination = LatLon(
-        latitude: 32.40699249396461,
-        longitude: 35.34216978223841,
+    test('does not fall back to V2 assets when a main export is missing',
+        () async {
+      final requestedAssets = <String>[];
+      final service = CampusGraphRoutingService(
+        assetLoader: (path) async {
+          requestedAssets.add(path);
+          throw FlutterError('Missing asset: $path');
+        },
       );
 
       await expectLater(
         service.computeRoute(
-          origin: outsideCampus,
-          destination: destination,
+          origin: const LatLon(latitude: 31.0, longitude: 34.0),
+          destination: const LatLon(latitude: 31.0, longitude: 34.001),
         ),
         throwsA(isA<RoutingFailure>()),
       );
+
+      expect(requestedAssets, [CampusMapSource.nodesAsset]);
+      expect(
+        requestedAssets.any((path) => path.contains('docs/campus-mapping')),
+        isFalse,
+      );
     });
 
-    test('routes in reverse across every QGIS edge including ED006', () async {
-      final service = CampusGraphRoutingService();
-      const engineeringEntrance = LatLon(
-        latitude: 32.408136594,
-        longitude: 35.345562575,
-      );
-      const gateThree = LatLon(
-        latitude: 32.407343613,
-        longitude: 35.341322488,
-      );
-
-      final route = await service.computeRoute(
-        origin: engineeringEntrance,
-        destination: gateThree,
-      );
-
-      expect(route.polyline.length, greaterThan(2));
-      expect(route.polyline.first.latitude, engineeringEntrance.latitude);
-      expect(route.polyline.last.latitude, gateThree.latitude);
-      expect(route.distanceMeters, greaterThan(0));
-    });
-
-    test('reports Gate 1 as outside current mapped path coverage', () async {
-      final service = CampusGraphRoutingService();
-      const gateOne = LatLon(
-        latitude: 32.405525317,
-        longitude: 35.342239729,
-      );
-      const gateThree = LatLon(
-        latitude: 32.407343613,
-        longitude: 35.341322488,
+    test('rejects GeoJSON that does not identify the exact main map blob',
+        () async {
+      final service = CampusGraphRoutingService(
+        assetLoader: (path) async {
+          if (path == CampusMapSource.nodesAsset) {
+            return _nodesGeoJson(sourceSha: 'not-the-main-map');
+          }
+          return _edgesGeoJson();
+        },
       );
 
       await expectLater(
-        service.computeRoute(origin: gateOne, destination: gateThree),
+        service.computeRoute(
+          origin: const LatLon(latitude: 31.0, longitude: 34.0),
+          destination: const LatLon(latitude: 31.0, longitude: 34.001),
+        ),
         throwsA(
           isA<RoutingFailure>().having(
             (failure) => failure.message,
             'message',
-            contains('GPS_SNAP_ORIGIN'),
+            contains('source_git_blob_sha1'),
           ),
         ),
       );
