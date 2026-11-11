@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import '../../models/lat_lon.dart';
 import '../../models/location_fix.dart';
 
 class GpsFilterService {
@@ -66,7 +67,7 @@ class GpsFilterService {
 
   void reset() => _lastAcceptedFix = null;
 
-  double _distance(dynamic first, dynamic second) {
+  double _distance(LatLon first, LatLon second) {
     const radius = 6371000.0;
     final lat1 = first.latitude * math.pi / 180;
     final lat2 = second.latitude * math.pi / 180;
