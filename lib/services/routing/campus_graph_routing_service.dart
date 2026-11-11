@@ -211,16 +211,33 @@ class CampusGraphRoutingService implements RoutingService {
 
         // Use explicit QGIS endpoint IDs when they resolve to the node layer.
         // This joins edges by logical node identity, not coordinate equality alone.
-        final fromNodeId = _readProperty(
-              properties,
-              const ['from_node', 'fromnode', 'start_node', 'source_node'],
-            ) ??
-            _nearestNodeId(line.first, nodeCoordinates);
-        final toNodeId = _readProperty(
-              properties,
-              const ['to_node', 'tonode', 'end_node', 'target_node'],
-            ) ??
-            _nearestNodeId(line.last, nodeCoordinates);
+        final declaredFromNodeId = _readProperty(
+          properties,
+          const ['from_node', 'fromnode', 'start_node', 'source_node'],
+        );
+        final declaredToNodeId = _readProperty(
+          properties,
+          const ['to_node', 'tonode', 'end_node', 'target_node'],
+        );
+        final declaredFromNode = declaredFromNodeId == null
+            ? null
+            : nodeCoordinates[_normalizeNodeId(declaredFromNodeId)];
+        final declaredToNode = declaredToNodeId == null
+            ? null
+            : nodeCoordinates[_normalizeNodeId(declaredToNodeId)];
+
+        // Trust a declared endpoint ID only if it resolves to a real point
+        // in the verified campus_network layer and is spatially consistent.
+        // Otherwise infer a node only within 3 m; if none exists, the graph
+        // falls back to shared line coordinates rather than an unknown ID.
+        final fromNodeId = declaredFromNode != null &&
+                _distance(declaredFromNode, line.first) <= 5.0
+            ? declaredFromNodeId
+            : _nearestNodeId(line.first, nodeCoordinates);
+        final toNodeId = declaredToNode != null &&
+                _distance(declaredToNode, line.last) <= 5.0
+            ? declaredToNodeId
+            : _nearestNodeId(line.last, nodeCoordinates);
         final fromNode = fromNodeId == null
             ? null
             : nodeCoordinates[_normalizeNodeId(fromNodeId)];
@@ -228,9 +245,9 @@ class CampusGraphRoutingService implements RoutingService {
             ? null
             : nodeCoordinates[_normalizeNodeId(toNodeId)];
         final useFromNode = fromNodeId != null &&
-            (fromNode == null || _distance(fromNode, line.first) <= 5.0);
+            fromNode != null && _distance(fromNode, line.first) <= 5.0;
         final useToNode = toNodeId != null &&
-            (toNode == null || _distance(toNode, line.last) <= 5.0);
+            toNode != null && _distance(toNode, line.last) <= 5.0;
 
         final effectiveLine = List<LatLon>.from(line);
         if (useFromNode && fromNode != null) {
