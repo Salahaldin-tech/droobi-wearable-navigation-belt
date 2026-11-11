@@ -16,6 +16,10 @@ enum NavigationState {
   idle,
   starting,
   navigating,
+  positionUncertain,
+  offRoute,
+  approaching,
+  arrivalCandidate,
   gpsUnavailable,
   routeUnavailable,
   recovering,
@@ -36,6 +40,8 @@ class NavigationSnapshot {
     this.relativeAngle,
     this.direction,
     this.errorMessage,
+    this.progressMeters,
+    this.remainingRouteMeters,
   });
 
   final NavigationState state;
@@ -58,6 +64,8 @@ class NavigationSnapshot {
   final NavigationDirection? direction;
 
   final String? errorMessage;
+  final double? progressMeters;
+  final double? remainingRouteMeters;
 
   String? get command => direction?.command;
 }
@@ -120,7 +128,8 @@ class NavigationService {
   int _offRouteSamples = 0;
   DateTime? _lastCampusRerouteAt;
 
-  static const double _campusOffRouteMinimumMeters = 12.0;
+  static const double _minimumOffRouteThresholdMeters = 8.0;
+  static const double _maximumOffRouteThresholdMeters = 18.0;
   static const int _campusOffRouteSamplesRequired = 2;
   static const Duration _campusRerouteCooldown = Duration(seconds: 5);
 
@@ -157,6 +166,13 @@ class NavigationService {
   StreamSubscription<LocationFix>? _locationSubscription;
 
   StreamSubscription<double>? _compassSubscription;
+  Timer? _policyTimer;
+  DateTime? _lastCompassAt;
+  bool _gpsStreamHealthy = true;
+  bool _compassStreamHealthy = true;
+  static const Duration _policyInterval = Duration(milliseconds: 500);
+  static const Duration _maximumFixAgeForGuidance = Duration(seconds: 12);
+  static const Duration _maximumCompassAgeForGuidance = Duration(seconds: 5);
 
   final StreamController<NavigationSnapshot>
       _snapshotController =
@@ -270,6 +286,7 @@ class NavigationService {
           await _waitForGoodInitialFix();
 
       _lastAcceptedFix = filteredFix;
+      _gpsStreamHealthy = true;
 
       // ------------------------------------------------------------
       // 2. ROUTE
@@ -359,20 +376,15 @@ class NavigationService {
         ),
       );
 
+      _lastCompassAt = DateTime.now();
+      _compassStreamHealthy = true;
       _startCompassStream();
-
       _startLocationStream();
-
-      // ------------------------------------------------------------
-      // 5. FIRST CALCULATION
-      // ------------------------------------------------------------
-
-      _updateNavigation(
-        filteredFix,
-        smoothedInitialHeading,
-      );
+      _startPolicyTimer();
+      _runPolicyTick();
     } catch (e) {
       _isNavigating = false;
+      _cancelPolicyAndSensorStreams();
 
       _publish(
         NavigationSnapshot(
@@ -443,6 +455,7 @@ class NavigationService {
           return;
         }
 
+        _gpsStreamHealthy = false;
         _publish(
           NavigationSnapshot(
             state: NavigationState.gpsUnavailable,
@@ -474,32 +487,14 @@ class NavigationService {
     }
 
     _lastAcceptedFix = filteredFix;
+    _gpsStreamHealthy = true;
 
     if (_isCampusNavigation) {
       await _maybeRerouteCampus(filteredFix);
       if (!_isNavigating) return;
     }
 
-    final heading = _latestHeading;
-
-    if (heading == null) {
-      _publish(
-        NavigationSnapshot(
-          state: NavigationState.recovering,
-          currentPosition: filteredFix.position,
-          accuracyMeters: filteredFix.accuracyMeters,
-          route: _route,
-          errorMessage: 'Waiting for compass heading.',
-        ),
-      );
-
-      return;
-    }
-
-    _updateNavigation(
-      filteredFix,
-      heading,
-    );
+    // GPS callbacks refresh data; the fixed policy timer owns direction decisions.
   }
 
   // ================================================================
@@ -519,14 +514,27 @@ class NavigationService {
       currentPosition: fix.position,
       route: route,
       lookAheadMeters: 0,
+      speedMetersPerSecond: fix.speedMetersPerSecond,
+      horizontalAccuracyMeters: fix.accuracyMeters,
     );
-    final offRouteThreshold = math.max(
-      _campusOffRouteMinimumMeters,
-      fix.accuracyMeters * 1.5,
-    );
+    final offRouteThreshold = _offRouteThresholdFor(fix);
 
-    if (progress.distanceFromRouteMeters > offRouteThreshold) {
+    if (progress.progressJumpDetected ||
+        progress.distanceFromRouteMeters > offRouteThreshold) {
       _offRouteSamples++;
+      _publish(NavigationSnapshot(
+        state: progress.progressJumpDetected
+            ? NavigationState.positionUncertain
+            : NavigationState.offRoute,
+        currentPosition: fix.position,
+        accuracyMeters: fix.accuracyMeters,
+        route: route,
+        distanceFromRouteMeters: progress.distanceFromRouteMeters,
+        heading: _latestHeading,
+        progressMeters: progress.progressMeters,
+        remainingRouteMeters: progress.remainingRouteMeters,
+        errorMessage: 'Campus position is not confidently matched to the active path. Guidance is paused.',
+      ));
     } else {
       _offRouteSamples = 0;
       return;
@@ -541,6 +549,14 @@ class NavigationService {
 
     _isRerouting = true;
     _lastCampusRerouteAt = now;
+    _publish(NavigationSnapshot(
+      state: NavigationState.recovering,
+      currentPosition: fix.position,
+      accuracyMeters: fix.accuracyMeters,
+      route: route,
+      heading: _latestHeading,
+      errorMessage: 'Reconnecting to a mapped pedestrian path.',
+    ));
     try {
       // CampusGraphRoutingService snaps this fresh GPS fix to the nearest
       // QGIS edge and runs shortest-path routing to the original destination.
@@ -561,6 +577,7 @@ class NavigationService {
       // Do not continue issuing directions along a stale route after the
       // user has left it and QGIS cannot find a connected replacement.
       _isNavigating = false;
+      _cancelPolicyAndSensorStreams();
       _publish(NavigationSnapshot(
         state: NavigationState.routeUnavailable,
         currentPosition: fix.position,
@@ -578,6 +595,81 @@ class NavigationService {
   // COMPASS STREAM
   // ================================================================
 
+  void _startPolicyTimer() {
+    _policyTimer?.cancel();
+    _policyTimer = Timer.periodic(_policyInterval, (_) => _runPolicyTick());
+  }
+
+  double _offRouteThresholdFor(LocationFix fix) {
+    return math.max(
+      _minimumOffRouteThresholdMeters,
+      math.min(_maximumOffRouteThresholdMeters, fix.accuracyMeters * 0.75),
+    ).toDouble();
+  }
+
+  void _cancelPolicyAndSensorStreams() {
+    _policyTimer?.cancel();
+    _policyTimer = null;
+    final location = _locationSubscription;
+    _locationSubscription = null;
+    if (location != null) unawaited(location.cancel());
+    final compass = _compassSubscription;
+    _compassSubscription = null;
+    if (compass != null) unawaited(compass.cancel());
+  }
+
+  void _runPolicyTick() {
+    if (!_isNavigating || _isDisposed) return;
+    if (_isRerouting) {
+      _publish(NavigationSnapshot(
+        state: NavigationState.recovering,
+        currentPosition: _lastAcceptedFix?.position,
+        accuracyMeters: _lastAcceptedFix?.accuracyMeters,
+        route: _route,
+        heading: _latestHeading,
+      ));
+      return;
+    }
+
+    final route = _route;
+    final fix = _lastAcceptedFix;
+    final heading = _latestHeading;
+    if (!_gpsStreamHealthy || !_compassStreamHealthy ||
+        route == null || fix == null || heading == null) {
+      _publish(NavigationSnapshot(
+        state: NavigationState.positionUncertain,
+        currentPosition: fix?.position,
+        accuracyMeters: fix?.accuracyMeters,
+        route: route,
+        heading: heading,
+        errorMessage: 'Waiting for reliable GPS and compass readings. Guidance is paused.',
+      ));
+      return;
+    }
+
+    final now = DateTime.now();
+    final gpsAge = now.difference(fix.timestamp);
+    final compassAge = _lastCompassAt == null
+        ? _maximumCompassAgeForGuidance
+        : now.difference(_lastCompassAt!);
+    if (gpsAge > _maximumFixAgeForGuidance ||
+        gpsAge < const Duration(seconds: -2) ||
+        compassAge > _maximumCompassAgeForGuidance ||
+        !fix.accuracyMeters.isFinite ||
+        fix.accuracyMeters > 25) {
+      _publish(NavigationSnapshot(
+        state: NavigationState.positionUncertain,
+        currentPosition: fix.position,
+        accuracyMeters: fix.accuracyMeters,
+        route: route,
+        heading: heading,
+        errorMessage: 'GPS or compass data is stale or inaccurate. Guidance is paused.',
+      ));
+      return;
+    }
+    _updateNavigation(fix, heading);
+  }
+
   void _startCompassStream() {
     _compassSubscription?.cancel();
 
@@ -589,9 +681,11 @@ class NavigationService {
           return;
         }
 
+        _compassStreamHealthy = false;
+        _latestHeading = null;
         _publish(
           NavigationSnapshot(
-            state: NavigationState.recovering,
+            state: NavigationState.positionUncertain,
             currentPosition: _lastAcceptedFix?.position,
             accuracyMeters:
                 _lastAcceptedFix?.accuracyMeters,
@@ -621,11 +715,8 @@ class NavigationService {
     }
 
     _latestHeading = smoothedHeading;
-
-    _updateNavigation(
-      _lastAcceptedFix!,
-      smoothedHeading,
-    );
+    _lastCompassAt = DateTime.now();
+    _compassStreamHealthy = true;
   }
 
   // ================================================================
@@ -765,11 +856,29 @@ class NavigationService {
         _routeProgressService.getNextTarget(
       currentPosition: fix.position,
       route: route,
-
-      // null tells RouteProgressService to choose
-      // the appropriate look-ahead automatically.
       lookAheadMeters: lookAheadMeters,
+      speedMetersPerSecond: fix.speedMetersPerSecond,
+      horizontalAccuracyMeters: fix.accuracyMeters,
     );
+
+    final offRouteThreshold = _offRouteThresholdFor(fix);
+    if (target.progressJumpDetected ||
+        target.distanceFromRouteMeters > offRouteThreshold) {
+      _publish(NavigationSnapshot(
+        state: target.progressJumpDetected
+            ? NavigationState.positionUncertain
+            : NavigationState.offRoute,
+        currentPosition: fix.position,
+        accuracyMeters: fix.accuracyMeters,
+        route: route,
+        distanceFromRouteMeters: target.distanceFromRouteMeters,
+        heading: heading,
+        progressMeters: target.progressMeters,
+        remainingRouteMeters: target.remainingRouteMeters,
+        errorMessage: 'Position is not confidently on the mapped route. Guidance is paused.',
+      ));
+      return;
+    }
 
     // ------------------------------------------------------------
     // ARRIVAL
@@ -809,6 +918,21 @@ class NavigationService {
       }
     }
 
+    if (_arrivalFixCount > 0 && _arrivalFixCount < 3) {
+      _publish(NavigationSnapshot(
+        state: NavigationState.arrivalCandidate,
+        currentPosition: fix.position,
+        accuracyMeters: fix.accuracyMeters,
+        route: route,
+        targetPoint: destination,
+        distanceFromRouteMeters: target.distanceFromRouteMeters,
+        heading: heading,
+        progressMeters: target.progressMeters,
+        remainingRouteMeters: target.remainingRouteMeters,
+      ));
+      return;
+    }
+
     if (_arrivalFixCount >= 3) {
       _publish(
         NavigationSnapshot(
@@ -822,6 +946,7 @@ class NavigationService {
         ),
       );
       _isNavigating = false;
+      _cancelPolicyAndSensorStreams();
       return;
     }
 
@@ -840,12 +965,19 @@ class NavigationService {
     // The route itself determines the direction of travel.
     // ------------------------------------------------------------
 
-    final bearing =
-        target.routeBearing ??
-            _directionCalculator.calculateBearing(
-              from: fix.position,
-              to: target.point,
-            );
+    final bearing = target.routeBearing;
+    if (bearing == null || !bearing.isFinite) {
+      _publish(NavigationSnapshot(
+        state: NavigationState.positionUncertain,
+        currentPosition: fix.position,
+        accuracyMeters: fix.accuracyMeters,
+        route: route,
+        distanceFromRouteMeters: target.distanceFromRouteMeters,
+        heading: heading,
+        errorMessage: 'The active mapped path has no reliable route bearing.',
+      ));
+      return;
+    }
 
     // ------------------------------------------------------------
     // RELATIVE ANGLE
@@ -872,13 +1004,34 @@ class NavigationService {
     final direction =
         _stabilizeDirection(rawDirection);
 
+    if (direction == null) {
+      _publish(NavigationSnapshot(
+        state: NavigationState.positionUncertain,
+        currentPosition: fix.position,
+        accuracyMeters: fix.accuracyMeters,
+        route: route,
+        targetPoint: target.point,
+        distanceFromRouteMeters: target.distanceFromRouteMeters,
+        targetBearing: bearing,
+        heading: heading,
+        relativeAngle: relativeAngle,
+        progressMeters: target.progressMeters,
+        remainingRouteMeters: target.remainingRouteMeters,
+        errorMessage: 'Direction change is being confirmed. The belt is paused.',
+      ));
+      return;
+    }
+
     // ------------------------------------------------------------
     // PUBLISH
     // ------------------------------------------------------------
 
+    final nextState = target.remainingRouteMeters <= 20.0
+        ? NavigationState.approaching
+        : NavigationState.navigating;
     _publish(
       NavigationSnapshot(
-        state: NavigationState.navigating,
+        state: nextState,
         currentPosition: fix.position,
         accuracyMeters: fix.accuracyMeters,
         route: route,
@@ -889,6 +1042,8 @@ class NavigationService {
         heading: heading,
         relativeAngle: relativeAngle,
         direction: direction,
+        progressMeters: target.progressMeters,
+        remainingRouteMeters: target.remainingRouteMeters,
       ),
     );
   }
@@ -897,7 +1052,7 @@ class NavigationService {
   // DIRECTION STABILITY
   // ================================================================
 
-  NavigationDirection _stabilizeDirection(
+  NavigationDirection? _stabilizeDirection(
     NavigationDirection candidate,
   ) {
     final now = DateTime.now();
@@ -908,33 +1063,30 @@ class NavigationService {
       _candidateDirectionSince = null;
       return candidate;
     }
-
     if (candidate == _confirmedDirection) {
       _candidateDirection = null;
       _candidateDirectionCount = 0;
       _candidateDirectionSince = null;
-      return _confirmedDirection!;
+      return _confirmedDirection;
     }
-
     if (_candidateDirection != candidate) {
       _candidateDirection = candidate;
       _candidateDirectionCount = 1;
       _candidateDirectionSince = now;
-      return _confirmedDirection!;
+      return null;
     }
-
-    // Compass streams can emit ~30 samples/second. A time window avoids
-    // confirming a new direction from three adjacent samples in milliseconds.
     _candidateDirectionCount++;
     final since = _candidateDirectionSince;
-    if (since != null &&
+    if (_candidateDirectionCount >= directionConfirmationSamples &&
+        since != null &&
         now.difference(since) >= const Duration(milliseconds: 900)) {
       _confirmedDirection = candidate;
       _candidateDirection = null;
       _candidateDirectionCount = 0;
       _candidateDirectionSince = null;
+      return _confirmedDirection;
     }
-    return _confirmedDirection!;
+    return null;
   }
 
   // ================================================================
@@ -943,6 +1095,8 @@ class NavigationService {
 
   Future<void> stop() async {
     _isNavigating = false;
+    _policyTimer?.cancel();
+    _policyTimer = null;
 
     await _locationSubscription?.cancel();
     _locationSubscription = null;
@@ -970,6 +1124,11 @@ class NavigationService {
     _arrivalFixCount = 0;
     _lastArrivalFixTimestamp = null;
     _routeProgressService.reset();
+    _policyTimer?.cancel();
+    _policyTimer = null;
+    _lastCompassAt = null;
+    _gpsStreamHealthy = true;
+    _compassStreamHealthy = true;
 
     _resetCompassSmoothing();
 
@@ -1004,6 +1163,8 @@ class NavigationService {
     _isDisposed = true;
 
     _isNavigating = false;
+    _policyTimer?.cancel();
+    _policyTimer = null;
 
     await _locationSubscription?.cancel();
     await _compassSubscription?.cancel();
