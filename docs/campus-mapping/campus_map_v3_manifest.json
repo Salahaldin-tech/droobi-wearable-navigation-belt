@@ -24,7 +24,8 @@
     "Preserve source IDs and geometries.",
     "Aliases normalize edge references only.",
     "All source nodes/edges currently unverified.",
-    "Never bridge missing paths or disconnected components by proximity."
+    "Never join separate edges solely by coordinate proximity.",
+    "Attach an edge endpoint only to its declared Node ID within the explicit 5m limit; reject larger offsets."
   ],
   "gate1": {
     "node_id": "G1",
