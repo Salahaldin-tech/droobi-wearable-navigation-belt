@@ -5,12 +5,24 @@ import '../services/navigation/compass_service.dart';
 import '../services/navigation/direction_calculator.dart';
 import '../services/navigation/navigation_service.dart';
 import '../services/navigation/route_progress_service.dart';
-import '../services/routing/campus_graph_routing_service.dart';
+import '../services/routing/osrm_routing_service.dart';
 import 'location_notifier.dart';
 import 'routing_notifier.dart';
 
 final navigationServiceProvider =
     Provider<NavigationService>((ref) {
+  final campusOsrmBaseUrl =
+      const String.fromEnvironment('CAMPUS_OSRM_BASE_URL').trim();
+  final campusRoutingService = campusOsrmBaseUrl.isEmpty
+      ? null
+      : OsrmRoutingService(
+          baseUrl: campusOsrmBaseUrl,
+          maxSnapRadiusMeters: 20,
+        );
+  if (campusRoutingService != null) {
+    ref.onDispose(campusRoutingService.dispose);
+  }
+
   final service = NavigationService(
     locationService:
         ref.read(locationServiceProvider),
@@ -18,8 +30,7 @@ final navigationServiceProvider =
     routingService:
         ref.read(routingServiceProvider),
 
-    campusRoutingService:
-        CampusGraphRoutingService(),
+    campusRoutingService: campusRoutingService,
 
     compassService:
         CompassService(),
