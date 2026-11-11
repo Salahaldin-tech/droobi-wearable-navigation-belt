@@ -1,0 +1,2119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="openstreetmap-cgimap 2.1.1 (2045859 spike-08.openstreetmap.org)" copyright="OpenStreetMap and contributors" attribution="http://www.openstreetmap.org/copyright" license="http://opendatacommons.org/licenses/odbl/1-0/">
+ <bounds minlat="32.4062830" minlon="35.3399010" maxlat="32.4093400" maxlon="35.3462630"/>
+ <node id="431712712" visible="true" version="2" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4040527" lon="35.3422250"/>
+ <node id="431713690" visible="true" version="2" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4108015" lon="35.3412894"/>
+ <node id="431717775" visible="true" version="3" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4080310" lon="35.3409987"/>
+ <node id="431717960" visible="true" version="2" changeset="35011243" timestamp="2015-11-01T13:14:18Z" user="yazanbasri" uid="3339881" lat="32.4081589" lon="35.3425130">
+  <tag k="amenity" v="university"/>
+  <tag k="name" v="American Arab University Jenin"/>
+  <tag k="name:ar" v="الجامعة العربية الامريكية جنين"/>
+ </node>
+ <node id="431725942" visible="true" version="2" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4059032" lon="35.3408200"/>
+ <node id="431726140" visible="true" version="2" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4205120" lon="35.3192018"/>
+ <node id="431728974" visible="true" version="2" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4049704" lon="35.3414272"/>
+ <node id="431733894" visible="true" version="2" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4209928" lon="35.3219674"/>
+ <node id="431736045" visible="true" version="2" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4064229" lon="35.3408585"/>
+ <node id="431740740" visible="true" version="2" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4214013" lon="35.3246022"/>
+ <node id="431741532" visible="true" version="2" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4205605" lon="35.3207553"/>
+ <node id="431744092" visible="true" version="3" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4153040" lon="35.3415423"/>
+ <node id="431746995" visible="true" version="4" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4074469" lon="35.3412570">
+  <tag k="barrier" v="gate"/>
+ </node>
+ <node id="431748525" visible="true" version="2" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4215250" lon="35.3257861"/>
+ <node id="431749665" visible="true" version="2" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4211686" lon="35.3223818"/>
+ <node id="431765933" visible="true" version="4" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4074505" lon="35.3410448"/>
+ <node id="431786011" visible="true" version="2" changeset="125449932" timestamp="2022-08-27T16:53:15Z" user="Ido Marom" uid="2778924" lat="32.4202140" lon="35.3180756"/>
+ <node id="431821044" visible="true" version="2" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4213455" lon="35.3230002"/>
+ <node id="431825256" visible="true" version="2" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4205068" lon="35.3203107"/>
+ <node id="1712486070" visible="true" version="3" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4125033" lon="35.3411505"/>
+ <node id="3686426958" visible="true" version="1" changeset="33195000" timestamp="2015-08-08T06:00:18Z" user="Mohammad Hannoon" uid="446572" lat="32.4079433" lon="35.3413162">
+  <tag k="name" v="HSITCE"/>
+  <tag k="name:ar" v="مركز حسيب الصباغ"/>
+ </node>
+ <node id="4399204589" visible="true" version="1" changeset="42130791" timestamp="2016-09-13T16:56:27Z" user="نصري جعفر موسى" uid="4419382" lat="32.4090686" lon="35.3435248">
+  <tag k="leisure" v="playground"/>
+ </node>
+ <node id="4468686290" visible="true" version="2" changeset="50219152" timestamp="2017-07-12T06:24:13Z" user="SafwatHalaby" uid="2138064" lat="32.4089878" lon="35.3420812">
+  <tag k="building" v="apartments"/>
+  <tag k="name" v="سكن اللغات"/>
+  <tag k="name:ar" v="سكن اللغات"/>
+  <tag k="name:en" v="ELC Apartments"/>
+ </node>
+ <node id="8261295651" visible="true" version="1" changeset="96445055" timestamp="2020-12-26T10:11:23Z" user="NFZANMNIM" uid="1980310" lat="32.4088455" lon="35.3411271"/>
+ <node id="8261295652" visible="true" version="2" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4075292" lon="35.3412025"/>
+ <node id="8261295653" visible="true" version="2" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4072179" lon="35.3412012"/>
+ <node id="8261295654" visible="true" version="1" changeset="96445055" timestamp="2020-12-26T10:11:23Z" user="NFZANMNIM" uid="1980310" lat="32.4072142" lon="35.3411542"/>
+ <node id="8261295655" visible="true" version="1" changeset="96445055" timestamp="2020-12-26T10:11:23Z" user="NFZANMNIM" uid="1980310" lat="32.4064762" lon="35.3409333"/>
+ <node id="8261295656" visible="true" version="2" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4064961" lon="35.3406892"/>
+ <node id="8261295657" visible="true" version="2" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4058006" lon="35.3406441"/>
+ <node id="8261295658" visible="true" version="1" changeset="96445055" timestamp="2020-12-26T10:11:23Z" user="NFZANMNIM" uid="1980310" lat="32.4058229" lon="35.3408726"/>
+ <node id="8261295659" visible="true" version="1" changeset="96445055" timestamp="2020-12-26T10:11:23Z" user="NFZANMNIM" uid="1980310" lat="32.4040679" lon="35.3422837"/>
+ <node id="8261295660" visible="true" version="1" changeset="96445055" timestamp="2020-12-26T10:11:23Z" user="NFZANMNIM" uid="1980310" lat="32.4043369" lon="35.3427692"/>
+ <node id="8261295661" visible="true" version="1" changeset="96445055" timestamp="2020-12-26T10:11:23Z" user="NFZANMNIM" uid="1980310" lat="32.4058357" lon="35.3452424"/>
+ <node id="8261295662" visible="true" version="1" changeset="96445055" timestamp="2020-12-26T10:11:23Z" user="NFZANMNIM" uid="1980310" lat="32.4062328" lon="35.3453638"/>
+ <node id="8261295663" visible="true" version="1" changeset="96445055" timestamp="2020-12-26T10:11:23Z" user="NFZANMNIM" uid="1980310" lat="32.4068774" lon="35.3453609"/>
+ <node id="8261295664" visible="true" version="1" changeset="96445055" timestamp="2020-12-26T10:11:23Z" user="NFZANMNIM" uid="1980310" lat="32.4068525" lon="35.3458969"/>
+ <node id="8261295665" visible="true" version="2" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4105045" lon="35.3468361"/>
+ <node id="8261295666" visible="true" version="2" changeset="191218770" timestamp="2026-10-30T02:16:53Z" user="happilymappingrway" uid="18709745" lat="32.4104526" lon="35.3429796"/>
+ <node id="8261295667" visible="true" version="1" changeset="96445055" timestamp="2020-12-26T10:11:23Z" user="NFZANMNIM" uid="1980310" lat="32.4076118" lon="35.3411455"/>
+ <node id="8261295668" visible="true" version="1" changeset="96445055" timestamp="2020-12-26T10:11:23Z" user="NFZANMNIM" uid="1980310" lat="32.4090994" lon="35.3411486"/>
+ <node id="8261295669" visible="true" version="2" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4106724" lon="35.3411560"/>
+ <node id="8261295670" visible="true" version="2" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4103350" lon="35.3410683"/>
+ <node id="8261295674" visible="true" version="1" changeset="96445055" timestamp="2020-12-26T10:11:23Z" user="NFZANMNIM" uid="1980310" lat="32.4104502" lon="35.3491632"/>
+ <node id="8261295675" visible="true" version="1" changeset="96445055" timestamp="2020-12-26T10:11:23Z" user="NFZANMNIM" uid="1980310" lat="32.4079367" lon="35.3499752"/>
+ <node id="8261295676" visible="true" version="1" changeset="96445055" timestamp="2020-12-26T10:11:23Z" user="NFZANMNIM" uid="1980310" lat="32.4071674" lon="35.3491903"/>
+ <node id="8261295677" visible="true" version="1" changeset="96445055" timestamp="2020-12-26T10:11:23Z" user="NFZANMNIM" uid="1980310" lat="32.4067180" lon="35.3483062"/>
+ <node id="8261295678" visible="true" version="1" changeset="96445055" timestamp="2020-12-26T10:11:23Z" user="NFZANMNIM" uid="1980310" lat="32.4063372" lon="35.3469619"/>
+ <node id="8261295679" visible="true" version="1" changeset="96445055" timestamp="2020-12-26T10:11:23Z" user="NFZANMNIM" uid="1980310" lat="32.4063296" lon="35.3463123"/>
+ <node id="8261295680" visible="true" version="1" changeset="96445055" timestamp="2020-12-26T10:11:23Z" user="NFZANMNIM" uid="1980310" lat="32.4063829" lon="35.3460507"/>
+ <node id="8261295712" visible="true" version="2" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4129035" lon="35.3412204"/>
+ <node id="8261295713" visible="true" version="2" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4124024" lon="35.3411400"/>
+ <node id="8261350617" visible="true" version="2" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4134577" lon="35.3412844"/>
+ <node id="8261350621" visible="true" version="2" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4139316" lon="35.3413557"/>
+ <node id="8261457531" visible="true" version="1" changeset="96447747" timestamp="2020-12-26T11:25:11Z" user="NFZANMNIM" uid="1980310" lat="32.4081102" lon="35.3411381"/>
+ <node id="9981872539" visible="true" version="1" changeset="125449932" timestamp="2022-08-27T16:53:15Z" user="Ido Marom" uid="2778924" lat="32.4201941" lon="35.3179568"/>
+ <node id="9981872540" visible="true" version="1" changeset="125449932" timestamp="2022-08-27T16:53:15Z" user="Ido Marom" uid="2778924" lat="32.4201718" lon="35.3177731"/>
+ <node id="10003163701" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4202701" lon="35.3182863"/>
+ <node id="10003163702" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4204223" lon="35.3187077"/>
+ <node id="10003163703" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4204831" lon="35.3189548"/>
+ <node id="10003163704" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4205223" lon="35.3195087"/>
+ <node id="10003163705" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4206426" lon="35.3211166"/>
+ <node id="10003163706" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4207569" lon="35.3214231"/>
+ <node id="10003163707" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4212742" lon="35.3226826"/>
+ <node id="10003163708" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4213778" lon="35.3232963"/>
+ <node id="10003163709" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4213865" lon="35.3235521"/>
+ <node id="10003163710" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4213602" lon="35.3240058"/>
+ <node id="10003163711" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4213648" lon="35.3242788"/>
+ <node id="10003163712" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4214702" lon="35.3251529"/>
+ <node id="10003163713" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4215315" lon="35.3259869"/>
+ <node id="10003163714" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4215221" lon="35.3261407"/>
+ <node id="10003163715" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4215079" lon="35.3262596"/>
+ <node id="10003163716" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4214630" lon="35.3264163"/>
+ <node id="10003163717" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4214111" lon="35.3265338"/>
+ <node id="10003163718" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4213450" lon="35.3266415"/>
+ <node id="10003163719" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4212576" lon="35.3267617"/>
+ <node id="10003163720" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4209341" lon="35.3271436"/>
+ <node id="10003163721" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4207476" lon="35.3273561"/>
+ <node id="10003163722" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4202789" lon="35.3281212"/>
+ <node id="10003163723" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4197598" lon="35.3288741"/>
+ <node id="10003163724" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4191376" lon="35.3297948"/>
+ <node id="10003163725" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4188501" lon="35.3301965"/>
+ <node id="10003163726" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4187104" lon="35.3304070"/>
+ <node id="10003163727" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4186508" lon="35.3305130"/>
+ <node id="10003163728" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4185884" lon="35.3306399"/>
+ <node id="10003163729" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4185219" lon="35.3308038"/>
+ <node id="10003163730" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4184121" lon="35.3311042"/>
+ <node id="10003163731" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4182290" lon="35.3317918"/>
+ <node id="10003163732" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4181205" lon="35.3321694"/>
+ <node id="10003163733" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4180242" lon="35.3324650"/>
+ <node id="10003163734" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4178058" lon="35.3330611"/>
+ <node id="10003163735" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4176946" lon="35.3334016"/>
+ <node id="10003163736" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4176458" lon="35.3335880"/>
+ <node id="10003163737" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4176065" lon="35.3337535"/>
+ <node id="10003163738" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4175929" lon="35.3338981"/>
+ <node id="10003163739" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4175821" lon="35.3341262"/>
+ <node id="10003163740" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4175875" lon="35.3349970"/>
+ <node id="10003163741" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4175753" lon="35.3351834"/>
+ <node id="10003163742" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4175495" lon="35.3353071"/>
+ <node id="10003163743" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4175170" lon="35.3354179"/>
+ <node id="10003163744" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4174722" lon="35.3355272"/>
+ <node id="10003163745" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4173705" lon="35.3356685"/>
+ <node id="10003163746" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4172756" lon="35.3357698"/>
+ <node id="10003163747" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4171657" lon="35.3358565"/>
+ <node id="10003163748" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4169555" lon="35.3359690"/>
+ <node id="10003163749" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4157629" lon="35.3365551"/>
+ <node id="10003163750" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4142141" lon="35.3373070"/>
+ <node id="10003163751" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4129717" lon="35.3379079"/>
+ <node id="10003163752" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4112953" lon="35.3386951"/>
+ <node id="10003163753" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4104517" lon="35.3390839"/>
+ <node id="10003163754" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4096352" lon="35.3395048"/>
+ <node id="10003163755" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4090251" lon="35.3398018"/>
+ <node id="10003163756" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4086778" lon="35.3399416"/>
+ <node id="10003163757" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4085727" lon="35.3400059"/>
+ <node id="10003163758" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4084276" lon="35.3401296"/>
+ <node id="10003163759" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4083428" lon="35.3402236"/>
+ <node id="10003163760" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4082824" lon="35.3403103"/>
+ <node id="10003163761" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4082205" lon="35.3404103"/>
+ <node id="10003163762" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4081589" lon="35.3405613"/>
+ <node id="10003163763" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4080797" lon="35.3407597"/>
+ <node id="10003163764" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4080478" lon="35.3408961"/>
+ <node id="10003163775" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4148413" lon="35.3370025"/>
+ <node id="10003163806" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4149520" lon="35.3369488"/>
+ <node id="10003163977" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4054293" lon="35.3410778"/>
+ <node id="10003163978" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4056846" lon="35.3409256"/>
+ <node id="10003163979" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4060851" lon="35.3408039"/>
+ <node id="10003163980" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4069154" lon="35.3409908"/>
+ <node id="10003163981" visible="true" version="1" changeset="125833568" timestamp="2022-09-05T22:53:01Z" user="Ido Marom" uid="2778924" lat="32.4071454" lon="35.3410329"/>
+ <node id="10003173797" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4075249" lon="35.3418970"/>
+ <node id="10003173798" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4075002" lon="35.3419255"/>
+ <node id="10003173799" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4076580" lon="35.3420888"/>
+ <node id="10003173800" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4076786" lon="35.3420558"/>
+ <node id="10003173801" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4074846" lon="35.3419621"/>
+ <node id="10003173802" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4074799" lon="35.3420026"/>
+ <node id="10003173803" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4074865" lon="35.3420428"/>
+ <node id="10003173804" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4075037" lon="35.3420783"/>
+ <node id="10003173805" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4075298" lon="35.3421052"/>
+ <node id="10003173806" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4075617" lon="35.3421207"/>
+ <node id="10003173807" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4075962" lon="35.3421230"/>
+ <node id="10003173808" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4076295" lon="35.3421120"/>
+ <node id="10003173809" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4076891" lon="35.3420166"/>
+ <node id="10003173810" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4076882" lon="35.3419755"/>
+ <node id="10003173811" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4076761" lon="35.3419371"/>
+ <node id="10003173812" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4076541" lon="35.3419053"/>
+ <node id="10003173813" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4076245" lon="35.3418838"/>
+ <node id="10003173814" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4075907" lon="35.3418748"/>
+ <node id="10003173815" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4075562" lon="35.3418794"/>
+ <node id="10003173816" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4073161" lon="35.3410454"/>
+ <node id="10003173817" visible="true" version="2" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4073224" lon="35.3412680">
+  <tag k="barrier" v="gate"/>
+ </node>
+ <node id="10003173818" visible="true" version="2" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4073332" lon="35.3414372"/>
+ <node id="10003173819" visible="true" version="2" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4073741" lon="35.3415979"/>
+ <node id="10003173820" visible="true" version="2" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4074407" lon="35.3418188"/>
+ <node id="10003173821" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4074957" lon="35.3419361"/>
+ <node id="10003173822" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4075813" lon="35.3418761"/>
+ <node id="10003173823" visible="true" version="2" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4075120" lon="35.3418401"/>
+ <node id="10003173824" visible="true" version="2" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4074757" lon="35.3417710"/>
+ <node id="10003173825" visible="true" version="2" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4074438" lon="35.3416614"/>
+ <node id="10003173826" visible="true" version="2" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4074302" lon="35.3415544"/>
+ <node id="10003173827" visible="true" version="2" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4074230" lon="35.3414407"/>
+ <node id="10003173828" visible="true" version="2" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4074389" lon="35.3413397"/>
+ <node id="10003173830" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4076652" lon="35.3420773"/>
+ <node id="10003173831" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4082510" lon="35.3426352"/>
+ <node id="10003173832" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4083586" lon="35.3427488"/>
+ <node id="10003173833" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4084418" lon="35.3428516"/>
+ <node id="10003173834" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4084979" lon="35.3429470"/>
+ <node id="10003173835" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4085504" lon="35.3430648"/>
+ <node id="10003173836" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4085974" lon="35.3432181"/>
+ <node id="10003173837" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4086580" lon="35.3434859"/>
+ <node id="10003173838" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4086969" lon="35.3437045"/>
+ <node id="10003173839" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4087168" lon="35.3439070"/>
+ <node id="10003173840" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4087177" lon="35.3440527"/>
+ <node id="10003173841" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4087015" lon="35.3442574"/>
+ <node id="10003173842" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4086779" lon="35.3444985"/>
+ <node id="10003173843" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4086056" lon="35.3449410"/>
+ <node id="10003173844" visible="true" version="2" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4084995" lon="35.3452793"/>
+ <node id="10003173845" visible="true" version="2" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4084428" lon="35.3453951"/>
+ <node id="10003173847" visible="true" version="2" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4084023" lon="35.3454023"/>
+ <node id="10003173848" visible="true" version="2" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4083555" lon="35.3454059"/>
+ <node id="10003173850" visible="true" version="2" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4080466" lon="35.3453109"/>
+ <node id="10003173851" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4073150" lon="35.3450388"/>
+ <node id="10003173852" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4070898" lon="35.3449269"/>
+ <node id="10003173853" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4069197" lon="35.3448019"/>
+ <node id="10003173854" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4065527" lon="35.3445109"/>
+ <node id="10003173855" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4061101" lon="35.3441564"/>
+ <node id="10003173856" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4058865" lon="35.3439307"/>
+ <node id="10003173857" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4057290" lon="35.3436882"/>
+ <node id="10003173858" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4056156" lon="35.3434457"/>
+ <node id="10003173859" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4055699" lon="35.3432237"/>
+ <node id="10003173860" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4055447" lon="35.3430110"/>
+ <node id="10003173861" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4055289" lon="35.3426640"/>
+ <node id="10003173862" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4055226" lon="35.3424737"/>
+ <node id="10003173863" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4055065" lon="35.3421356"/>
+ <node id="10003173864" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4054683" lon="35.3418966"/>
+ <node id="10003173865" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4053907" lon="35.3416181"/>
+ <node id="10003173866" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4052988" lon="35.3413778"/>
+ <node id="10003173867" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4052376" lon="35.3412238"/>
+ <node id="10003173868" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4077433" lon="35.3418348"/>
+ <node id="10003173869" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4082662" lon="35.3416502"/>
+ <node id="10003173870" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4085568" lon="35.3415550"/>
+ <node id="10003173871" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4088040" lon="35.3415270"/>
+ <node id="10003173872" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4089812" lon="35.3415018"/>
+ <node id="10003173873" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4090127" lon="35.3414841"/>
+ <node id="10003173874" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4090521" lon="35.3414468"/>
+ <node id="10003173875" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4091230" lon="35.3413470"/>
+ <node id="10003173876" visible="true" version="2" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4094587" lon="35.3417919"/>
+ <node id="10003173877" visible="true" version="2" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4095836" lon="35.3419922"/>
+ <node id="10003173878" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4096695" lon="35.3421408"/>
+ <node id="10003173879" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4097301" lon="35.3423040"/>
+ <node id="10003173880" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4097577" lon="35.3424085"/>
+ <node id="10003173881" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4097758" lon="35.3425633"/>
+ <node id="10003173882" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4097900" lon="35.3430129"/>
+ <node id="10003173883" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924" lat="32.4098246" lon="35.3435138"/>
+ <node id="10003629330" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4080612" lon="35.3424544"/>
+ <node id="10003629331" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4092992" lon="35.3418032"/>
+ <node id="10003629332" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4093490" lon="35.3417475"/>
+ <node id="10003629333" visible="true" version="2" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4093847" lon="35.3416942"/>
+ <node id="10003629334" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4144257" lon="35.3414229"/>
+ <node id="10003629392" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4105019" lon="35.3410859"/>
+ <node id="10003629393" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4105944" lon="35.3411118"/>
+ <node id="10003629394" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4107460" lon="35.3412206"/>
+ <node id="10003629400" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4122555" lon="35.3411322"/>
+ <node id="10003629401" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4120436" lon="35.3411446"/>
+ <node id="10003629402" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4114209" lon="35.3412231"/>
+ <node id="10003629403" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4096682" lon="35.3410667"/>
+ <node id="10003629404" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4096085" lon="35.3403822"/>
+ <node id="10003629405" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4093186" lon="35.3410695"/>
+ <node id="10003629406" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4090537" lon="35.3410548"/>
+ <node id="10003629407" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4084832" lon="35.3410054"/>
+ <node id="10003629408" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4082999" lon="35.3402852"/>
+ <node id="10003629409" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4091226" lon="35.3403693"/>
+ <node id="10003629410" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4094995" lon="35.3404070"/>
+ <node id="10003629411" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4098902" lon="35.3402429"/>
+ <node id="10003629412" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4104651" lon="35.3399918"/>
+ <node id="10003629413" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4109569" lon="35.3397966"/>
+ <node id="10003629414" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4114266" lon="35.3396259"/>
+ <node id="10003629415" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4111239" lon="35.3387741"/>
+ <node id="10003633019" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4118774" lon="35.3411655"/>
+ <node id="10003633020" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4118260" lon="35.3411720"/>
+ <node id="10003633023" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4097807" lon="35.3427175"/>
+ <node id="10003633024" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4095827" lon="35.3427296"/>
+ <node id="10003633025" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4094083" lon="35.3427656"/>
+ <node id="10003633026" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4092485" lon="35.3429016"/>
+ <node id="10003633027" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4091573" lon="35.3429976"/>
+ <node id="10003633028" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4090785" lon="35.3430576"/>
+ <node id="10003633029" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4089975" lon="35.3430775"/>
+ <node id="10003633030" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4088625" lon="35.3430935"/>
+ <node id="10003633031" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4085604" lon="35.3430973"/>
+ <node id="10003633032" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4056659" lon="35.3435532"/>
+ <node id="10003633033" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4063089" lon="35.3431839"/>
+ <node id="10003633034" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4085551" lon="35.3451530"/>
+ <node id="10003633035" visible="true" version="2" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4086046" lon="35.3452917"/>
+ <node id="10003633036" visible="true" version="2" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4086383" lon="35.3453870"/>
+ <node id="10003633037" visible="true" version="2" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4086797" lon="35.3454943"/>
+ <node id="10003633038" visible="true" version="2" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4087284" lon="35.3455757"/>
+ <node id="10003633039" visible="true" version="2" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4087672" lon="35.3456307"/>
+ <node id="10003633040" visible="true" version="2" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4088380" lon="35.3457014"/>
+ <node id="10003633041" visible="true" version="2" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4089531" lon="35.3458065"/>
+ <node id="10003633042" visible="true" version="2" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4090613" lon="35.3459101"/>
+ <node id="10003633043" visible="true" version="2" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4091004" lon="35.3459597"/>
+ <node id="10003633044" visible="true" version="2" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4091386" lon="35.3460258"/>
+ <node id="10003633045" visible="true" version="2" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4091801" lon="35.3461075"/>
+ <node id="10003633046" visible="true" version="2" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4092503" lon="35.3461784"/>
+ <node id="10003633047" visible="true" version="2" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4093350" lon="35.3462344"/>
+ <node id="10003633048" visible="true" version="2" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4094586" lon="35.3462501"/>
+ <node id="10003633049" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4080242" lon="35.3424192"/>
+ <node id="10003633050" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4079652" lon="35.3424762"/>
+ <node id="10003633051" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4079296" lon="35.3425455"/>
+ <node id="10003633052" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4079058" lon="35.3426246"/>
+ <node id="10003633053" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4078948" lon="35.3426960"/>
+ <node id="10003633054" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4078866" lon="35.3433900"/>
+ <node id="10003633055" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4086360" lon="35.3433889"/>
+ <node id="10003633056" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4083976" lon="35.3433893"/>
+ <node id="10003633057" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4083985" lon="35.3427981"/>
+ <node id="10003633058" visible="true" version="2" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4082268" lon="35.3453311"/>
+ <node id="10003633059" visible="true" version="2" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4083447" lon="35.3447779"/>
+ <node id="10003633060" visible="true" version="2" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4083495" lon="35.3447363"/>
+ <node id="10003633061" visible="true" version="2" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4083422" lon="35.3447062"/>
+ <node id="10003633062" visible="true" version="2" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4083275" lon="35.3446805"/>
+ <node id="10003633063" visible="true" version="2" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4082821" lon="35.3446597"/>
+ <node id="10003633064" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4079478" lon="35.3445286"/>
+ <node id="10003633065" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4055138" lon="35.3422896"/>
+ <node id="10003633077" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4068246" lon="35.3421449"/>
+ <node id="10003633078" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4071271" lon="35.3419836"/>
+ <node id="10003633079" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4071847" lon="35.3419717"/>
+ <node id="10003633080" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4072450" lon="35.3419696"/>
+ <node id="10003633081" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4063853" lon="35.3414261"/>
+ <node id="10003633082" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4068591" lon="35.3415689"/>
+ <node id="10003633083" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4072678" lon="35.3417379"/>
+ <node id="10003633084" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4072955" lon="35.3417954"/>
+ <node id="10003633085" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4073094" lon="35.3418643"/>
+ <node id="10003633086" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4073193" lon="35.3419800"/>
+ <node id="10003633087" visible="true" version="2" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4074197" lon="35.3443467"/>
+ <node id="10003633088" visible="true" version="2" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4072955" lon="35.3441918"/>
+ <node id="10003633089" visible="true" version="2" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4071915" lon="35.3438454"/>
+ <node id="10003633090" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4070479" lon="35.3434237"/>
+ <node id="10003633091" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4068532" lon="35.3428625"/>
+ <node id="10003633092" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4066011" lon="35.3422080"/>
+ <node id="10003633093" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4064931" lon="35.3420201"/>
+ <node id="10003633094" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4063209" lon="35.3418095"/>
+ <node id="10003633095" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4062556" lon="35.3416868"/>
+ <node id="10003633096" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4062341" lon="35.3416091"/>
+ <node id="10003633097" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4062269" lon="35.3415234"/>
+ <node id="10003633098" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4062402" lon="35.3414641"/>
+ <node id="10003633099" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4062667" lon="35.3414263"/>
+ <node id="10003633100" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4063077" lon="35.3414106"/>
+ <node id="10003633101" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4063409" lon="35.3414134"/>
+ <node id="10003633102" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4071034" lon="35.3435712"/>
+ <node id="10003633103" visible="true" version="3" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4068306" lon="35.3434712"/>
+ <node id="10003633104" visible="true" version="3" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4067785" lon="35.3432999"/>
+ <node id="10003633105" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4068998" lon="35.3429970"/>
+ <node id="10003633106" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4075271" lon="35.3425863"/>
+ <node id="10003633107" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4076847" lon="35.3425063"/>
+ <node id="10003633108" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924" lat="32.4079724" lon="35.3423699"/>
+ <node id="10003633109" visible="true" version="2" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4063575" lon="35.3430668"/>
+ <node id="10003633110" visible="true" version="2" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4066309" lon="35.3428983"/>
+ <node id="10004668065" visible="true" version="1" changeset="125866315" timestamp="2022-09-06T16:27:19Z" user="Ido Marom" uid="2778924" lat="32.4052978" lon="35.3411780"/>
+ <node id="10004668066" visible="true" version="1" changeset="125866315" timestamp="2022-09-06T16:27:19Z" user="Ido Marom" uid="2778924" lat="32.4070204" lon="35.3402262"/>
+ <node id="12279269811" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4175843" lon="35.3344890"/>
+ <node id="12279269855" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4158225" lon="35.3365258"/>
+ <node id="12279269857" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4167542" lon="35.3360679"/>
+ <node id="12279269883" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4133824" lon="35.3377092"/>
+ <node id="12279294338" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4088532" lon="35.3445954"/>
+ <node id="12279294339" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4089182" lon="35.3447463"/>
+ <node id="12279294340" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4088454" lon="35.3448018"/>
+ <node id="12279294341" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4088792" lon="35.3448511"/>
+ <node id="12279294342" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4087855" lon="35.3449805"/>
+ <node id="12279294343" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4087387" lon="35.3451099"/>
+ <node id="12279294344" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4087205" lon="35.3452609"/>
+ <node id="12279294345" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4087881" lon="35.3454796"/>
+ <node id="12279294346" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4088297" lon="35.3455690"/>
+ <node id="12279294347" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4088193" lon="35.3455905"/>
+ <node id="12279294348" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4089702" lon="35.3457015"/>
+ <node id="12279294349" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4090951" lon="35.3457292"/>
+ <node id="12279294350" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4100393" lon="35.3457199"/>
+ <node id="12279294351" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4101901" lon="35.3456460"/>
+ <node id="12279294352" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4102552" lon="35.3455690"/>
+ <node id="12279294353" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4102136" lon="35.3455104"/>
+ <node id="12279294354" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4102994" lon="35.3454118"/>
+ <node id="12279294355" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4103202" lon="35.3452485"/>
+ <node id="12279294356" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4103020" lon="35.3451222"/>
+ <node id="12279294357" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4102500" lon="35.3449743"/>
+ <node id="12279294358" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4101771" lon="35.3448696"/>
+ <node id="12279294359" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4102188" lon="35.3448172"/>
+ <node id="12279294360" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4101433" lon="35.3447433"/>
+ <node id="12279294361" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4102552" lon="35.3446046"/>
+ <node id="12279294362" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4101381" lon="35.3445122"/>
+ <node id="12279294363" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4099873" lon="35.3444536"/>
+ <node id="12279294364" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4098754" lon="35.3444506"/>
+ <node id="12279294365" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4091081" lon="35.3444598"/>
+ <node id="12279294366" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4089728" lon="35.3445153"/>
+ <node id="12279294373" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4100233" lon="35.3448299"/>
+ <node id="12279294374" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4100306" lon="35.3456019"/>
+ <node id="12279294375" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4090566" lon="35.3456148"/>
+ <node id="12279294376" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4090493" lon="35.3448429"/>
+ <node id="12279294377" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4094796" lon="35.3433327"/>
+ <node id="12279294378" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4094740" lon="35.3442328"/>
+ <node id="12279294379" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4088914" lon="35.3442277"/>
+ <node id="12279294380" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731" lat="32.4088970" lon="35.3433277"/>
+ <node id="12473855170" visible="true" version="1" changeset="160993315" timestamp="2025-01-04T16:39:58Z" user="Harzer123" uid="22078851" lat="32.4042855" lon="35.3420226"/>
+ <node id="14291585218" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4069396" lon="35.3422912"/>
+ <node id="14291585219" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4072140" lon="35.3421283"/>
+ <node id="14291585220" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4074043" lon="35.3425781"/>
+ <node id="14291585221" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4071298" lon="35.3427410"/>
+ <node id="14291585222" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4057456" lon="35.3424366"/>
+ <node id="14291585223" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4059852" lon="35.3422844"/>
+ <node id="14291585224" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4060054" lon="35.3423291"/>
+ <node id="14291585225" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4060983" lon="35.3422701"/>
+ <node id="14291585226" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4061004" lon="35.3422412"/>
+ <node id="14291585227" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4062524" lon="35.3421445"/>
+ <node id="14291585228" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4062786" lon="35.3422023"/>
+ <node id="14291585229" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4063287" lon="35.3421704"/>
+ <node id="14291585230" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4063658" lon="35.3422522"/>
+ <node id="14291585231" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4063159" lon="35.3422840"/>
+ <node id="14291585232" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4063371" lon="35.3423308"/>
+ <node id="14291585233" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4061722" lon="35.3424356"/>
+ <node id="14291585234" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4062080" lon="35.3425145"/>
+ <node id="14291585235" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4063173" lon="35.3424450"/>
+ <node id="14291585236" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4064034" lon="35.3426352"/>
+ <node id="14291585237" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4063054" lon="35.3426976"/>
+ <node id="14291585238" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4063360" lon="35.3427652"/>
+ <node id="14291585239" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4064831" lon="35.3426718"/>
+ <node id="14291585240" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4065016" lon="35.3427127"/>
+ <node id="14291585241" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4065528" lon="35.3426801"/>
+ <node id="14291585242" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4065936" lon="35.3427702"/>
+ <node id="14291585243" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4065433" lon="35.3428021"/>
+ <node id="14291585244" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4065678" lon="35.3428563"/>
+ <node id="14291585245" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4063053" lon="35.3430230"/>
+ <node id="14291585246" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4063201" lon="35.3430558"/>
+ <node id="14291585247" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4061130" lon="35.3431872"/>
+ <node id="14291585248" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4060294" lon="35.3430024"/>
+ <node id="14291585249" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4061497" lon="35.3429261"/>
+ <node id="14291585250" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4059769" lon="35.3425630"/>
+ <node id="14291585251" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4058417" lon="35.3426489"/>
+ <node id="14291585252" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4060020" lon="35.3426969"/>
+ <node id="14291585253" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4060590" lon="35.3428229"/>
+ <node id="14291585254" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4060296" lon="35.3426793"/>
+ <node id="14291585255" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4060932" lon="35.3428012"/>
+ <node id="14291585256" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4075874" lon="35.3413559"/>
+ <node id="14291585257" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4076790" lon="35.3413389"/>
+ <node id="14291585258" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4076872" lon="35.3413774"/>
+ <node id="14291585259" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4078468" lon="35.3413422"/>
+ <node id="14291585260" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4078679" lon="35.3413025"/>
+ <node id="14291585261" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4079104" lon="35.3412723"/>
+ <node id="14291585262" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4078896" lon="35.3412078"/>
+ <node id="14291585263" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4079704" lon="35.3412085"/>
+ <node id="14291585264" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4080211" lon="35.3412335"/>
+ <node id="14291585265" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4080482" lon="35.3412825"/>
+ <node id="14291585266" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4080000" lon="35.3413209"/>
+ <node id="14291585267" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4080117" lon="35.3413847"/>
+ <node id="14291585268" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4080302" lon="35.3413773"/>
+ <node id="14291585269" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4080487" lon="35.3415075"/>
+ <node id="14291585270" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4079517" lon="35.3415283"/>
+ <node id="14291585271" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4079453" lon="35.3414543"/>
+ <node id="14291585272" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4076146" lon="35.3415191"/>
+ <node id="14291585273" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4079241" lon="35.3411989"/>
+ <node id="14291585274" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4078882" lon="35.3412816"/>
+ <node id="14291585275" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4099637" lon="35.3411930"/>
+ <node id="14291585276" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4099747" lon="35.3419039"/>
+ <node id="14291585277" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4095805" lon="35.3419145"/>
+ <node id="14291585278" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4095162" lon="35.3417862"/>
+ <node id="14291585279" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4095424" lon="35.3417454"/>
+ <node id="14291585280" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4092413" lon="35.3413106"/>
+ <node id="14291585281" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4092489" lon="35.3412509"/>
+ <node id="14291585282" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4092756" lon="35.3412068"/>
+ <node id="14291585283" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4093297" lon="35.3411882"/>
+ <node id="14291585284" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4096906" lon="35.3419911"/>
+ <node id="14291585285" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4092588" lon="35.3412271"/>
+ <node id="14291585286" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4092950" lon="35.3411977"/>
+ <node id="14291585287" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4095259" lon="35.3418927"/>
+ <node id="14291585292" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4093256" lon="35.3412653"/>
+ <node id="14291585294" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4098921" lon="35.3412618"/>
+ <node id="14291642310" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4104145" lon="35.3435132"/>
+ <node id="14291642311" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4107776" lon="35.3434899"/>
+ <node id="14291642312" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4107530" lon="35.3454442"/>
+ <node id="14291642313" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4106195" lon="35.3461326"/>
+ <node id="14291642322" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4079332" lon="35.3455631"/>
+ <node id="14291642323" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4082261" lon="35.3456381"/>
+ <node id="14291642324" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4081288" lon="35.3461716"/>
+ <node id="14291642325" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4078358" lon="35.3460966"/>
+ <node id="14291642326" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4075536" lon="35.3454629"/>
+ <node id="14291642327" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4078066" lon="35.3455239"/>
+ <node id="14291642328" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4077112" lon="35.3460786"/>
+ <node id="14291642329" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4074582" lon="35.3460175"/>
+ <node id="14291642330" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4082663" lon="35.3430633"/>
+ <node id="14291642331" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4082649" lon="35.3432516"/>
+ <node id="14291642332" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4082428" lon="35.3432513"/>
+ <node id="14291642333" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4082426" lon="35.3432828"/>
+ <node id="14291642334" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4082249" lon="35.3432827"/>
+ <node id="14291642335" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4082245" lon="35.3433500"/>
+ <node id="14291642336" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4079409" lon="35.3433473"/>
+ <node id="14291642337" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4079439" lon="35.3429133"/>
+ <node id="14291642338" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4080003" lon="35.3429139"/>
+ <node id="14291642339" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4079995" lon="35.3430229"/>
+ <node id="14291642340" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4080702" lon="35.3430236"/>
+ <node id="14291642341" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4080704" lon="35.3429926"/>
+ <node id="14291642342" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4082404" lon="35.3429943"/>
+ <node id="14291642343" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4082399" lon="35.3430630"/>
+ <node id="14291642344" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4073975" lon="35.3420944"/>
+ <node id="14291642345" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4074539" lon="35.3421435"/>
+ <node id="14291642346" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4075219" lon="35.3421795"/>
+ <node id="14291642347" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4075961" lon="35.3421904"/>
+ <node id="14291642348" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4076602" lon="35.3421944"/>
+ <node id="14291642349" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4077547" lon="35.3422680"/>
+ <node id="14291642350" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4078579" lon="35.3423874"/>
+ <node id="14291642351" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4074385" lon="35.3425832"/>
+ <node id="14291642352" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4073040" lon="35.3422366"/>
+ <node id="14291642353" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4067677" lon="35.3429029"/>
+ <node id="14291642354" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4064581" lon="35.3415027"/>
+ <node id="14291642355" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4065452" lon="35.3415963"/>
+ <node id="14291642356" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4069965" lon="35.3417493"/>
+ <node id="14291642357" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4069699" lon="35.3418250"/>
+ <node id="14291642358" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4068806" lon="35.3418078"/>
+ <node id="14291642359" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4068338" lon="35.3419105"/>
+ <node id="14291642360" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4067756" lon="35.3420020"/>
+ <node id="14291642361" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4067363" lon="35.3420485"/>
+ <node id="14291642362" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4067103" lon="35.3420807"/>
+ <node id="14291642363" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4067977" lon="35.3422397"/>
+ <node id="14291642364" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4067219" lon="35.3423151"/>
+ <node id="14291642365" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4065286" lon="35.3419922"/>
+ <node id="14291642366" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4065508" lon="35.3419667"/>
+ <node id="14291642367" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4064869" lon="35.3418588"/>
+ <node id="14291642368" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4064739" lon="35.3418720"/>
+ <node id="14291642369" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4063103" lon="35.3417404"/>
+ <node id="14291642370" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4064033" lon="35.3418639"/>
+ <node id="14291642371" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745" lat="32.4064301" lon="35.3418215"/>
+ <node id="14332437900" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4089145" lon="35.3399887"/>
+ <node id="14332448989" visible="true" version="1" changeset="191218770" timestamp="2026-10-30T02:16:53Z" user="happilymappingrway" uid="18709745" lat="32.4090470" lon="35.3427798"/>
+ <node id="14332448990" visible="true" version="1" changeset="191218770" timestamp="2026-10-30T02:16:53Z" user="happilymappingrway" uid="18709745" lat="32.4090103" lon="35.3429811"/>
+ <node id="14332448991" visible="true" version="1" changeset="191218770" timestamp="2026-10-30T02:16:53Z" user="happilymappingrway" uid="18709745" lat="32.4086146" lon="35.3430045"/>
+ <node id="14332448992" visible="true" version="1" changeset="191218770" timestamp="2026-10-30T02:16:53Z" user="happilymappingrway" uid="18709745" lat="32.4086065" lon="35.3428119"/>
+ <node id="14332448993" visible="true" version="1" changeset="191218770" timestamp="2026-10-30T02:16:53Z" user="happilymappingrway" uid="18709745" lat="32.4087710" lon="35.3428022"/>
+ <node id="14332448994" visible="true" version="1" changeset="191218770" timestamp="2026-10-30T02:16:53Z" user="happilymappingrway" uid="18709745" lat="32.4087672" lon="35.3427113"/>
+ <node id="14332448995" visible="true" version="1" changeset="191218770" timestamp="2026-10-30T02:16:53Z" user="happilymappingrway" uid="18709745" lat="32.4088961" lon="35.3427036"/>
+ <node id="14332448996" visible="true" version="1" changeset="191218770" timestamp="2026-10-30T02:16:53Z" user="happilymappingrway" uid="18709745" lat="32.4088997" lon="35.3427885"/>
+ <node id="14332448997" visible="true" version="1" changeset="191218770" timestamp="2026-10-30T02:16:53Z" user="happilymappingrway" uid="18709745" lat="32.4090052" lon="35.3428593"/>
+ <node id="14332448998" visible="true" version="1" changeset="191218770" timestamp="2026-10-30T02:16:53Z" user="happilymappingrway" uid="18709745" lat="32.4090502" lon="35.3428567"/>
+ <node id="14332475601" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4089541" lon="35.3402748"/>
+ <node id="14332475602" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4086418" lon="35.3402649"/>
+ <node id="14332475603" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4086023" lon="35.3402457"/>
+ <node id="14332475604" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4085873" lon="35.3401960"/>
+ <node id="14332475605" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4086095" lon="35.3401470"/>
+ <node id="14332475606" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4088486" lon="35.3400001"/>
+ <node id="14332475607" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4090911" lon="35.3399302"/>
+ <node id="14332475608" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4091428" lon="35.3402475"/>
+ <node id="14332475609" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4090039" lon="35.3402793"/>
+ <node id="14332475610" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4089522" lon="35.3399620"/>
+ <node id="14332475611" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4081653" lon="35.3398657"/>
+ <node id="14332475612" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4083278" lon="35.3397809"/>
+ <node id="14332475613" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4084377" lon="35.3400483"/>
+ <node id="14332475614" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4083038" lon="35.3401653"/>
+ <node id="14332475615" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4082526" lon="35.3401587"/>
+ <node id="14332475616" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4082397" lon="35.3401150"/>
+ <node id="14332475617" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4082175" lon="35.3401303"/>
+ <node id="14332475622" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4072258" lon="35.3403894"/>
+ <node id="14332475623" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4072281" lon="35.3408066"/>
+ <node id="14332475624" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4076543" lon="35.3407668"/>
+ <node id="14332475625" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4076521" lon="35.3403931"/>
+ <node id="14332475626" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4075278" lon="35.3403942"/>
+ <node id="14332475627" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4075291" lon="35.3406024"/>
+ <node id="14332475628" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4073934" lon="35.3406036"/>
+ <node id="14332475629" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4073921" lon="35.3403879"/>
+ <node id="14332475630" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4068256" lon="35.3403749"/>
+ <node id="14332475631" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4069369" lon="35.3403559"/>
+ <node id="14332475632" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4069852" lon="35.3407520"/>
+ <node id="14332475633" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4068714" lon="35.3407497"/>
+ <node id="14332475645" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4069861" lon="35.3411259"/>
+ <node id="14332475646" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4069176" lon="35.3415270"/>
+ <node id="14332475647" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4063585" lon="35.3413902"/>
+ <node id="14332475648" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4063554" lon="35.3412674"/>
+ <node id="14332475649" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4063326" lon="35.3411602"/>
+ <node id="14332475650" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4063036" lon="35.3411097"/>
+ <node id="14332475651" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4062658" lon="35.3411040"/>
+ <node id="14332475652" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4062346" lon="35.3410135"/>
+ <node id="14332475653" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4063765" lon="35.3409162"/>
+ <node id="14332475654" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4062567" lon="35.3408316"/>
+ <node id="14332475655" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4063286" lon="35.3410447"/>
+ <node id="14332475656" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4063734" lon="35.3411467"/>
+ <node id="14332475657" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4064099" lon="35.3413126"/>
+ <node id="14332475658" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4064516" lon="35.3413423"/>
+ <node id="14332475659" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4068816" lon="35.3414521"/>
+ <node id="14332475660" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4069273" lon="35.3411758"/>
+ <node id="14332475661" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4063796" lon="35.3410130"/>
+ <node id="14332475662" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4063229" lon="35.3410278"/>
+ <node id="14332475663" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4063753" lon="35.3411552"/>
+ <node id="14332475664" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4065763" lon="35.3412086"/>
+ <node id="14332475665" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4069071" lon="35.3412976"/>
+ <node id="14332475666" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4075123" lon="35.3412515"/>
+ <node id="14332475667" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4075147" lon="35.3413103"/>
+ <node id="14332475668" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4072074" lon="35.3413272"/>
+ <node id="14332475669" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4072052" lon="35.3412723"/>
+ <node id="14332475670" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4074168" lon="35.3413158"/>
+ <node id="14332475671" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4073589" lon="35.3413186"/>
+ <node id="14332475672" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4074180" lon="35.3413440"/>
+ <node id="14332475673" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4073600" lon="35.3413473"/>
+ <node id="14332475674" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4074165" lon="35.3412570"/>
+ <node id="14332475675" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4073625" lon="35.3412634"/>
+ <node id="14332475676" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4074154" lon="35.3412305"/>
+ <node id="14332475677" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4073613" lon="35.3412336"/>
+ <node id="14332475678" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4069293" lon="35.3407616"/>
+ <node id="14332475679" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4069266" lon="35.3407402"/>
+ <node id="14332475680" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4073721" lon="35.3407692"/>
+ <node id="14332475681" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4073748" lon="35.3408083"/>
+ <node id="14332475684" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4061427" lon="35.3403407"/>
+ <node id="14332475685" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4065505" lon="35.3404231"/>
+ <node id="14332475686" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4065192" lon="35.3406405"/>
+ <node id="14332475687" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4061114" lon="35.3405582"/>
+ <node id="14332475688" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4062130" lon="35.3399724"/>
+ <node id="14332475689" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4065061" lon="35.3400348"/>
+ <node id="14332475690" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4064732" lon="35.3402516"/>
+ <node id="14332475691" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4061802" lon="35.3401893"/>
+ <node id="14332475735" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4064400" lon="35.3430988"/>
+ <node id="14332475736" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4066010" lon="35.3430270"/>
+ <node id="14332475737" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4066446" lon="35.3431469"/>
+ <node id="14332475738" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4067495" lon="35.3432044"/>
+ <node id="14332475739" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4066878" lon="35.3433717"/>
+ <node id="14332475740" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4067047" lon="35.3434393"/>
+ <node id="14332475741" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4067304" lon="35.3434255"/>
+ <node id="14332475742" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4067943" lon="35.3436556"/>
+ <node id="14332475743" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4067197" lon="35.3436418"/>
+ <node id="14332475744" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4066943" lon="35.3436014"/>
+ <node id="14332475745" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4063798" lon="35.3437386"/>
+ <node id="14332475746" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4065204" lon="35.3433591"/>
+ <node id="14332475747" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4067139" lon="35.3433518"/>
+ <node id="14332475748" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4068554" lon="35.3439622"/>
+ <node id="14332475749" visible="true" version="2" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4069730" lon="35.3439706"/>
+ <node id="14332475750" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4069633" lon="35.3441803"/>
+ <node id="14332475751" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4070588" lon="35.3443913"/>
+ <node id="14332475752" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4069653" lon="35.3444534"/>
+ <node id="14332475753" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4068901" lon="35.3442963"/>
+ <node id="14332475754" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4067124" lon="35.3443409"/>
+ <node id="14332475755" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4066817" lon="35.3441855"/>
+ <node id="14332475756" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4068465" lon="35.3441275"/>
+ <node id="14332475757" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4063370" lon="35.3444884"/>
+ <node id="14332475758" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4068201" lon="35.3448443"/>
+ <node id="14332475759" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4066430" lon="35.3451816"/>
+ <node id="14332475760" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4065385" lon="35.3451046"/>
+ <node id="14332475761" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4065814" lon="35.3450230"/>
+ <node id="14332475762" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4064667" lon="35.3449386"/>
+ <node id="14332475763" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4064237" lon="35.3450206"/>
+ <node id="14332475764" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4061192" lon="35.3447964"/>
+ <node id="14332475765" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4062529" lon="35.3445416"/>
+ <node id="14332475766" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4062934" lon="35.3445714"/>
+ <node id="14332475767" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4066004" lon="35.3443034"/>
+ <node id="14332475768" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4066672" lon="35.3443516"/>
+ <node id="14332475769" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4065369" lon="35.3446049"/>
+ <node id="14332475770" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4064700" lon="35.3445566"/>
+ <node id="14332475771" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4075259" lon="35.3451879"/>
+ <node id="14332475772" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4075013" lon="35.3453598"/>
+ <node id="14332475773" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4067349" lon="35.3452060"/>
+ <node id="14332475774" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4067544" lon="35.3450690"/>
+ <node id="14332475775" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4067926" lon="35.3450766"/>
+ <node id="14332475776" visible="true" version="2" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4067917" lon="35.3449698"/>
+ <node id="14332475777" visible="true" version="2" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4072896" lon="35.3450734"/>
+ <node id="14332475778" visible="true" version="2" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4073911" lon="35.3451241"/>
+ <node id="14332475782" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4081919" lon="35.3453375"/>
+ <node id="14332475783" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4082848" lon="35.3453646"/>
+ <node id="14332475784" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4083012" lon="35.3453996"/>
+ <node id="14332475785" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4082570" lon="35.3453394"/>
+ <node id="14332475786" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4082235" lon="35.3453302"/>
+ <node id="14332475787" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4081897" lon="35.3453381"/>
+ <node id="14332475788" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4081397" lon="35.3454370"/>
+ <node id="14332475789" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4081523" lon="35.3454809"/>
+ <node id="14332475790" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4081806" lon="35.3455130"/>
+ <node id="14332475791" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4082182" lon="35.3455261"/>
+ <node id="14332475792" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4082567" lon="35.3455172"/>
+ <node id="14332475793" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4082874" lon="35.3454883"/>
+ <node id="14332475794" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4081615" lon="35.3453615"/>
+ <node id="14332475795" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4081438" lon="35.3453965"/>
+ <node id="14332475796" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4083034" lon="35.3454460"/>
+ <node id="14332475797" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4079965" lon="35.3452991"/>
+ <node id="14332475798" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4081483" lon="35.3454669"/>
+ <node id="14332475799" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4080415" lon="35.3453621"/>
+ <node id="14332475800" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4084313" lon="35.3454536"/>
+ <node id="14332475801" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4083147" lon="35.3455220"/>
+ <node id="14332475802" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4084097" lon="35.3454793"/>
+ <node id="14332475803" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745" lat="32.4083761" lon="35.3455018"/>
+ <node id="14332657586" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4070302" lon="35.3425602"/>
+ <node id="14332657587" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4070080" lon="35.3425249"/>
+ <node id="14332657588" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4069788" lon="35.3424979"/>
+ <node id="14332657589" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4069445" lon="35.3424808"/>
+ <node id="14332657590" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4069077" lon="35.3424751"/>
+ <node id="14332657591" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4068709" lon="35.3424811"/>
+ <node id="14332657592" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4068367" lon="35.3424984"/>
+ <node id="14332657593" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4068076" lon="35.3425257"/>
+ <node id="14332657594" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4067723" lon="35.3426022"/>
+ <node id="14332657595" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4067685" lon="35.3426447"/>
+ <node id="14332657596" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4067741" lon="35.3426869"/>
+ <node id="14332657597" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4067885" lon="35.3427260"/>
+ <node id="14332657598" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4068110" lon="35.3427594"/>
+ <node id="14332657599" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4068399" lon="35.3427849"/>
+ <node id="14332657600" visible="true" version="2" changeset="191810267" timestamp="2026-11-11T20:42:43Z" user="salahaldin1212" uid="24569038" lat="32.4068770" lon="35.3427859"/>
+ <node id="14332662213" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4074196" lon="35.3453501"/>
+ <node id="14332662214" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4073631" lon="35.3456746"/>
+ <node id="14332662215" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4069442" lon="35.3456003"/>
+ <node id="14332662216" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4069707" lon="35.3452737"/>
+ <node id="14332662217" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4084729" lon="35.3457667"/>
+ <node id="14332662218" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4083739" lon="35.3462461"/>
+ <node id="14332662219" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4082060" lon="35.3462063"/>
+ <node id="14332662220" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4083006" lon="35.3457228"/>
+ <node id="14332662221" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4061157" lon="35.3432272"/>
+ <node id="14332662222" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4062915" lon="35.3431163"/>
+ <node id="14332662223" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4063675" lon="35.3431508"/>
+ <node id="14332662224" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4063631" lon="35.3433151"/>
+ <node id="14332662225" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4062535" lon="35.3436699"/>
+ <node id="14332662226" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4061210" lon="35.3436103"/>
+ <node id="14332662227" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4061024" lon="35.3433978"/>
+ <node id="14332662251" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4053818" lon="35.3411573"/>
+ <node id="14332662260" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4083472" lon="35.3429256"/>
+ <node id="14332662261" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4084510" lon="35.3429292"/>
+ <node id="14332662262" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4085108" lon="35.3430458"/>
+ <node id="14332662263" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4085123" lon="35.3434379"/>
+ <node id="14332662264" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4083214" lon="35.3434388"/>
+ <node id="14332662265" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4083447" lon="35.3429934"/>
+ <node id="14332662266" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4083039" lon="35.3429964"/>
+ <node id="14332662267" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4082904" lon="35.3433148"/>
+ <node id="14332662268" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4083246" lon="35.3433157"/>
+ <node id="14332662269" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4075689" lon="35.3447021"/>
+ <node id="14332662270" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4074992" lon="35.3449757"/>
+ <node id="14332662271" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4074553" lon="35.3449542"/>
+ <node id="14332662272" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4074303" lon="35.3450278"/>
+ <node id="14332662273" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4072334" lon="35.3449390"/>
+ <node id="14332662274" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4072402" lon="35.3448833"/>
+ <node id="14332662275" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4071758" lon="35.3448465"/>
+ <node id="14332662276" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4073296" lon="35.3445711"/>
+ <node id="14332662277" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4071182" lon="35.3443809"/>
+ <node id="14332662278" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4071834" lon="35.3443818"/>
+ <node id="14332662279" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4072796" lon="35.3444850"/>
+ <node id="14332662280" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4071622" lon="35.3446474"/>
+ <node id="14332662281" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4069978" lon="35.3444670"/>
+ <node id="14332662282" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4064507" lon="35.3451730"/>
+ <node id="14332662283" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4064020" lon="35.3452684"/>
+ <node id="14332662284" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4059948" lon="35.3449484"/>
+ <node id="14332662285" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4059883" lon="35.3448876"/>
+ <node id="14332662286" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745" lat="32.4060331" lon="35.3448169"/>
+ <node id="14332671901" visible="true" version="2" changeset="191810267" timestamp="2026-11-11T20:42:43Z" user="salahaldin1212" uid="24569038" lat="32.4069163" lon="35.3427989"/>
+ <node id="14332671902" visible="true" version="2" changeset="191810267" timestamp="2026-11-11T20:42:43Z" user="salahaldin1212" uid="24569038" lat="32.4069485" lon="35.3427938"/>
+ <node id="14332671903" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4067856" lon="35.3425611"/>
+ <node id="14332671904" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4069781" lon="35.3427838"/>
+ <node id="14332671905" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4070067" lon="35.3427578"/>
+ <node id="14332671906" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4070288" lon="35.3427240"/>
+ <node id="14332671907" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4070428" lon="35.3426846"/>
+ <node id="14332671908" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4070478" lon="35.3426423"/>
+ <node id="14332671909" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4070435" lon="35.3425999"/>
+ <node id="14332671910" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4068297" lon="35.3427760"/>
+ <node id="14332671911" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4067718" lon="35.3426076"/>
+ <node id="14332671912" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4073965" lon="35.3435024"/>
+ <node id="14332671913" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4074191" lon="35.3435320"/>
+ <node id="14332671914" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4074272" lon="35.3435708"/>
+ <node id="14332671915" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4074190" lon="35.3436095"/>
+ <node id="14332671916" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4073963" lon="35.3436391"/>
+ <node id="14332671917" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4073646" lon="35.3436526"/>
+ <node id="14332671918" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4073312" lon="35.3436468"/>
+ <node id="14332671919" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4073041" lon="35.3436231"/>
+ <node id="14332671920" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4072909" lon="35.3435936"/>
+ <node id="14332671921" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4072887" lon="35.3435604"/>
+ <node id="14332671922" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4072978" lon="35.3435289"/>
+ <node id="14332671923" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4073167" lon="35.3435042"/>
+ <node id="14332671924" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4073423" lon="35.3434904"/>
+ <node id="14332671925" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4073705" lon="35.3434897"/>
+ <node id="14332671926" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4081729" lon="35.3455042"/>
+ <node id="14332671927" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4081275" lon="35.3455296"/>
+ <node id="14332671928" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4080774" lon="35.3455347"/>
+ <node id="14332671929" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4080211" lon="35.3455325"/>
+ <node id="14332671930" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4079486" lon="35.3455200"/>
+ <node id="14332671931" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4078078" lon="35.3454856"/>
+ <node id="14332671932" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4075325" lon="35.3454172"/>
+ <node id="14332671933" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4073736" lon="35.3453833"/>
+ <node id="14332671934" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4070009" lon="35.3453143"/>
+ <node id="14332671935" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4068997" lon="35.3452951"/>
+ <node id="14332671936" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4066587" lon="35.3452516"/>
+ <node id="14332671937" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4065184" lon="35.3452295"/>
+ <node id="14332671938" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4064693" lon="35.3452148"/>
+ <node id="14332671939" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4064187" lon="35.3451933"/>
+ <node id="14332671940" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4062961" lon="35.3451097"/>
+ <node id="14332671941" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4060565" lon="35.3449226"/>
+ <node id="14332671942" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4070112" lon="35.3453162"/>
+ <node id="14332671943" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4070043" lon="35.3454686"/>
+ <node id="14332671944" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4073504" lon="35.3455163"/>
+ <node id="14332671945" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4073896" lon="35.3453867"/>
+ <node id="14332671946" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4084217" lon="35.3455558"/>
+ <node id="14332671947" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4084224" lon="35.3456500"/>
+ <node id="14332671948" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4083133" lon="35.3461659"/>
+ <node id="14332671949" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4067787" lon="35.3446901"/>
+ <node id="14332671950" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4068502" lon="35.3446195"/>
+ <node id="14332671951" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4069969" lon="35.3445420"/>
+ <node id="14332671952" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4070844" lon="35.3444698"/>
+ <node id="14332671953" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4071189" lon="35.3444656"/>
+ <node id="14332671954" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4071692" lon="35.3444824"/>
+ <node id="14332671955" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4069273" lon="35.3445788"/>
+ <node id="14332671956" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745" lat="32.4068440" lon="35.3443507"/>
+ <node id="14338532083" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745" lat="32.4066142" lon="35.3460614"/>
+ <node id="14338532084" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745" lat="32.4067632" lon="35.3460095"/>
+ <node id="14338532085" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745" lat="32.4068226" lon="35.3462139"/>
+ <node id="14338532086" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745" lat="32.4066657" lon="35.3462686"/>
+ <node id="14338532087" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745" lat="32.4067732" lon="35.3460496"/>
+ <node id="14338532088" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745" lat="32.4068041" lon="35.3461394"/>
+ <node id="14338532089" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745" lat="32.4068050" lon="35.3460385"/>
+ <node id="14338532090" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745" lat="32.4068280" lon="35.3461311"/>
+ <node id="14338532091" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745" lat="32.4069245" lon="35.3460660"/>
+ <node id="14338532092" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745" lat="32.4070548" lon="35.3461005"/>
+ <node id="14338532093" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745" lat="32.4070240" lon="35.3462634"/>
+ <node id="14338532094" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745" lat="32.4068937" lon="35.3462290"/>
+ <node id="14338578511" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745" lat="32.4063603" lon="35.3475218"/>
+ <node id="14338578619" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745" lat="32.4073167" lon="35.3461392"/>
+ <node id="14338578620" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745" lat="32.4074935" lon="35.3461883"/>
+ <node id="14338578621" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745" lat="32.4074524" lon="35.3463960"/>
+ <node id="14338578622" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745" lat="32.4072756" lon="35.3463470"/>
+ <node id="14338578682" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745" lat="32.4075156" lon="35.3399045"/>
+ <node id="14338578683" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745" lat="32.4074894" lon="35.3397209"/>
+ <node id="14338578684" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745" lat="32.4077067" lon="35.3396775"/>
+ <node id="14338578685" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745" lat="32.4077329" lon="35.3398610"/>
+ <node id="14338578686" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745" lat="32.4075320" lon="35.3399608"/>
+ <node id="14338578687" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745" lat="32.4077199" lon="35.3399657"/>
+ <node id="14338578688" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745" lat="32.4077166" lon="35.3401460"/>
+ <node id="14338578689" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745" lat="32.4075286" lon="35.3401411"/>
+ <node id="14338578690" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745" lat="32.4077583" lon="35.3399553"/>
+ <node id="14338578691" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745" lat="32.4079360" lon="35.3399601"/>
+ <node id="14338578692" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745" lat="32.4079324" lon="35.3401520"/>
+ <node id="14338578693" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745" lat="32.4077546" lon="35.3401472"/>
+ <node id="14338578698" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745" lat="32.4083099" lon="35.3413875"/>
+ <node id="14338578699" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745" lat="32.4083141" lon="35.3412052"/>
+ <node id="14338578700" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745" lat="32.4086180" lon="35.3412150"/>
+ <node id="14338578701" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745" lat="32.4086138" lon="35.3413974"/>
+ <node id="14338578702" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745" lat="32.4080722" lon="35.3426843"/>
+ <node id="14338578703" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745" lat="32.4081259" lon="35.3426813"/>
+ <node id="14338578704" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745" lat="32.4081282" lon="35.3427406"/>
+ <node id="14338578705" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745" lat="32.4080745" lon="35.3427436"/>
+ <node id="14368425329" visible="true" version="1" changeset="191810267" timestamp="2026-11-11T20:42:43Z" user="salahaldin1212" uid="24569038" lat="32.4069272" lon="35.3427972"/>
+ <node id="14368425330" visible="true" version="1" changeset="191810267" timestamp="2026-11-11T20:42:43Z" user="salahaldin1212" uid="24569038" lat="32.4068619" lon="35.3428875"/>
+ <node id="14368505124" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4068246" lon="35.3422095"/>
+ <node id="14368505125" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4068199" lon="35.3422989"/>
+ <node id="14368505126" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4068194" lon="35.3423864"/>
+ <node id="14368505127" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4068225" lon="35.3424591"/>
+ <node id="14368505128" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4068250" lon="35.3425094"/>
+ <node id="14368505129" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4070816" lon="35.3427637"/>
+ <node id="14368505130" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4070918" lon="35.3428126"/>
+ <node id="14368505131" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4071054" lon="35.3428624"/>
+ <node id="14368505132" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4067961" lon="35.3433906"/>
+ <node id="14368505133" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4067799" lon="35.3434195">
+  <tag k="access" v="yes"/>
+  <tag k="entrance" v="main"/>
+  <tag k="ref" v="IT main door"/>
+ </node>
+ <node id="14368505134" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4067774" lon="35.3433447"/>
+ <node id="14368505135" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4068095" lon="35.3434410"/>
+ <node id="14368505136" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4068213" lon="35.3434623"/>
+ <node id="14368505137" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4080008" lon="35.3445555"/>
+ <node id="14368505138" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4079498" lon="35.3445806">
+  <tag k="access" v="yes"/>
+  <tag k="entrance" v="main"/>
+  <tag k="ref" v="Arts main door"/>
+ </node>
+ <node id="14368505139" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4079613" lon="35.3445329"/>
+ <node id="14368505140" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4082808" lon="35.3456056">
+  <tag k="access" v="yes"/>
+  <tag k="entrance" v="main"/>
+  <tag k="ref" v="Engineering main door"/>
+ </node>
+ <node id="14368505141" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4082903" lon="35.3455200"/>
+ <node id="14368505142" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4072931" lon="35.3451087"/>
+ <node id="14368505143" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4070811" lon="35.3449850"/>
+ <node id="14368505144" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4070403" lon="35.3449647"/>
+ <node id="14368505145" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4068753" lon="35.3449470"/>
+ <node id="14368505146" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4069955" lon="35.3449870"/>
+ <node id="14368505147" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4070238" lon="35.3449904"/>
+ <node id="14368505148" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4071561" lon="35.3441229">
+  <tag k="access" v="yes"/>
+  <tag k="entrance" v="main"/>
+  <tag k="ref" v="AMS_A main door"/>
+ </node>
+ <node id="14368505149" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4072483" lon="35.3440347"/>
+ <node id="14368505150" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4072133" lon="35.3440681"/>
+ <node id="14368505151" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4071759" lon="35.3441100"/>
+ <node id="14368505152" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4071951" lon="35.3441328"/>
+ <node id="14368505153" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4072539" lon="35.3441494"/>
+ <node id="14368505154" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4072762" lon="35.3441573"/>
+ <node id="14368505155" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4070364" lon="35.3425786"/>
+ <node id="14368505156" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4070554" lon="35.3425649">
+  <tag k="access" v="yes"/>
+  <tag k="entrance" v="main"/>
+  <tag k="ref" v="cafeteria main door"/>
+ </node>
+ <node id="14368505157" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038" lat="32.4055108" lon="35.3422267"/>
+ <way id="176845978" visible="true" version="11" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745">
+  <nd ref="431712712"/>
+  <nd ref="12473855170"/>
+  <nd ref="431728974"/>
+  <nd ref="10003173867"/>
+  <nd ref="10004668065"/>
+  <nd ref="10003163977"/>
+  <nd ref="10003163978"/>
+  <nd ref="431725942"/>
+  <nd ref="10003163979"/>
+  <nd ref="14332475654"/>
+  <nd ref="431736045"/>
+  <nd ref="10003163980"/>
+  <nd ref="10003163981"/>
+  <nd ref="10003173816"/>
+  <nd ref="431765933"/>
+  <nd ref="431717775"/>
+  <tag k="highway" v="tertiary"/>
+  <tag k="name" v="Main Road Of American University"/>
+  <tag k="name:ar" v="الطريق الرئيسي للجامعة العربية الامريكية"/>
+  <tag k="name:en" v="Main Road Of American University"/>
+ </way>
+ <way id="888585503" visible="true" version="3" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924">
+  <nd ref="431717775"/>
+  <nd ref="10003629407"/>
+  <nd ref="10003629406"/>
+  <nd ref="10003629405"/>
+  <nd ref="10003629403"/>
+  <nd ref="8261295670"/>
+  <nd ref="10003629392"/>
+  <nd ref="10003629393"/>
+  <nd ref="8261295669"/>
+  <nd ref="10003629394"/>
+  <nd ref="431713690"/>
+  <nd ref="10003629402"/>
+  <nd ref="10003633020"/>
+  <nd ref="10003633019"/>
+  <nd ref="10003629401"/>
+  <nd ref="10003629400"/>
+  <nd ref="8261295713"/>
+  <nd ref="1712486070"/>
+  <nd ref="8261295712"/>
+  <nd ref="8261350617"/>
+  <nd ref="8261350621"/>
+  <nd ref="10003629334"/>
+  <nd ref="431744092"/>
+  <tag k="highway" v="unclassified"/>
+ </way>
+ <way id="888585504" visible="true" version="5" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745">
+  <nd ref="8261295651"/>
+  <nd ref="8261457531"/>
+  <nd ref="8261295667"/>
+  <nd ref="8261295652"/>
+  <nd ref="8261295653"/>
+  <nd ref="8261295654"/>
+  <nd ref="8261295655"/>
+  <nd ref="8261295656"/>
+  <nd ref="8261295657"/>
+  <nd ref="8261295658"/>
+  <nd ref="14332662251"/>
+  <nd ref="8261295659"/>
+  <nd ref="8261295660"/>
+  <nd ref="8261295661"/>
+  <nd ref="8261295662"/>
+  <nd ref="8261295663"/>
+  <nd ref="8261295664"/>
+  <nd ref="8261295665"/>
+  <nd ref="14291642313"/>
+  <nd ref="14291642312"/>
+  <nd ref="14291642311"/>
+  <nd ref="14291642310"/>
+  <nd ref="8261295666"/>
+  <nd ref="14291585284"/>
+  <nd ref="8261295668"/>
+  <nd ref="8261295651"/>
+  <tag k="amenity" v="university"/>
+  <tag k="name" v="الجامعة العربية الامريكية - جنين"/>
+  <tag k="name:ar" v="الجامعة العربية الامريكية - جنين"/>
+  <tag k="name:en" v="Arab American University - Jenin"/>
+  <tag k="name:he" v="האוניברסיטה הערבית-אמריקאית בג'נין"/>
+  <tag k="wikidata" v="Q623893"/>
+ </way>
+ <way id="888585510" visible="true" version="2" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745">
+  <nd ref="8261295665"/>
+  <nd ref="8261295674"/>
+  <nd ref="8261295675"/>
+  <nd ref="8261295676"/>
+  <nd ref="8261295677"/>
+  <nd ref="14338578511"/>
+  <nd ref="8261295678"/>
+  <nd ref="8261295679"/>
+  <nd ref="8261295680"/>
+  <nd ref="8261295664"/>
+  <nd ref="8261295665"/>
+  <tag k="landuse" v="residential"/>
+ </way>
+ <way id="1092227253" visible="true" version="3" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731">
+  <nd ref="431717775"/>
+  <nd ref="10003163764"/>
+  <nd ref="10003163763"/>
+  <nd ref="10003163762"/>
+  <nd ref="10003163761"/>
+  <nd ref="10003163760"/>
+  <nd ref="10003629408"/>
+  <nd ref="10003163759"/>
+  <nd ref="10003163758"/>
+  <nd ref="10003163757"/>
+  <nd ref="10003163756"/>
+  <nd ref="10003163755"/>
+  <nd ref="10003163754"/>
+  <nd ref="10003163753"/>
+  <nd ref="10003629415"/>
+  <nd ref="10003163752"/>
+  <nd ref="10003163751"/>
+  <nd ref="12279269883"/>
+  <nd ref="10003163750"/>
+  <nd ref="10003163775"/>
+  <nd ref="10003163806"/>
+  <nd ref="10003163749"/>
+  <nd ref="12279269855"/>
+  <nd ref="12279269857"/>
+  <nd ref="10003163748"/>
+  <nd ref="10003163747"/>
+  <nd ref="10003163746"/>
+  <nd ref="10003163745"/>
+  <nd ref="10003163744"/>
+  <nd ref="10003163743"/>
+  <nd ref="10003163742"/>
+  <nd ref="10003163741"/>
+  <nd ref="10003163740"/>
+  <nd ref="12279269811"/>
+  <nd ref="10003163739"/>
+  <nd ref="10003163738"/>
+  <nd ref="10003163737"/>
+  <nd ref="10003163736"/>
+  <nd ref="10003163735"/>
+  <nd ref="10003163734"/>
+  <nd ref="10003163733"/>
+  <nd ref="10003163732"/>
+  <nd ref="10003163731"/>
+  <nd ref="10003163730"/>
+  <nd ref="10003163729"/>
+  <nd ref="10003163728"/>
+  <nd ref="10003163727"/>
+  <nd ref="10003163726"/>
+  <nd ref="10003163725"/>
+  <nd ref="10003163724"/>
+  <nd ref="10003163723"/>
+  <nd ref="10003163722"/>
+  <nd ref="10003163721"/>
+  <nd ref="10003163720"/>
+  <nd ref="10003163719"/>
+  <nd ref="10003163718"/>
+  <nd ref="10003163717"/>
+  <nd ref="10003163716"/>
+  <nd ref="10003163715"/>
+  <nd ref="10003163714"/>
+  <nd ref="10003163713"/>
+  <nd ref="431748525"/>
+  <nd ref="10003163712"/>
+  <nd ref="431740740"/>
+  <nd ref="10003163711"/>
+  <nd ref="10003163710"/>
+  <nd ref="10003163709"/>
+  <nd ref="10003163708"/>
+  <nd ref="431821044"/>
+  <nd ref="10003163707"/>
+  <nd ref="431749665"/>
+  <nd ref="431733894"/>
+  <nd ref="10003163706"/>
+  <nd ref="10003163705"/>
+  <nd ref="431741532"/>
+  <nd ref="431825256"/>
+  <nd ref="10003163704"/>
+  <nd ref="431726140"/>
+  <nd ref="10003163703"/>
+  <nd ref="10003163702"/>
+  <nd ref="10003163701"/>
+  <nd ref="431786011"/>
+  <nd ref="9981872539"/>
+  <nd ref="9981872540"/>
+  <tag k="highway" v="tertiary"/>
+  <tag k="name" v="Main Road Of American University"/>
+  <tag k="name:ar" v="الطريق الرئيسي للجامعة العربية الامريكية"/>
+  <tag k="name:en" v="Main Road Of American University"/>
+ </way>
+ <way id="1092228343" visible="true" version="1" changeset="125833827" timestamp="2022-09-05T23:10:23Z" user="Ido Marom" uid="2778924">
+  <nd ref="10003173809"/>
+  <nd ref="10003173810"/>
+  <nd ref="10003173811"/>
+  <nd ref="10003173812"/>
+  <nd ref="10003173813"/>
+  <nd ref="10003173814"/>
+  <nd ref="10003173822"/>
+  <nd ref="10003173815"/>
+  <nd ref="10003173797"/>
+  <nd ref="10003173798"/>
+  <nd ref="10003173821"/>
+  <nd ref="10003173801"/>
+  <nd ref="10003173802"/>
+  <nd ref="10003173803"/>
+  <nd ref="10003173804"/>
+  <nd ref="10003173805"/>
+  <nd ref="10003173806"/>
+  <nd ref="10003173807"/>
+  <nd ref="10003173808"/>
+  <nd ref="10003173799"/>
+  <nd ref="10003173830"/>
+  <nd ref="10003173800"/>
+  <nd ref="10003173809"/>
+  <tag k="highway" v="unclassified"/>
+  <tag k="junction" v="roundabout"/>
+ </way>
+ <way id="1092228344" visible="true" version="2" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745">
+  <nd ref="10003173816"/>
+  <nd ref="10003173817"/>
+  <nd ref="10003173818"/>
+  <nd ref="10003173819"/>
+  <nd ref="10003173820"/>
+  <nd ref="10003173821"/>
+  <tag k="highway" v="unclassified"/>
+  <tag k="layer" v="-1"/>
+  <tag k="oneway" v="yes"/>
+ </way>
+ <way id="1092228345" visible="true" version="2" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745">
+  <nd ref="10003173822"/>
+  <nd ref="10003173823"/>
+  <nd ref="10003173824"/>
+  <nd ref="10003173825"/>
+  <nd ref="10003173826"/>
+  <nd ref="10003173827"/>
+  <nd ref="10003173828"/>
+  <nd ref="431746995"/>
+  <nd ref="431765933"/>
+  <tag k="highway" v="unclassified"/>
+  <tag k="layer" v="-1"/>
+  <tag k="oneway" v="yes"/>
+ </way>
+ <way id="1092228346" visible="true" version="5" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038">
+  <nd ref="14332475797"/>
+  <nd ref="10003173851"/>
+  <nd ref="10003173852"/>
+  <nd ref="10003173853"/>
+  <nd ref="14332671949"/>
+  <nd ref="10003173854"/>
+  <nd ref="10003173855"/>
+  <nd ref="10003173856"/>
+  <nd ref="10003173857"/>
+  <nd ref="10003633032"/>
+  <nd ref="10003173858"/>
+  <nd ref="10003173859"/>
+  <nd ref="10003173860"/>
+  <nd ref="10003173861"/>
+  <nd ref="10003173862"/>
+  <nd ref="10003633065"/>
+  <nd ref="14368505157"/>
+  <nd ref="10003173863"/>
+  <nd ref="10003173864"/>
+  <nd ref="10003173865"/>
+  <nd ref="10003173866"/>
+  <nd ref="10003173867"/>
+  <tag k="highway" v="unclassified"/>
+ </way>
+ <way id="1092228347" visible="true" version="3" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745">
+  <nd ref="10003173812"/>
+  <nd ref="10003173868"/>
+  <nd ref="10003173869"/>
+  <nd ref="10003173870"/>
+  <nd ref="10003173871"/>
+  <nd ref="10003173872"/>
+  <nd ref="10003173873"/>
+  <nd ref="10003173874"/>
+  <nd ref="10003173875"/>
+  <nd ref="10003629333"/>
+  <nd ref="10003173876"/>
+  <nd ref="14291585287"/>
+  <nd ref="10003173877"/>
+  <nd ref="10003173878"/>
+  <nd ref="10003173879"/>
+  <nd ref="10003173880"/>
+  <nd ref="10003173881"/>
+  <nd ref="10003633023"/>
+  <nd ref="10003173882"/>
+  <nd ref="10003173883"/>
+  <tag k="highway" v="unclassified"/>
+ </way>
+ <way id="1092277942" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924">
+  <nd ref="10003629330"/>
+  <nd ref="10003629331"/>
+  <nd ref="10003629332"/>
+  <nd ref="10003629333"/>
+  <tag k="highway" v="unclassified"/>
+ </way>
+ <way id="1092277945" visible="true" version="2" changeset="125866315" timestamp="2022-09-06T16:27:19Z" user="Ido Marom" uid="2778924">
+  <nd ref="10004668066"/>
+  <nd ref="10003629408"/>
+  <nd ref="10003629409"/>
+  <nd ref="10003629410"/>
+  <nd ref="10003629404"/>
+  <nd ref="10003629411"/>
+  <nd ref="10003629412"/>
+  <nd ref="10003629413"/>
+  <nd ref="10003629414"/>
+  <tag k="highway" v="residential"/>
+ </way>
+ <way id="1092277948" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924">
+  <nd ref="10003633023"/>
+  <nd ref="10003633024"/>
+  <nd ref="10003633025"/>
+  <nd ref="10003633026"/>
+  <nd ref="10003633027"/>
+  <nd ref="10003633028"/>
+  <nd ref="10003633029"/>
+  <nd ref="10003633030"/>
+  <nd ref="10003633031"/>
+  <tag k="highway" v="service"/>
+ </way>
+ <way id="1092277949" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924">
+  <nd ref="10003633032"/>
+  <nd ref="10003633033"/>
+  <tag k="highway" v="service"/>
+ </way>
+ <way id="1092277950" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924">
+  <nd ref="10003633034"/>
+  <nd ref="10003633035"/>
+  <nd ref="10003633036"/>
+  <nd ref="10003633037"/>
+  <nd ref="10003633038"/>
+  <nd ref="10003633039"/>
+  <nd ref="10003633040"/>
+  <nd ref="10003633041"/>
+  <nd ref="10003633042"/>
+  <nd ref="10003633043"/>
+  <nd ref="10003633044"/>
+  <nd ref="10003633045"/>
+  <nd ref="10003633046"/>
+  <nd ref="10003633047"/>
+  <nd ref="10003633048"/>
+  <tag k="highway" v="service"/>
+ </way>
+ <way id="1092277951" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924">
+  <nd ref="10003633049"/>
+  <nd ref="10003633050"/>
+  <nd ref="10003633051"/>
+  <nd ref="10003633052"/>
+  <nd ref="10003633053"/>
+  <nd ref="10003633054"/>
+  <nd ref="10003633056"/>
+  <nd ref="10003633055"/>
+  <tag k="highway" v="service"/>
+ </way>
+ <way id="1092277952" visible="true" version="2" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745">
+  <nd ref="10003633056"/>
+  <nd ref="10003633057"/>
+  <tag k="highway" v="service"/>
+  <tag k="service" v="parking_aisle"/>
+ </way>
+ <way id="1092277953" visible="true" version="2" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038">
+  <nd ref="10003633058"/>
+  <nd ref="10003633059"/>
+  <nd ref="10003633060"/>
+  <nd ref="10003633061"/>
+  <nd ref="10003633062"/>
+  <nd ref="10003633063"/>
+  <nd ref="14368505137"/>
+  <nd ref="14368505139"/>
+  <nd ref="10003633064"/>
+  <tag k="highway" v="service"/>
+ </way>
+ <way id="1092277956" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924">
+  <nd ref="10003633077"/>
+  <nd ref="10003633078"/>
+  <nd ref="10003633079"/>
+  <nd ref="10003633080"/>
+  <nd ref="10003633086"/>
+  <nd ref="10003173802"/>
+  <tag k="highway" v="service"/>
+ </way>
+ <way id="1092277957" visible="true" version="1" changeset="125843968" timestamp="2022-09-06T07:36:32Z" user="Ido Marom" uid="2778924">
+  <nd ref="10003633081"/>
+  <nd ref="10003633082"/>
+  <nd ref="10003633083"/>
+  <nd ref="10003633084"/>
+  <nd ref="10003633085"/>
+  <nd ref="10003633086"/>
+  <tag k="highway" v="service"/>
+ </way>
+ <way id="1092277958" visible="true" version="4" changeset="191810267" timestamp="2026-11-11T20:42:43Z" user="salahaldin1212" uid="24569038">
+  <nd ref="10003633064"/>
+  <nd ref="10003633087"/>
+  <nd ref="10003633088"/>
+  <nd ref="14368505154"/>
+  <nd ref="14368505149"/>
+  <nd ref="10003633089"/>
+  <nd ref="10003633102"/>
+  <nd ref="10003633090"/>
+  <nd ref="10003633105"/>
+  <nd ref="14368425330"/>
+  <nd ref="10003633091"/>
+  <nd ref="14332671910"/>
+  <tag k="highway" v="footway"/>
+ </way>
+ <way id="1092277959" visible="true" version="2" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038">
+  <nd ref="10003633102"/>
+  <nd ref="10003633103"/>
+  <nd ref="14368505136"/>
+  <nd ref="14368505135"/>
+  <nd ref="14368505132"/>
+  <nd ref="14368505134"/>
+  <nd ref="10003633104"/>
+  <nd ref="10003633105"/>
+  <nd ref="14368505131"/>
+  <nd ref="10003633106"/>
+  <nd ref="10003633107"/>
+  <nd ref="10003633108"/>
+  <tag k="highway" v="footway"/>
+ </way>
+ <way id="1092277960" visible="true" version="2" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745">
+  <nd ref="10003633033"/>
+  <nd ref="10003633109"/>
+  <nd ref="10003633110"/>
+  <nd ref="14291642353"/>
+  <nd ref="10003633091"/>
+  <tag k="highway" v="footway"/>
+ </way>
+ <way id="1327302708" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731">
+  <nd ref="12279294338"/>
+  <nd ref="12279294339"/>
+  <nd ref="12279294340"/>
+  <nd ref="12279294341"/>
+  <nd ref="12279294342"/>
+  <nd ref="12279294343"/>
+  <nd ref="12279294344"/>
+  <nd ref="12279294345"/>
+  <nd ref="12279294346"/>
+  <nd ref="12279294347"/>
+  <nd ref="12279294348"/>
+  <nd ref="12279294349"/>
+  <nd ref="12279294350"/>
+  <nd ref="12279294351"/>
+  <nd ref="12279294352"/>
+  <nd ref="12279294353"/>
+  <nd ref="12279294354"/>
+  <nd ref="12279294355"/>
+  <nd ref="12279294356"/>
+  <nd ref="12279294357"/>
+  <nd ref="12279294358"/>
+  <nd ref="12279294359"/>
+  <nd ref="12279294360"/>
+  <nd ref="12279294361"/>
+  <nd ref="12279294362"/>
+  <nd ref="12279294363"/>
+  <nd ref="12279294364"/>
+  <nd ref="12279294365"/>
+  <nd ref="12279294366"/>
+  <nd ref="12279294338"/>
+  <tag k="leisure" v="stadium"/>
+ </way>
+ <way id="1327302710" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731">
+  <nd ref="12279294373"/>
+  <nd ref="12279294374"/>
+  <nd ref="12279294375"/>
+  <nd ref="12279294376"/>
+  <nd ref="12279294373"/>
+  <tag k="leisure" v="pitch"/>
+  <tag k="sport" v="soccer"/>
+ </way>
+ <way id="1327302711" visible="true" version="1" changeset="158224539" timestamp="2024-10-22T18:34:33Z" user="Yuval Aboulafia" uid="9430731">
+  <nd ref="12279294377"/>
+  <nd ref="12279294378"/>
+  <nd ref="12279294379"/>
+  <nd ref="12279294380"/>
+  <nd ref="12279294377"/>
+  <tag k="building" v="yes"/>
+ </way>
+ <way id="1568965242" visible="true" version="2" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038">
+  <nd ref="14291585218"/>
+  <nd ref="14291585219"/>
+  <nd ref="14291585220"/>
+  <nd ref="14291585221"/>
+  <nd ref="14368505156"/>
+  <nd ref="14291585218"/>
+  <tag k="building" v="yes"/>
+  <tag k="building:levels" v="2"/>
+  <tag k="name" v="Cafeteria"/>
+ </way>
+ <way id="1568965243" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14291585222"/>
+  <nd ref="14291585223"/>
+  <nd ref="14291585224"/>
+  <nd ref="14291585225"/>
+  <nd ref="14291585226"/>
+  <nd ref="14291585227"/>
+  <nd ref="14291585228"/>
+  <nd ref="14291585229"/>
+  <nd ref="14291585230"/>
+  <nd ref="14291585231"/>
+  <nd ref="14291585232"/>
+  <nd ref="14291585233"/>
+  <nd ref="14291585234"/>
+  <nd ref="14291585235"/>
+  <nd ref="14291585236"/>
+  <nd ref="14291585237"/>
+  <nd ref="14291585238"/>
+  <nd ref="14291585239"/>
+  <nd ref="14291585240"/>
+  <nd ref="14291585241"/>
+  <nd ref="14291585242"/>
+  <nd ref="14291585243"/>
+  <nd ref="14291585244"/>
+  <nd ref="14291585245"/>
+  <nd ref="14291585246"/>
+  <nd ref="14291585247"/>
+  <nd ref="14291585248"/>
+  <nd ref="14291585249"/>
+  <nd ref="14291585255"/>
+  <nd ref="14291585253"/>
+  <nd ref="14291585252"/>
+  <nd ref="14291585254"/>
+  <nd ref="14291585250"/>
+  <nd ref="14291585251"/>
+  <nd ref="14291585222"/>
+  <tag k="building" v="school"/>
+ </way>
+ <way id="1568965244" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14291585256"/>
+  <nd ref="14291585257"/>
+  <nd ref="14291585258"/>
+  <nd ref="14291585259"/>
+  <nd ref="14291585260"/>
+  <nd ref="14291585274"/>
+  <nd ref="14291585261"/>
+  <nd ref="14291585262"/>
+  <nd ref="14291585273"/>
+  <nd ref="14291585263"/>
+  <nd ref="14291585264"/>
+  <nd ref="14291585265"/>
+  <nd ref="14291585266"/>
+  <nd ref="14291585267"/>
+  <nd ref="14291585268"/>
+  <nd ref="14291585269"/>
+  <nd ref="14291585270"/>
+  <nd ref="14291585271"/>
+  <nd ref="14291585272"/>
+  <nd ref="14291585256"/>
+  <tag k="building" v="school"/>
+ </way>
+ <way id="1568965245" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14291585275"/>
+  <nd ref="14291585276"/>
+  <nd ref="14291585277"/>
+  <nd ref="14291585278"/>
+  <nd ref="14291585279"/>
+  <nd ref="14291585280"/>
+  <nd ref="14291585281"/>
+  <nd ref="14291585285"/>
+  <nd ref="14291585282"/>
+  <nd ref="14291585286"/>
+  <nd ref="14291585283"/>
+  <nd ref="14291585275"/>
+  <tag k="amenity" v="parking"/>
+  <tag k="parking" v="surface"/>
+ </way>
+ <way id="1568965248" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14291585294"/>
+  <nd ref="14291585292"/>
+  <tag k="highway" v="service"/>
+  <tag k="oneway" v="no"/>
+  <tag k="service" v="parking_aisle"/>
+ </way>
+ <way id="1568965253" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14291642322"/>
+  <nd ref="14291642323"/>
+  <nd ref="14291642324"/>
+  <nd ref="14291642325"/>
+  <nd ref="14291642322"/>
+  <tag k="building" v="school"/>
+ </way>
+ <way id="1568965254" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14291642326"/>
+  <nd ref="14291642327"/>
+  <nd ref="14291642328"/>
+  <nd ref="14291642329"/>
+  <nd ref="14291642326"/>
+  <tag k="building" v="school"/>
+ </way>
+ <way id="1568965255" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14291642330"/>
+  <nd ref="14291642331"/>
+  <nd ref="14291642332"/>
+  <nd ref="14291642333"/>
+  <nd ref="14291642334"/>
+  <nd ref="14291642335"/>
+  <nd ref="14291642336"/>
+  <nd ref="14291642337"/>
+  <nd ref="14291642338"/>
+  <nd ref="14291642339"/>
+  <nd ref="14291642340"/>
+  <nd ref="14291642341"/>
+  <nd ref="14291642342"/>
+  <nd ref="14291642343"/>
+  <nd ref="14291642330"/>
+  <tag k="building" v="school"/>
+ </way>
+ <way id="1568965256" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14291642344"/>
+  <nd ref="14291642345"/>
+  <nd ref="14291642346"/>
+  <nd ref="14291642347"/>
+  <nd ref="14291642348"/>
+  <nd ref="14291642349"/>
+  <nd ref="14291642350"/>
+  <nd ref="14291642351"/>
+  <nd ref="14291642352"/>
+  <nd ref="14291642344"/>
+  <tag k="amenity" v="parking"/>
+  <tag k="parking" v="surface"/>
+ </way>
+ <way id="1568965257" visible="true" version="1" changeset="190627375" timestamp="2026-10-16T21:50:25Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14291642354"/>
+  <nd ref="14291642355"/>
+  <nd ref="14291642356"/>
+  <nd ref="14291642357"/>
+  <nd ref="14291642358"/>
+  <nd ref="14291642359"/>
+  <nd ref="14291642360"/>
+  <nd ref="14291642361"/>
+  <nd ref="14291642362"/>
+  <nd ref="14291642363"/>
+  <nd ref="14291642364"/>
+  <nd ref="14291642365"/>
+  <nd ref="14291642366"/>
+  <nd ref="14291642367"/>
+  <nd ref="14291642368"/>
+  <nd ref="14291642371"/>
+  <nd ref="14291642370"/>
+  <nd ref="14291642369"/>
+  <nd ref="14291642354"/>
+  <tag k="building" v="school"/>
+ </way>
+ <way id="1573508450" visible="true" version="1" changeset="191218770" timestamp="2026-10-30T02:16:53Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14332448989"/>
+  <nd ref="14332448998"/>
+  <nd ref="14332448997"/>
+  <nd ref="14332448990"/>
+  <nd ref="14332448991"/>
+  <nd ref="14332448992"/>
+  <nd ref="14332448993"/>
+  <nd ref="14332448994"/>
+  <nd ref="14332448995"/>
+  <nd ref="14332448996"/>
+  <nd ref="14332448989"/>
+  <tag k="building" v="school"/>
+ </way>
+ <way id="1573510547" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14332437900"/>
+  <nd ref="14332475601"/>
+  <nd ref="14332475602"/>
+  <nd ref="14332475603"/>
+  <nd ref="14332475604"/>
+  <nd ref="14332475605"/>
+  <nd ref="14332475606"/>
+  <nd ref="14332437900"/>
+  <tag k="building" v="yes"/>
+ </way>
+ <way id="1573510548" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14332475607"/>
+  <nd ref="14332475608"/>
+  <nd ref="14332475609"/>
+  <nd ref="14332475610"/>
+  <nd ref="14332475607"/>
+  <tag k="building" v="yes"/>
+ </way>
+ <way id="1573510549" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14332475611"/>
+  <nd ref="14332475612"/>
+  <nd ref="14332475613"/>
+  <nd ref="14332475614"/>
+  <nd ref="14332475615"/>
+  <nd ref="14332475616"/>
+  <nd ref="14332475617"/>
+  <nd ref="14332475611"/>
+  <tag k="building" v="yes"/>
+ </way>
+ <way id="1573510551" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14332475622"/>
+  <nd ref="14332475623"/>
+  <nd ref="14332475681"/>
+  <nd ref="14332475680"/>
+  <nd ref="14332475624"/>
+  <nd ref="14332475625"/>
+  <nd ref="14332475626"/>
+  <nd ref="14332475627"/>
+  <nd ref="14332475628"/>
+  <nd ref="14332475629"/>
+  <nd ref="14332475622"/>
+  <tag k="building" v="school"/>
+ </way>
+ <way id="1573510552" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14332475630"/>
+  <nd ref="14332475631"/>
+  <nd ref="14332475632"/>
+  <nd ref="14332475678"/>
+  <nd ref="14332475679"/>
+  <nd ref="14332475633"/>
+  <nd ref="14332475630"/>
+  <tag k="building" v="school"/>
+ </way>
+ <way id="1573510554" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14332475645"/>
+  <nd ref="14332475646"/>
+  <nd ref="14332475647"/>
+  <nd ref="14332475648"/>
+  <nd ref="14332475649"/>
+  <nd ref="14332475650"/>
+  <nd ref="14332475651"/>
+  <nd ref="14332475652"/>
+  <nd ref="14332475653"/>
+  <nd ref="14332475645"/>
+  <tag k="amenity" v="parking"/>
+  <tag k="parking" v="surface"/>
+ </way>
+ <way id="1573510555" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14332475654"/>
+  <nd ref="14332475662"/>
+  <nd ref="14332475655"/>
+  <nd ref="14332475656"/>
+  <nd ref="14332475663"/>
+  <nd ref="14332475657"/>
+  <nd ref="14332475658"/>
+  <nd ref="14332475659"/>
+  <nd ref="14332475665"/>
+  <nd ref="14332475660"/>
+  <nd ref="14332475661"/>
+  <nd ref="14332475662"/>
+  <tag k="highway" v="service"/>
+  <tag k="service" v="parking_aisle"/>
+ </way>
+ <way id="1573510556" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14332475663"/>
+  <nd ref="14332475664"/>
+  <nd ref="14332475665"/>
+  <tag k="highway" v="service"/>
+  <tag k="service" v="parking_aisle"/>
+ </way>
+ <way id="1573510557" visible="true" version="2" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038">
+  <nd ref="14332475666"/>
+  <nd ref="14332475667"/>
+  <nd ref="14332475670"/>
+  <nd ref="14332475672"/>
+  <nd ref="14332475673"/>
+  <nd ref="14332475671"/>
+  <nd ref="14332475668"/>
+  <nd ref="14332475669"/>
+  <nd ref="14332475675"/>
+  <nd ref="14332475677"/>
+  <nd ref="14332475676"/>
+  <nd ref="14332475674"/>
+  <nd ref="14332475666"/>
+  <tag k="building" v="shed"/>
+  <tag k="name" v="GATE 3"/>
+ </way>
+ <way id="1573510558" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14332475684"/>
+  <nd ref="14332475685"/>
+  <nd ref="14332475686"/>
+  <nd ref="14332475687"/>
+  <nd ref="14332475684"/>
+  <tag k="building" v="yes"/>
+ </way>
+ <way id="1573510559" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14332475688"/>
+  <nd ref="14332475689"/>
+  <nd ref="14332475690"/>
+  <nd ref="14332475691"/>
+  <nd ref="14332475688"/>
+  <tag k="building" v="yes"/>
+ </way>
+ <way id="1573510567" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14332475735"/>
+  <nd ref="14332475736"/>
+  <nd ref="14332475737"/>
+  <nd ref="14332475738"/>
+  <nd ref="14332475747"/>
+  <nd ref="14332475739"/>
+  <nd ref="14332475740"/>
+  <nd ref="14332475741"/>
+  <nd ref="14332475742"/>
+  <nd ref="14332475743"/>
+  <nd ref="14332475744"/>
+  <nd ref="14332475745"/>
+  <nd ref="14332475746"/>
+  <nd ref="14332475735"/>
+  <tag k="building" v="school"/>
+ </way>
+ <way id="1573510568" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14332475748"/>
+  <nd ref="14332475749"/>
+  <nd ref="14332475750"/>
+  <nd ref="14332475751"/>
+  <nd ref="14332475752"/>
+  <nd ref="14332475753"/>
+  <nd ref="14332475754"/>
+  <nd ref="14332475755"/>
+  <nd ref="14332475756"/>
+  <nd ref="14332475748"/>
+  <tag k="building" v="school"/>
+ </way>
+ <way id="1573510569" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14332475757"/>
+  <nd ref="14332475758"/>
+  <nd ref="14332475759"/>
+  <nd ref="14332475760"/>
+  <nd ref="14332475761"/>
+  <nd ref="14332475762"/>
+  <nd ref="14332475763"/>
+  <nd ref="14332475764"/>
+  <nd ref="14332475765"/>
+  <nd ref="14332475766"/>
+  <nd ref="14332475757"/>
+  <tag k="building" v="school"/>
+ </way>
+ <way id="1573510570" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14332475767"/>
+  <nd ref="14332475768"/>
+  <nd ref="14332475769"/>
+  <nd ref="14332475770"/>
+  <nd ref="14332475767"/>
+  <tag k="building" v="yes"/>
+  <tag k="layer" v="1"/>
+ </way>
+ <way id="1573510571" visible="true" version="2" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038">
+  <nd ref="14332475771"/>
+  <nd ref="14332475772"/>
+  <nd ref="14332475773"/>
+  <nd ref="14332475774"/>
+  <nd ref="14332475775"/>
+  <nd ref="14332475776"/>
+  <nd ref="14368505145"/>
+  <nd ref="14368505146"/>
+  <nd ref="14368505147"/>
+  <nd ref="14368505144"/>
+  <nd ref="14368505143"/>
+  <nd ref="14332475777"/>
+  <nd ref="14368505142"/>
+  <nd ref="14332475778"/>
+  <nd ref="14332475771"/>
+  <tag k="building" v="yes"/>
+ </way>
+ <way id="1573510572" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745">
+  <nd ref="10003173830"/>
+  <nd ref="10003633108"/>
+  <nd ref="10003633049"/>
+  <nd ref="10003629330"/>
+  <nd ref="10003173831"/>
+  <nd ref="10003173832"/>
+  <nd ref="10003633057"/>
+  <nd ref="10003173833"/>
+  <nd ref="10003173834"/>
+  <nd ref="10003173835"/>
+  <nd ref="10003633031"/>
+  <nd ref="10003173836"/>
+  <nd ref="10003633055"/>
+  <nd ref="10003173837"/>
+  <nd ref="10003173838"/>
+  <nd ref="10003173839"/>
+  <nd ref="10003173840"/>
+  <nd ref="10003173841"/>
+  <nd ref="10003173842"/>
+  <nd ref="10003173843"/>
+  <nd ref="10003633034"/>
+  <nd ref="10003173844"/>
+  <nd ref="10003173845"/>
+  <tag k="highway" v="unclassified"/>
+ </way>
+ <way id="1573510573" visible="true" version="2" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14332475796"/>
+  <nd ref="14332475784"/>
+  <nd ref="14332475783"/>
+  <nd ref="14332475785"/>
+  <nd ref="10003633058"/>
+  <nd ref="14332475786"/>
+  <nd ref="14332475782"/>
+  <nd ref="14332475787"/>
+  <nd ref="14332475794"/>
+  <nd ref="14332475795"/>
+  <nd ref="14332475788"/>
+  <nd ref="14332475798"/>
+  <nd ref="14332475789"/>
+  <nd ref="14332671926"/>
+  <nd ref="14332475790"/>
+  <nd ref="14332475791"/>
+  <nd ref="14332475792"/>
+  <nd ref="14332475793"/>
+  <nd ref="14332475796"/>
+  <tag k="highway" v="residential"/>
+  <tag k="oneway" v="yes"/>
+ </way>
+ <way id="1573510574" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14332475782"/>
+  <nd ref="10003173850"/>
+  <nd ref="14332475797"/>
+  <tag k="highway" v="unclassified"/>
+  <tag k="oneway" v="yes"/>
+ </way>
+ <way id="1573510575" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14332475797"/>
+  <nd ref="14332475799"/>
+  <nd ref="14332475798"/>
+  <tag k="highway" v="unclassified"/>
+  <tag k="oneway" v="yes"/>
+ </way>
+ <way id="1573510576" visible="true" version="1" changeset="191219130" timestamp="2026-10-30T02:37:35Z" user="happilymappingrway" uid="18709745">
+  <nd ref="10003173845"/>
+  <nd ref="10003173847"/>
+  <nd ref="10003173848"/>
+  <nd ref="14332475783"/>
+  <tag k="highway" v="unclassified"/>
+  <tag k="oneway" v="yes"/>
+ </way>
+ <way id="1573510577" visible="true" version="2" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038">
+  <nd ref="14332475792"/>
+  <nd ref="14368505141"/>
+  <nd ref="14332475801"/>
+  <nd ref="14332475803"/>
+  <nd ref="14332475802"/>
+  <nd ref="14332475800"/>
+  <nd ref="10003173845"/>
+  <tag k="highway" v="unclassified"/>
+  <tag k="oneway" v="yes"/>
+ </way>
+ <way id="1573527051" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14332662213"/>
+  <nd ref="14332662214"/>
+  <nd ref="14332662215"/>
+  <nd ref="14332662216"/>
+  <nd ref="14332662213"/>
+  <tag k="amenity" v="parking"/>
+  <tag k="parking" v="surface"/>
+ </way>
+ <way id="1573527052" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14332662217"/>
+  <nd ref="14332662218"/>
+  <nd ref="14332662219"/>
+  <nd ref="14332662220"/>
+  <nd ref="14332662217"/>
+  <tag k="amenity" v="parking"/>
+  <tag k="parking" v="surface"/>
+ </way>
+ <way id="1573527053" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14332662221"/>
+  <nd ref="14332662222"/>
+  <nd ref="14332662223"/>
+  <nd ref="14332662224"/>
+  <nd ref="14332662225"/>
+  <nd ref="14332662226"/>
+  <nd ref="14332662227"/>
+  <nd ref="14332662221"/>
+  <tag k="amenity" v="parking"/>
+  <tag k="parking" v="surface"/>
+ </way>
+ <way id="1573527058" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14332662260"/>
+  <nd ref="14332662261"/>
+  <nd ref="14332662262"/>
+  <nd ref="14332662263"/>
+  <nd ref="14332662264"/>
+  <nd ref="14332662268"/>
+  <nd ref="14332662267"/>
+  <nd ref="14332662266"/>
+  <nd ref="14332662265"/>
+  <nd ref="14332662260"/>
+  <tag k="amenity" v="parking"/>
+  <tag k="parking" v="surface"/>
+ </way>
+ <way id="1573527059" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14332662269"/>
+  <nd ref="14332662270"/>
+  <nd ref="14332662271"/>
+  <nd ref="14332662272"/>
+  <nd ref="14332662273"/>
+  <nd ref="14332662274"/>
+  <nd ref="14332662275"/>
+  <nd ref="14332662276"/>
+  <nd ref="14332662269"/>
+  <tag k="amenity" v="parking"/>
+  <tag k="parking" v="surface"/>
+ </way>
+ <way id="1573527060" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14332662277"/>
+  <nd ref="14332662278"/>
+  <nd ref="14332662279"/>
+  <nd ref="14332662280"/>
+  <nd ref="14332662281"/>
+  <nd ref="14332662277"/>
+  <tag k="amenity" v="parking"/>
+  <tag k="parking" v="surface"/>
+ </way>
+ <way id="1573527061" visible="true" version="1" changeset="191221436" timestamp="2026-10-30T05:06:29Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14332662282"/>
+  <nd ref="14332662283"/>
+  <nd ref="14332662284"/>
+  <nd ref="14332662285"/>
+  <nd ref="14332662286"/>
+  <nd ref="14332662282"/>
+  <tag k="amenity" v="parking"/>
+  <tag k="parking" v="surface"/>
+ </way>
+ <way id="1573528464" visible="true" version="3" changeset="191810267" timestamp="2026-11-11T20:42:43Z" user="salahaldin1212" uid="24569038">
+  <nd ref="14332671904"/>
+  <nd ref="14332671905"/>
+  <nd ref="14332671906"/>
+  <nd ref="14332671907"/>
+  <nd ref="14332671908"/>
+  <nd ref="14332671909"/>
+  <nd ref="14368505155"/>
+  <nd ref="14332657586"/>
+  <nd ref="14332657587"/>
+  <nd ref="14332657588"/>
+  <nd ref="14332657589"/>
+  <nd ref="14332657590"/>
+  <nd ref="14332657591"/>
+  <nd ref="14332657592"/>
+  <nd ref="14368505128"/>
+  <nd ref="14332657593"/>
+  <nd ref="14332671903"/>
+  <nd ref="14332657594"/>
+  <nd ref="14332671911"/>
+  <nd ref="14332657595"/>
+  <nd ref="14332657596"/>
+  <nd ref="14332657597"/>
+  <nd ref="14332657598"/>
+  <nd ref="14332671910"/>
+  <nd ref="14332657599"/>
+  <nd ref="14332657600"/>
+  <nd ref="14332671901"/>
+  <nd ref="14368425329"/>
+  <nd ref="14332671902"/>
+  <nd ref="14332671904"/>
+  <tag k="highway" v="footway"/>
+ </way>
+ <way id="1573528465" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14332671911"/>
+  <nd ref="10003633092"/>
+  <nd ref="10003633093"/>
+  <nd ref="10003633094"/>
+  <nd ref="10003633095"/>
+  <nd ref="10003633096"/>
+  <nd ref="10003633097"/>
+  <nd ref="10003633098"/>
+  <nd ref="10003633099"/>
+  <nd ref="10003633100"/>
+  <nd ref="10003633101"/>
+  <nd ref="10003633081"/>
+  <tag k="highway" v="footway"/>
+ </way>
+ <way id="1573528466" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14332671912"/>
+  <nd ref="14332671913"/>
+  <nd ref="14332671914"/>
+  <nd ref="14332671915"/>
+  <nd ref="14332671916"/>
+  <nd ref="14332671917"/>
+  <nd ref="14332671918"/>
+  <nd ref="14332671919"/>
+  <nd ref="14332671920"/>
+  <nd ref="14332671921"/>
+  <nd ref="14332671922"/>
+  <nd ref="14332671923"/>
+  <nd ref="14332671924"/>
+  <nd ref="14332671925"/>
+  <nd ref="14332671912"/>
+  <tag k="building" v="yes"/>
+ </way>
+ <way id="1573528467" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14332671926"/>
+  <nd ref="14332671927"/>
+  <nd ref="14332671928"/>
+  <nd ref="14332671929"/>
+  <nd ref="14332671930"/>
+  <nd ref="14332671931"/>
+  <nd ref="14332671932"/>
+  <nd ref="14332671945"/>
+  <nd ref="14332671933"/>
+  <nd ref="14332671942"/>
+  <nd ref="14332671934"/>
+  <nd ref="14332671935"/>
+  <nd ref="14332671936"/>
+  <nd ref="14332671937"/>
+  <nd ref="14332671938"/>
+  <nd ref="14332671939"/>
+  <nd ref="14332671940"/>
+  <nd ref="14332671941"/>
+  <tag k="highway" v="service"/>
+  <tag k="service" v="parking_aisle"/>
+ </way>
+ <way id="1573528468" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14332671942"/>
+  <nd ref="14332671943"/>
+  <nd ref="14332671944"/>
+  <nd ref="14332671945"/>
+  <tag k="highway" v="service"/>
+  <tag k="oneway" v="yes"/>
+  <tag k="service" v="parking_aisle"/>
+ </way>
+ <way id="1573528469" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14332475802"/>
+  <nd ref="14332671946"/>
+  <nd ref="14332671947"/>
+  <nd ref="14332671948"/>
+  <tag k="highway" v="service"/>
+  <tag k="service" v="parking_aisle"/>
+ </way>
+ <way id="1573528470" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14332671949"/>
+  <nd ref="14332671950"/>
+  <nd ref="14332671955"/>
+  <nd ref="14332671951"/>
+  <nd ref="14332671952"/>
+  <nd ref="14332671953"/>
+  <nd ref="14332671954"/>
+  <tag k="highway" v="service"/>
+  <tag k="service" v="parking_aisle"/>
+ </way>
+ <way id="1573528471" visible="true" version="1" changeset="191221728" timestamp="2026-10-30T05:25:53Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14332671955"/>
+  <nd ref="14332671956"/>
+  <tag k="highway" v="service"/>
+  <tag k="service" v="driveway"/>
+ </way>
+ <way id="1574196889" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14338532083"/>
+  <nd ref="14338532084"/>
+  <nd ref="14338532087"/>
+  <nd ref="14338532089"/>
+  <nd ref="14338532090"/>
+  <nd ref="14338532088"/>
+  <nd ref="14338532085"/>
+  <nd ref="14338532086"/>
+  <nd ref="14338532083"/>
+  <tag k="building" v="yes"/>
+ </way>
+ <way id="1574196890" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14338532091"/>
+  <nd ref="14338532092"/>
+  <nd ref="14338532093"/>
+  <nd ref="14338532094"/>
+  <nd ref="14338532091"/>
+  <tag k="building" v="yes"/>
+ </way>
+ <way id="1574196915" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14338578619"/>
+  <nd ref="14338578620"/>
+  <nd ref="14338578621"/>
+  <nd ref="14338578622"/>
+  <nd ref="14338578619"/>
+  <tag k="building" v="yes"/>
+ </way>
+ <way id="1574196927" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14338578682"/>
+  <nd ref="14338578683"/>
+  <nd ref="14338578684"/>
+  <nd ref="14338578685"/>
+  <nd ref="14338578682"/>
+  <tag k="building" v="yes"/>
+ </way>
+ <way id="1574196928" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14338578686"/>
+  <nd ref="14338578687"/>
+  <nd ref="14338578688"/>
+  <nd ref="14338578689"/>
+  <nd ref="14338578686"/>
+  <tag k="building" v="yes"/>
+ </way>
+ <way id="1574196929" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14338578690"/>
+  <nd ref="14338578691"/>
+  <nd ref="14338578692"/>
+  <nd ref="14338578693"/>
+  <nd ref="14338578690"/>
+  <tag k="building" v="yes"/>
+ </way>
+ <way id="1574196931" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14338578698"/>
+  <nd ref="14338578699"/>
+  <nd ref="14338578700"/>
+  <nd ref="14338578701"/>
+  <nd ref="14338578698"/>
+  <tag k="building" v="yes"/>
+ </way>
+ <way id="1574196932" visible="true" version="1" changeset="191321913" timestamp="2026-11-01T14:23:42Z" user="happilymappingrway" uid="18709745">
+  <nd ref="14338578702"/>
+  <nd ref="14338578703"/>
+  <nd ref="14338578704"/>
+  <nd ref="14338578705"/>
+  <nd ref="14338578702"/>
+  <tag k="building" v="yes"/>
+ </way>
+ <way id="1577986800" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038">
+  <nd ref="10003633077"/>
+  <nd ref="14368505124"/>
+  <nd ref="14368505125"/>
+  <nd ref="14368505126"/>
+  <nd ref="14368505127"/>
+  <nd ref="14368505128"/>
+  <tag k="highway" v="footway"/>
+ </way>
+ <way id="1577986801" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038">
+  <nd ref="14332671907"/>
+  <nd ref="14368505129"/>
+  <nd ref="14368505130"/>
+  <nd ref="14368505131"/>
+  <tag k="highway" v="footway"/>
+ </way>
+ <way id="1577986802" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038">
+  <nd ref="14368505132"/>
+  <nd ref="14368505133"/>
+  <tag k="highway" v="footway"/>
+ </way>
+ <way id="1577986803" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038">
+  <nd ref="14368505139"/>
+  <nd ref="14368505138"/>
+  <tag k="highway" v="footway"/>
+ </way>
+ <way id="1577986804" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038">
+  <nd ref="14368505141"/>
+  <nd ref="14368505140"/>
+  <tag k="highway" v="footway"/>
+  <tag k="name" v="road to engineering main door"/>
+ </way>
+ <way id="1577986805" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038">
+  <nd ref="14368505149"/>
+  <nd ref="14368505150"/>
+  <nd ref="14368505151"/>
+  <nd ref="14368505148"/>
+  <tag k="highway" v="footway"/>
+ </way>
+ <way id="1577986806" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038">
+  <nd ref="14368505148"/>
+  <nd ref="14368505152"/>
+  <nd ref="14368505153"/>
+  <nd ref="14368505154"/>
+  <tag k="highway" v="footway"/>
+ </way>
+ <way id="1577986807" visible="true" version="1" changeset="191810234" timestamp="2026-11-11T20:41:55Z" user="salahaldin1212" uid="24569038">
+  <nd ref="14368505155"/>
+  <nd ref="14368505156"/>
+  <tag k="highway" v="footway"/>
+ </way>
+ <way id="1577987046" visible="true" version="1" changeset="191810267" timestamp="2026-11-11T20:42:43Z" user="salahaldin1212" uid="24569038">
+  <nd ref="14368425329"/>
+  <nd ref="14368425330"/>
+  <tag k="highway" v="footway"/>
+ </way>
+</osm>
