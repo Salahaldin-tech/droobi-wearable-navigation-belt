@@ -11,6 +11,7 @@ import '../routing/routing_service.dart';
 import 'compass_service.dart';
 import 'direction_calculator.dart';
 import 'route_progress_service.dart';
+import 'navigation_trace_logger.dart';
 
 enum NavigationState {
   idle,
@@ -81,6 +82,7 @@ class NavigationService {
     GpsFilterService? gpsFilterService,
     RouteProgressService? routeProgressService,
     DirectionCalculator? directionCalculator,
+    NavigationTraceLogger? traceLogger,
 
     // --------------------------------------------------------------
     // ROUTE FOLLOWING
@@ -115,7 +117,8 @@ class NavigationService {
         _routeProgressService =
             routeProgressService ?? RouteProgressService(),
         _directionCalculator =
-            directionCalculator ?? DirectionCalculator();
+            directionCalculator ?? DirectionCalculator(),
+        _traceLogger = traceLogger ?? NavigationTraceLogger();
 
   final LocationService _locationService;
 
@@ -141,6 +144,9 @@ class NavigationService {
   final RouteProgressService _routeProgressService;
 
   final DirectionCalculator _directionCalculator;
+  final NavigationTraceLogger _traceLogger;
+
+  NavigationTraceLogger get traceLogger => _traceLogger;
 
   // ================================================================
   // SETTINGS
@@ -489,6 +495,12 @@ class NavigationService {
 
     _lastAcceptedFix = filteredFix;
     _gpsStreamHealthy = true;
+    _traceLogger.record('gps_accepted', fields: {
+      'accuracy_m': filteredFix.accuracyMeters,
+      'speed_mps': filteredFix.speedMetersPerSecond,
+      'course_deg': filteredFix.courseDegrees,
+      'course_accuracy_deg': filteredFix.courseAccuracyDegrees,
+    });
 
     if (_isCampusNavigation) {
       await _maybeRerouteCampus(filteredFix);
@@ -645,6 +657,9 @@ class NavigationService {
     _latestHeading = smoothedHeading;
     _lastCompassAt = DateTime.now();
     _compassStreamHealthy = true;
+    _traceLogger.record('compass_heading', fields: {
+      'heading_deg': smoothedHeading,
+    });
     // The next fixed policy tick uses this fresh heading.
   }
 
@@ -1146,6 +1161,18 @@ class NavigationService {
     NavigationSnapshot snapshot,
   ) {
     _snapshot = snapshot;
+    _traceLogger.record('navigation_snapshot', fields: {
+      'state': snapshot.state.name,
+      'accuracy_m': snapshot.accuracyMeters,
+      'distance_from_route_m': snapshot.distanceFromRouteMeters,
+      'progress_m': snapshot.progressMeters,
+      'remaining_route_m': snapshot.remainingRouteMeters,
+      'heading_deg': snapshot.heading,
+      'target_bearing_deg': snapshot.targetBearing,
+      'relative_angle_deg': snapshot.relativeAngle,
+      'direction': snapshot.direction?.name,
+      'error': snapshot.errorMessage,
+    });
 
     if (!_snapshotController.isClosed) {
       _snapshotController.add(snapshot);
