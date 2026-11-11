@@ -1,29 +1,21 @@
 # DXF Source Audit — Drawing1.dxf — Campus Navigation V3
 
-## Authoritative file for this audit
+## Authoritative file
 
-This audit is based only on the newly uploaded file:
+This audit uses only the newly uploaded `Drawing1.dxf`:
 
-- Filename: Drawing1.dxf
 - Size: 11,425,872 bytes
-- SHA-256: 96cdeca1fd2d7ed0423e1041fd43f3c57afa54b4fc9c536c34281f24df6132ac
-- DXF version: AC1032 (AutoCAD 2018 format)
+- SHA-256: `96cdeca1fd2d7ed0423e1041fd43f3c57afa54b4fc9c536c34281f24df6132ac`
+- DXF version: AC1032 (AutoCAD 2018)
 - Modelspace entities: 13,702
+- `$INSUNITS = 6`: drawing units declared as meters
+- `$EXTMIN = (182225.579473, 201062.231054, 0.0)`
+- `$EXTMAX = (183013.207051, 201957.831054, 824.369888)`
+- No GEODATA entity found; no explicit CRS/datum identified in the header.
 
-This file is the active DXF candidate for the V3 workflow. Do not substitute an earlier DXF or reuse its audit conclusions.
+The meter declaration does not identify the CRS. EPSG:28191 (Palestine 1923 / Palestine Grid) is being tested as a candidate, not assumed as fact.
 
-## Header and units
-
-- $INSUNITS = 6, which declares drawing units as meters.
-- $MEASUREMENT = 1.
-- $EXTMIN = (182225.579473, 201062.231054, 0.0)
-- $EXTMAX = (183013.207051, 201957.831054, 824.369888)
-- No GEODATA entity was found.
-- The header does not explicitly identify a geographic CRS or datum.
-
-The meter unit declaration is useful, but it does not prove the CRS. The drawing coordinate ranges are consistent with a Palestine Grid coordinate space, so EPSG:28191 (Palestine 1923 / Palestine Grid) is a candidate to test, not yet an approved CRS.
-
-## Modelspace entity inventory
+## Modelspace inventory
 
 | Entity type | Count |
 |---|---:|
@@ -41,40 +33,36 @@ The meter unit declaration is useful, but it does not prove the CRS. The drawing
 | SPLINE | 4 |
 | **Total** | **13,702** |
 
-## Relevant layer inventory
+## Relevant layers
 
-| Layer | Entities | Initial interpretation / review need |
+| Layer | Entities | Review note |
 |---|---:|---|
-| MANHOLE | 2,649 | Utility infrastructure; not pedestrian routing edges |
-| TREE | 1,711 | Tree symbols/labels; may inform obstacles only after interpretation |
-| CWALL | 1,609 | Candidate walls/barriers; verify continuity and meaning |
-| STAIR | 1,439 | Stair details; not automatically accessible paths |
-| V-NODE | 1,206 | Proxy entities; inspect source application/proxy meaning |
-| CS | 648 | Meaning not yet confirmed |
-| POLE | 482 | Utility/site furniture candidates |
+| MANHOLE | 2,649 | Utility infrastructure, not routing edges |
+| TREE | 1,711 | Tree symbols; possible obstacles after interpretation |
+| CWALL | 1,609 | Candidate walls/barriers; verify continuity |
+| STAIR | 1,439 | Stairs; not automatically accessible |
+| V-NODE | 1,206 | Proxy entities; inspect proxy semantics |
+| CS | 648 | Meaning unconfirmed |
+| POLE | 482 | Site furniture/utility candidates |
 | PARKING | 409 | Parking geometry; not all lines are walkable |
-| CONT-MJR | 385 | Major contour lines |
-| LEVEL | 315 | Elevation/level annotations |
-| BUILDING | 297 | Candidate building outlines; distinguish footprints from drafting detail |
-| GRIL | 251 | Meaning not yet confirmed |
-| HOUSE | 198 | Mixed geometry and hatches; inspect before interpreting |
-| CW | 155 | Mixed geometry; meaning not yet confirmed |
-| ZENK | 140 | Meaning not yet confirmed |
-| TRAV | 105 | Mixed text/circle/polyline entities; semantic meaning not yet confirmed |
-| BORDER | 76 | Candidate boundary geometry |
+| CONT-MJR | 385 | Major contours |
+| LEVEL | 315 | Elevation annotations |
+| BUILDING | 297 | Mixed outlines and drafting geometry |
+| GRIL | 251 | Meaning unconfirmed |
+| HOUSE | 198 | Mixed geometry/hatches |
+| CW | 155 | Meaning unconfirmed |
+| ZENK | 140 | Meaning unconfirmed |
+| TRAV | 105 | Mixed geometry and labels |
+| BORDER | 76 | Candidate boundaries |
 | FENCE | 34 | Candidate fences/barriers |
-| RAMP | 13 | Candidate ramps; verify endpoints, continuity, and accessibility |
-| GATE | 5 | Five entities, not necessarily five distinct gates |
+| RAMP | 13 | Candidate ramps; confirm meaning and continuity |
+| GATE | 5 | Four LINE and one LWPOLYLINE; five entities do not necessarily mean five gates |
 
-The GATE layer consists of four LINE entities and one LWPOLYLINE. Its geometry must be interpreted; entity count is not a gate count.
-
-The RAMP layer consists of eleven LINE entities and two LWPOLYLINE entities. Confirm whether these represent ramp centerlines, outlines, or drafting annotations before using them in routing.
-
-The BUILDING layer contains 143 LWPOLYLINE, 144 LINE, nine ARC, and one POLYLINE entities. These are not automatically 297 complete building footprints.
+The RAMP layer has eleven LINE and two LWPOLYLINE entities. The BUILDING layer has 143 LWPOLYLINE, 144 LINE, nine ARC and one POLYLINE. Neither entity count should be interpreted as a count of complete ramps/buildings.
 
 ## User-provided geographic control points
 
-The user confirmed that the drawing is the Arab American University (AAUP), main campus in Jenin, and supplied these WGS84 coordinates:
+The user confirmed this is the Arab American University (AAUP), main campus in Jenin, and supplied WGS84 coordinates:
 
 | Control point | Latitude | Longitude |
 |---|---:|---:|
@@ -83,26 +71,52 @@ The user confirmed that the drawing is the Arab American University (AAUP), main
 | Main entrance, Faculty of Arts | 32.407989460739536 | 35.34462720764019 |
 | Gate 1 | 32.405534019978944 | 35.342153277196914 |
 
-## Preliminary CRS and geometry cross-check
+## EPSG:28191 direct-coordinate test
 
-The four GPS points were transformed from WGS84 to EPSG:28191 for a preliminary comparison. This is a diagnostic test only; it does not by itself certify the drawing CRS or a final georeferencing transformation.
+All four WGS84 points were transformed to EPSG:28191 using a standard coordinate transformation, then compared with actual DXF geometry. This is a direct-coordinate diagnostic, not a fitted transformation.
 
-- Gate 5 transforms to approximately (182577.822, 201866.540) in EPSG:28191.
-- The DXF GATE layer contains two nearby line features: handle 382B centered at approximately (182576.193, 201865.988), and handle 382C centered at approximately (182582.716, 201865.912).
-- The Gate 5 coordinate is about 1.7 m from the center of feature 382B and about 4.9 m from feature 382C. This is a strong preliminary indication that EPSG:28191 may be the intended coordinate system, and that these line features may depict the Gate 5 opening/structure. It is not yet proof.
-- The other supplied points do not match the remaining GATE-layer features closely under this direct CRS test. Their corresponding geometry may be represented on other layers, the point descriptions may refer to a different part of each entrance, or the candidate CRS/datum may require a documented transformation.
+| Control point | EPSG:28191 X | EPSG:28191 Y | Closest relevant DXF evidence |
+|---|---:|---:|---|
+| Gate 3 | 182328.232 | 201502.663 | HOUSE line handle 810: 1.52 m; nearby text handle 1878: 8.94 m; nearest GATE-layer line: 39.48 m |
+| Gate 5 | 182577.822 | 201866.540 | GATE line handle 382B: 0.57 m; GATE line handle 382C: 1.98 m |
+| Faculty of Arts main entrance | 182643.514 | 201567.977 | STAIR line handle 1717: 0.30 m; BUILDING line handle 1719: 1.56 m |
+| Gate 1 | 182411.132 | 201295.377 | HOUSE polyline handle 896: 2.00 m; nearby text handle 185B: 7.86 m; nearest GATE-layer line: 262.45 m |
 
-**Do not force the remaining GPS points onto the nearest GATE-layer entities.** Identify their actual corresponding features using geometry and labels, then test residuals. The Gate 5 match is one strong check, not enough on its own to approve the CRS or a campus-wide transformation.
+The nearby gate-label text strings on DXF layer `1` appear as `f,hfm vrL 3`, `f,hfm vrL 5`, and `f,hfm vrL 1` in the parsed text. This is likely an encoding/font rendering issue; it is not treated as a verified semantic label without decoding/author confirmation.
 
-## Required next steps
+### Interpretation
 
-1. Search the DXF's text, block attributes, and drawing metadata for an explicit CRS/datum or survey reference.
-2. Identify the actual corresponding geometry for Gate 3, Gate 1, and the Faculty of Arts main entrance. Do not assume every entrance is represented in the GATE layer.
-3. Verify EPSG:28191 against multiple independent points distributed across the campus. Report residuals in meters and keep at least one independent check point out of any fitted transformation.
-4. If the EPSG:28191 direct-coordinate test is not sufficiently accurate, obtain the survey datum/CRS or transformation parameters from the university engineering office / drawing author. Do not hide systematic offsets with an arbitrary fit.
-5. Only after CRS validation, define the campus AOI and obtain a timestamped OSM extract through Overpass.
-6. Keep raw OSM data and DXF-derived candidate geometry separate until reconciliation is complete.
+- The four user-provided points fall close to plausible local DXF features under EPSG:28191: approximately 0.30–2.00 m for the nearest candidate geometry.
+- Gate 5 has a particularly strong correspondence with the GATE layer (0.57 m to handle 382B).
+- Gate 3 and Gate 1 do **not** coincide with the remaining entities in the GATE layer. Their closest geometry is on other layers, so the GATE layer must not be treated as a complete authoritative gate inventory.
+- The Faculty of Arts entrance is very close to a STAIR feature and a BUILDING line, consistent with an entrance/threshold location.
+- These matches make EPSG:28191 a strong provisional CRS candidate. They do not prove the source datum, survey method, or campus-wide accuracy. GPS pin placement itself may also be several metres from the exact surveyed feature.
 
-## Current audit status
+No arbitrary affine fit has been applied to force the points onto geometry. The four coordinates should be treated as validation observations; independent check points and source metadata are still needed before approving a transformation.
 
-**Drawing1.dxf structural inspection completed. Four user-supplied GPS control points recorded. EPSG:28191 is a promising provisional CRS candidate based on a close Gate 5 geometry correspondence, but it is not yet certified. No OSM extraction, approved georeferencing transformation, merged map, or routing graph has been created.**
+## Campus bounding area for the next OSM extraction
+
+The DXF XY extents, provisionally interpreted in EPSG:28191, transform approximately to this WGS84 bounding box:
+
+- South: 32.40342
+- West: 35.34017
+- North: 32.41151
+- East: 35.34857
+
+This is a preliminary extraction envelope, not a final campus boundary. Clip the eventual OSM extract to the verified campus AOI, not simply to this rectangular envelope.
+
+## OSM discovery notes
+
+Public OSM-derived references identify the university campus as OSM way 888585504 (`amenity=university`). This is a useful seed feature for AOI discovery, not evidence that OSM contains a complete pedestrian network inside the campus. The official university visitor page also identifies the Jenin campus location near Talfit/Zababdeh. OSM raw data must still be fetched from Overpass and inspected before any comparison or routing use.
+
+## Next technical steps
+
+1. Decode/inspect the DXF text and block attributes for survey/CRS clues.
+2. Continue identifying exact gate openings and entrance thresholds in the DXF; do not infer them solely from layer names.
+3. Obtain and archive a timestamped OSM extract for the envelope above, then determine the actual campus AOI.
+4. Reconcile OSM and DXF in separate source layers with provenance and license records.
+5. Validate geometry, accessibility, barriers, and pedestrian connectivity before constructing a routing graph.
+
+## Current status
+
+**DXF structural inspection and four-point EPSG:28191 cross-check completed. EPSG:28191 is a strong provisional candidate, not yet formally certified. No approved georeferencing transformation, OSM extract, merged map, or routing graph has been produced.**
