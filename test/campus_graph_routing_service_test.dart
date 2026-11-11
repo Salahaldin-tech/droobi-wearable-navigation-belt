@@ -7,86 +7,129 @@ import 'package:droobi/services/routing/routing_service.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  group('CampusGraphRoutingService', () {
-    test('calculates a route from Gate 3 to the QGIS cafeteria entrance', () async {
+  group('CampusGraphRoutingService V3', () {
+    test('loads the latest GeoPackage export and reports its coverage', () async {
       final service = CampusGraphRoutingService();
-      const origin = LatLon(
-        latitude: 32.407314121188996,
-        longitude: 35.341274227489635,
+      final diagnostics = await service.diagnostics();
+
+      expect(diagnostics.nodeCount, 28);
+      expect(diagnostics.edgeCount, 20);
+      expect(diagnostics.connectedComponents, 3);
+      expect(diagnostics.allEdgesFieldVerified, isFalse);
+      expect(diagnostics.warnings, isNotEmpty);
+    });
+
+    test('routes from Gate 3 to Cafeteria door C1 on the mapped network',
+        () async {
+      final service = CampusGraphRoutingService();
+      const gateThree = LatLon(
+        latitude: 32.407343612351234,
+        longitude: 35.34132248882196,
       );
-      const destination = LatLon(
-        latitude: 32.40699249396461,
-        longitude: 35.34216978223841,
+      const cafeteriaC1 = LatLon(
+        latitude: 32.40702199291816,
+        longitude: 35.342165855390974,
       );
 
       final route = await service.computeRoute(
-        origin: origin,
-        destination: destination,
+        origin: gateThree,
+        destination: cafeteriaC1,
       );
 
       expect(route.polyline.length, greaterThan(2));
-      expect(route.polyline.first.latitude, origin.latitude);
-      expect(route.polyline.first.longitude, origin.longitude);
+      expect(route.distanceMeters, greaterThan(0));
+      expect(route.polyline.first.latitude, closeTo(gateThree.latitude, 0.00001));
+      expect(route.polyline.last.latitude,
+          closeTo(cafeteriaC1.latitude, 0.00001));
+    });
+
+    test('routes from Gate 3 to the IT entrance across connected QGIS edges',
+        () async {
+      final service = CampusGraphRoutingService();
+      const gateThree = LatLon(
+        latitude: 32.407343612351234,
+        longitude: 35.34132248882196,
+      );
+      const itEntrance = LatLon(
+        latitude: 32.406762881757636,
+        longitude: 35.34341922867782,
+      );
+
+      final route = await service.computeRoute(
+        origin: gateThree,
+        destination: itEntrance,
+      );
+
+      expect(route.polyline.length, greaterThan(10));
       expect(route.distanceMeters, greaterThan(0));
     });
 
-    test('rejects a GPS position outside the QGIS campus map coverage', () async {
+    test('respects one-way QGIS edges and rejects reverse Gate 3 routing',
+        () async {
+      final service = CampusGraphRoutingService();
+      const cafeteriaC1 = LatLon(
+        latitude: 32.40702199291816,
+        longitude: 35.342165855390974,
+      );
+      const gateThree = LatLon(
+        latitude: 32.407343612351234,
+        longitude: 35.34132248882196,
+      );
+
+      await expectLater(
+        service.computeRoute(
+          origin: cafeteriaC1,
+          destination: gateThree,
+        ),
+        throwsA(
+          isA<RoutingFailure>().having(
+            (failure) => failure.message,
+            'message',
+            contains('GRAPH_CONNECTIVITY'),
+          ),
+        ),
+      );
+    });
+
+    test('routes from Gate 1 using the new ED08 path', () async {
+      final service = CampusGraphRoutingService();
+      const gateOne = LatLon(
+        latitude: 32.4055253160422,
+        longitude: 35.342239729578615,
+      );
+      const itEntrance = LatLon(
+        latitude: 32.406762881757636,
+        longitude: 35.34341922867782,
+      );
+
+      final route = await service.computeRoute(
+        origin: gateOne,
+        destination: itEntrance,
+      );
+
+      expect(route.polyline.length, greaterThan(2));
+      expect(route.distanceMeters, greaterThan(0));
+    });
+
+    test('rejects GPS outside mapped coverage without adding a connector',
+        () async {
       final service = CampusGraphRoutingService();
       const outsideCampus = LatLon(latitude: 32.5, longitude: 35.5);
-      const destination = LatLon(
-        latitude: 32.40699249396461,
-        longitude: 35.34216978223841,
+      const itEntrance = LatLon(
+        latitude: 32.406762881757636,
+        longitude: 35.34341922867782,
       );
 
       await expectLater(
         service.computeRoute(
           origin: outsideCampus,
-          destination: destination,
+          destination: itEntrance,
         ),
-        throwsA(isA<RoutingFailure>()),
-      );
-    });
-
-    test('routes in reverse across every QGIS edge including ED006', () async {
-      final service = CampusGraphRoutingService();
-      const engineeringEntrance = LatLon(
-        latitude: 32.408136594,
-        longitude: 35.345562575,
-      );
-      const gateThree = LatLon(
-        latitude: 32.407343613,
-        longitude: 35.341322488,
-      );
-
-      final route = await service.computeRoute(
-        origin: engineeringEntrance,
-        destination: gateThree,
-      );
-
-      expect(route.polyline.length, greaterThan(2));
-      expect(route.polyline.first.latitude, engineeringEntrance.latitude);
-      expect(route.polyline.last.latitude, gateThree.latitude);
-      expect(route.distanceMeters, greaterThan(0));
-    });
-
-    test('reports Gate 1 as outside current mapped path coverage', () async {
-      final service = CampusGraphRoutingService();
-      const gateOne = LatLon(
-        latitude: 32.405525317,
-        longitude: 35.342239729,
-      );
-      const gateThree = LatLon(
-        latitude: 32.407343613,
-        longitude: 35.341322488,
-      );
-
-      await expectLater(
-        service.computeRoute(origin: gateOne, destination: gateThree),
         throwsA(
           isA<RoutingFailure>().having(
             (failure) => failure.message,
             'message',
-            contains('GPS_SNAP_ORIGIN'),
+            contains('MAP_MATCH_DISTANCE'),
           ),
         ),
       );
