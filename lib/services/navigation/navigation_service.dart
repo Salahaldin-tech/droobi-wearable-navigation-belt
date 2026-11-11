@@ -495,9 +495,8 @@ class NavigationService {
       if (!_isNavigating) return;
     }
 
-    // Sensor updates only refresh the latest data. Guidance is evaluated
-    // by the fixed policy timer, not at raw sensor callback frequency.
-    _runPolicyTick();
+    // Sensor updates only refresh the latest data. The periodic policy
+    // timer is the sole source of directional guidance decisions.
   }
 
   // ================================================================
