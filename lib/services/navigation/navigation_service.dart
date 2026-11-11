@@ -225,7 +225,14 @@ class NavigationService {
 
   DateTime? _candidateDirectionSince;
   DateTime? _lastArrivalFixTimestamp;
+  DateTime? _lastCountedArrivalFixTimestamp;
   int _arrivalFixCount = 0;
+
+  static const Duration _minimumArrivalFixSpacing =
+      Duration(seconds: 1);
+  static const Duration _maximumArrivalConfirmationGap =
+      Duration(seconds: 20);
+  static const double _maximumArrivalOvershootMeters = 20.0;
 
   // ================================================================
   // PUBLIC
@@ -364,6 +371,13 @@ class NavigationService {
 
       final initialHeading =
           await _compassService.getStableHeading();
+
+      _traceLogger.record('compass_initial_stability', fields: {
+        'resultant_vector': _compassService.lastStabilityResultantVector,
+        'sample_count': _compassService.lastStabilitySampleCount,
+        'sampling_window_ms':
+            _compassService.lastStabilitySamplingWindow?.inMilliseconds,
+      });
 
       _resetCompassSmoothing();
 
@@ -601,6 +615,7 @@ class NavigationService {
       // A replacement route starts a new arrival evaluation window.
       _arrivalFixCount = 0;
       _lastArrivalFixTimestamp = null;
+      _lastCountedArrivalFixTimestamp = null;
       _confirmedDirection = null;
       _candidateDirection = null;
       _candidateDirectionCount = 0;
@@ -928,8 +943,9 @@ class NavigationService {
       destination,
     );
 
-    // Count only distinct GPS fixes. Compass callbacks can recalculate
-    // navigation many times per second and are not independent arrival proof.
+    // Arrival evidence is GPS-fix based, not compass-tick based. The
+    // confirmation window is time-aware so slow GPS cadence does not make
+    // the user walk indefinitely past the mapped entrance.
     if (_lastArrivalFixTimestamp != fix.timestamp) {
       _lastArrivalFixTimestamp = fix.timestamp;
       final endpoint = route.polyline.isNotEmpty
@@ -946,13 +962,36 @@ class NavigationService {
       final remainingRoute = _routeProgressService.remainingRouteMeters;
       final nearDestination = distanceToDestination <= arrivalRadius ||
           distanceToEndpoint <= arrivalRadius;
+      final passedDestination = _isWithinArrivalOvershoot(
+        fix.position,
+        route,
+        maximumOvershootMeters: _maximumArrivalOvershootMeters,
+        maximumCrossTrackMeters: arrivalRadius,
+      );
       final routeNearlyComplete = remainingRoute <=
-          math.max(10.0, fix.accuracyMeters * 0.75);
+              math.max(10.0, fix.accuracyMeters * 0.75) ||
+          passedDestination;
+      final arrivalEvidence =
+          (nearDestination || passedDestination) && routeNearlyComplete;
 
-      if (nearDestination && routeNearlyComplete) {
-        _arrivalFixCount++;
+      if (arrivalEvidence) {
+        final previousCountedFix = _lastCountedArrivalFixTimestamp;
+        if (_arrivalFixCount == 0 || previousCountedFix == null) {
+          _arrivalFixCount = 1;
+          _lastCountedArrivalFixTimestamp = fix.timestamp;
+        } else {
+          final spacing = fix.timestamp.difference(previousCountedFix);
+          if (spacing > _maximumArrivalConfirmationGap) {
+            _arrivalFixCount = 1;
+            _lastCountedArrivalFixTimestamp = fix.timestamp;
+          } else if (spacing >= _minimumArrivalFixSpacing) {
+            _arrivalFixCount++;
+            _lastCountedArrivalFixTimestamp = fix.timestamp;
+          }
+        }
       } else {
         _arrivalFixCount = 0;
+        _lastCountedArrivalFixTimestamp = null;
       }
     }
 
@@ -1003,7 +1042,40 @@ class NavigationService {
     // The route itself determines the direction of travel.
     // ------------------------------------------------------------
 
-    final bearing = target.routeBearing;
+  bool _isWithinArrivalOvershoot(
+    LatLon position,
+    RouteResult route, {
+    required double maximumOvershootMeters,
+    required double maximumCrossTrackMeters,
+  }) {
+    if (route.polyline.length < 2) return false;
+    final previous = route.polyline[route.polyline.length - 2];
+    final endpoint = route.polyline.last;
+    const metersPerDegree = 111320.0;
+    final latitudeRadians = endpoint.latitude * math.pi / 180.0;
+    final scaleX = metersPerDegree * math.cos(latitudeRadians);
+
+    final routeX =
+        (endpoint.longitude - previous.longitude) * scaleX;
+    final routeY =
+        (endpoint.latitude - previous.latitude) * metersPerDegree;
+    final routeLength = math.sqrt(routeX * routeX + routeY * routeY);
+    if (!routeLength.isFinite || routeLength < 0.1) return false;
+
+    final userX = (position.longitude - endpoint.longitude) * scaleX;
+    final userY =
+        (position.latitude - endpoint.latitude) * metersPerDegree;
+    final unitX = routeX / routeLength;
+    final unitY = routeY / routeLength;
+    final alongTrack = userX * unitX + userY * unitY;
+    final crossTrack = (userX * unitY - userY * unitX).abs();
+
+    return alongTrack >= 0 &&
+        alongTrack <= maximumOvershootMeters &&
+        crossTrack <= maximumCrossTrackMeters;
+  }
+
+  final bearing = target.routeBearing;
     if (bearing == null || !bearing.isFinite) {
       _publish(NavigationSnapshot(
         state: NavigationState.positionUncertain,
