@@ -692,7 +692,8 @@ class NavigationService {
         }
 
         _compassStreamHealthy = false;
-        _latestHeading = null;
+        _lastCompassAt = null;
+        _resetCompassSmoothing();
         _publish(
           NavigationSnapshot(
             state: NavigationState.positionUncertain,
