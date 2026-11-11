@@ -1,6 +1,11 @@
 # V3 Campus Map Export
 
-The current V3 QGIS source files are kept in `assets/campus_map_v3/`:
+The runtime map is pinned to the exact source files copied from `main`:
+
+- GeoPackage Git blob SHA-1: `a1eb1b7652d6e6f6251a2dce9f0e7c99d4decf41`
+- QGIS project Git blob SHA-1: `ae94aaf49c669bc5e8147ec94b863711a8f3d998`
+
+The source files are kept in `assets/campus_map_v3/`:
 - `AAUP_Campus_Network.qgz` — editable QGIS project.
 - `campus_network.gpkg` — source GeoPackage.
 
@@ -17,10 +22,18 @@ python tools/export_campus_geopackage.py
    EPSG:4326, preserves their attributes, and writes:
    - `assets/campus_map_v3/exported/nodes.geojson`
    - `assets/campus_map_v3/exported/edges.geojson`
-4. Commit both generated GeoJSON files to this branch. The app prefers the V3
-   exports when both exist and otherwise falls back to the V2 pilot exports.
+4. Commit both generated GeoJSON files to this branch.
 5. Run `flutter pub get` from the project root so the new WMM2025 dependency is
    resolved and `pubspec.lock` is refreshed.
+
+The exporter verifies the GeoPackage Git blob SHA-1 before reading it, selects
+only the exact `campus_network` point layer (14 source features) and `edges`
+line layer (7 source features), and writes provenance metadata into both
+GeoJSON files. The Flutter app validates that metadata and each feature's
+source-layer tag. There is **no V2, Firestore, OSRM, or alternate-map fallback**
+for campus navigation. If the exports are missing or have the wrong source,
+the app shows an explicit map-loading error instead of silently using another
+map.
 
 The exporter deliberately does not create connections between separated lines.
 A route is valid only when the QGIS edge geometries actually connect. The
