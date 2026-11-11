@@ -72,6 +72,9 @@ class PositionFilterService {
       ),
       accuracyMeters: fix.accuracyMeters,
       timestamp: fix.timestamp,
+      speedMetersPerSecond: fix.speedMetersPerSecond,
+      courseDegrees: fix.courseDegrees,
+      courseAccuracyDegrees: fix.courseAccuracyDegrees,
     );
 
     _lastFilteredFix = filteredFix;
