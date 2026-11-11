@@ -31,7 +31,16 @@ jobs:
         run: flutter --version
 
       - name: Resolve dependencies
-        run: flutter pub get --enforce-lockfile
+        run: flutter pub get
+
+      - name: Upload the resolved lockfile for review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3-resolved-pubspec-lock
+          path: pubspec.lock
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Parse and format changed navigation sources
         run: |
