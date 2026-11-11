@@ -4,6 +4,8 @@
 
 The AAUP campus map exported by the user from OpenStreetMap is the authoritative campus routing source for this branch. The campus graph is no longer loaded from the legacy QGIS `nodes.geojson` / `edges.geojson` assets.
 
+The user confirmed that the mapped campus paths are connected. This branch treats that as the intended map topology; the OSRM extraction and route smoke tests are the next machine-level checks of reachability. No claim of physical accessibility or field safety is made.
+
 The supplied source snapshot is stored at:
 
 - `docs/campus-mapping/osm/aaup-campus.osm`
@@ -73,6 +75,11 @@ The campus OSRM client uses the `foot` route profile and a bounded 20 m snap rad
 These are destination anchors. The route itself is computed by OSRM over the OSM pedestrian graph.
 
 Other destinations that do not yet have a mapped OSM entrance may continue to use the existing Firestore location record temporarily; they are still snapped by the campus OSRM endpoint and must pass the 20 m snap limit. Add explicit OSM entrance nodes for these destinations before production use.
+
+## What is and is not integrated
+
+- The OSM snapshot is now the campus routing graph source, and the five explicitly tagged main-door nodes are used as destination anchors in the University screen.
+- The app does not yet render a live interactive OSM tile basemap. This change uses OSM data for route computation and entrance coordinates; a visible map layer is a separate UI task.
 
 ## Scope and safety
 
