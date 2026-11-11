@@ -11,14 +11,13 @@ import 'routing_notifier.dart';
 
 final navigationServiceProvider =
     Provider<NavigationService>((ref) {
-  final campusOsrmBaseUrl =
-      const String.fromEnvironment('CAMPUS_OSRM_BASE_URL').trim();
-  final campusRoutingService = campusOsrmBaseUrl.isEmpty
-      ? null
-      : OsrmRoutingService(
-          baseUrl: campusOsrmBaseUrl,
-          maxSnapRadiusMeters: 20,
-        );
+  // Campus routing has its own client instance and configuration.
+  // It uses the same public OSRM endpoint as general routing without
+  // modifying the general routing provider or its lifecycle.
+  final campusRoutingService = OsrmRoutingService(
+    baseUrl: 'https://router.project-osrm.org',
+    maxSnapRadiusMeters: 20,
+  );
   if (campusRoutingService != null) {
     ref.onDispose(campusRoutingService.dispose);
   }
