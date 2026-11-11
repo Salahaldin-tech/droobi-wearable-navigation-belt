@@ -196,6 +196,7 @@ class NavigationService {
   LatLon? _destination;
 
   LocationFix? _lastAcceptedFix;
+  DateTime? _lastAcceptedGpsTimestamp;
 
   double? _latestHeading;
 
@@ -297,6 +298,7 @@ class NavigationService {
           await _waitForGoodInitialFix();
 
       _lastAcceptedFix = filteredFix;
+      _lastAcceptedGpsTimestamp = filteredFix.timestamp;
       _gpsStreamHealthy = true;
       _traceLogger.record('gps_initial_fix', fields: {
         'accuracy_m': filteredFix.accuracyMeters,
@@ -516,9 +518,15 @@ class NavigationService {
       return;
     }
 
+    final previousGpsTimestamp = _lastAcceptedGpsTimestamp;
+    final gpsInterval = previousGpsTimestamp == null
+        ? null
+        : filteredFix.timestamp.difference(previousGpsTimestamp);
     _lastAcceptedFix = filteredFix;
+    _lastAcceptedGpsTimestamp = filteredFix.timestamp;
     _gpsStreamHealthy = true;
     _traceLogger.record('gps_accepted', fields: {
+      'interval_ms': gpsInterval?.inMilliseconds,
       'accuracy_m': filteredFix.accuracyMeters,
       'speed_mps': filteredFix.speedMetersPerSecond,
       'course_deg': filteredFix.courseDegrees,
@@ -890,6 +898,39 @@ class NavigationService {
   // NAVIGATION CALCULATION
   // ================================================================
 
+  bool _isWithinArrivalOvershoot(
+    LatLon position,
+    RouteResult route, {
+    required double maximumOvershootMeters,
+    required double maximumCrossTrackMeters,
+  }) {
+    if (route.polyline.length < 2) return false;
+    final previous = route.polyline[route.polyline.length - 2];
+    final endpoint = route.polyline.last;
+    const metersPerDegree = 111320.0;
+    final latitudeRadians = endpoint.latitude * math.pi / 180.0;
+    final scaleX = metersPerDegree * math.cos(latitudeRadians);
+
+    final routeX =
+        (endpoint.longitude - previous.longitude) * scaleX;
+    final routeY =
+        (endpoint.latitude - previous.latitude) * metersPerDegree;
+    final routeLength = math.sqrt(routeX * routeX + routeY * routeY);
+    if (!routeLength.isFinite || routeLength < 0.1) return false;
+
+    final userX = (position.longitude - endpoint.longitude) * scaleX;
+    final userY =
+        (position.latitude - endpoint.latitude) * metersPerDegree;
+    final unitX = routeX / routeLength;
+    final unitY = routeY / routeLength;
+    final alongTrack = userX * unitX + userY * unitY;
+    final crossTrack = (userX * unitY - userY * unitX).abs();
+
+    return alongTrack >= 0 &&
+        alongTrack <= maximumOvershootMeters &&
+        crossTrack <= maximumCrossTrackMeters;
+  }
+
   void _updateNavigation(
     LocationFix fix,
     double heading,
@@ -1042,39 +1083,6 @@ class NavigationService {
     // The route itself determines the direction of travel.
     // ------------------------------------------------------------
 
-  bool _isWithinArrivalOvershoot(
-    LatLon position,
-    RouteResult route, {
-    required double maximumOvershootMeters,
-    required double maximumCrossTrackMeters,
-  }) {
-    if (route.polyline.length < 2) return false;
-    final previous = route.polyline[route.polyline.length - 2];
-    final endpoint = route.polyline.last;
-    const metersPerDegree = 111320.0;
-    final latitudeRadians = endpoint.latitude * math.pi / 180.0;
-    final scaleX = metersPerDegree * math.cos(latitudeRadians);
-
-    final routeX =
-        (endpoint.longitude - previous.longitude) * scaleX;
-    final routeY =
-        (endpoint.latitude - previous.latitude) * metersPerDegree;
-    final routeLength = math.sqrt(routeX * routeX + routeY * routeY);
-    if (!routeLength.isFinite || routeLength < 0.1) return false;
-
-    final userX = (position.longitude - endpoint.longitude) * scaleX;
-    final userY =
-        (position.latitude - endpoint.latitude) * metersPerDegree;
-    final unitX = routeX / routeLength;
-    final unitY = routeY / routeLength;
-    final alongTrack = userX * unitX + userY * unitY;
-    final crossTrack = (userX * unitY - userY * unitX).abs();
-
-    return alongTrack >= 0 &&
-        alongTrack <= maximumOvershootMeters &&
-        crossTrack <= maximumCrossTrackMeters;
-  }
-
   final bearing = target.routeBearing;
     if (bearing == null || !bearing.isFinite) {
       _publish(NavigationSnapshot(
@@ -1217,6 +1225,7 @@ class NavigationService {
     _gpsFilterService.reset();
 
     _lastAcceptedFix = null;
+    _lastAcceptedGpsTimestamp = null;
     _latestHeading = null;
 
     _route = null;
@@ -1233,6 +1242,7 @@ class NavigationService {
     _candidateDirectionSince = null;
     _arrivalFixCount = 0;
     _lastArrivalFixTimestamp = null;
+    _lastCountedArrivalFixTimestamp = null;
     _routeProgressService.reset();
     _policyTimer?.cancel();
     _policyTimer = null;
