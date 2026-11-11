@@ -1268,9 +1268,6 @@ class NavigationService {
     _policyTimer?.cancel();
     _policyTimer = null;
     _lastCompassAt = null;
-    _gpsStreamHealthy = true;
-    _compassStreamHealthy = true;
-
     _resetCompassSmoothing();
 
     if (!_isDisposed) {
