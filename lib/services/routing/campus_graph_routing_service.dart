@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/services.dart';
@@ -274,9 +273,12 @@ class CampusGraphRoutingService implements RoutingService {
         throw const FormatException('The QGIS nodes GeoJSON contains no valid Point features.');
       }
       return _CampusGraph(adjacency: adjacency, points: points, segments: segments);
-    } on Exception catch (error) {
-      throw RoutingFailure(RoutingErrorType.apiError,
-          'Could not load the QGIS campus map: ' + error.toString());
+    } catch (error) {
+      throw RoutingFailure(
+        RoutingErrorType.apiError,
+        'Could not load the verified main-branch campus map: ' +
+            error.toString(),
+      );
     }
   }
 
