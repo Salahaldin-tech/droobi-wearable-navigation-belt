@@ -95,7 +95,10 @@ class CampusGraphRoutingService implements RoutingService {
         final pathKeys = _shortestPath(adjacency, originKey, destinationKey);
         if (pathKeys == null || pathKeys.length < 2) continue;
 
-        final routePoints = <LatLon>[origin];
+        // Start at the snapped point on the mapped pedestrian network.
+        // Do not treat the straight GPS-to-edge snap connector as a walkable
+        // route segment or use it to determine the first vibration cue.
+        final routePoints = <LatLon>[originSnap.point];
         for (final key in pathKeys) {
           final point = points[key];
           if (point != null) _appendDistinct(routePoints, point);
