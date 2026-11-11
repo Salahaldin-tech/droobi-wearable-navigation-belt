@@ -37,6 +37,9 @@ final navigationServiceProvider =
     gpsFilterService:
         GpsFilterService(),
 
+    campusGpsFilterService:
+        GpsFilterService(),
+
     routeProgressService:
         RouteProgressService(),
 
