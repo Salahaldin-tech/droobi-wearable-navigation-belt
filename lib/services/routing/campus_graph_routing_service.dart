@@ -8,8 +8,8 @@ import '../../models/route_result.dart';
 import 'routing_service.dart';
 
 /// Experimental offline campus router built from the QGIS GeoJSON export.
-/// Edge LineStrings are the routing graph; shared coordinates define junctions
-/// because the pilot from_node/to_node attributes are not yet consistent.
+/// Edge LineStrings are the routing graph; explicit from_node/to_node IDs define junctions when they match the node layer;
+/// shared coordinates remain the fallback for edges without usable endpoint IDs.
 class CampusGraphRoutingService implements RoutingService {
   CampusGraphRoutingService({this.maximumSnapMeters = 45.0});
 
@@ -239,9 +239,9 @@ class CampusGraphRoutingService implements RoutingService {
         for (var i = 0; i < effectiveLine.length; i++) {
           final point = effectiveLine[i];
           final key = i == 0 && useFromNode
-              ? 'node:\${_normalizeNodeId(fromNodeId!)}'
+              ? 'node:${_normalizeNodeId(fromNodeId!)}'
               : i == effectiveLine.length - 1 && useToNode
-                  ? 'node:\${_normalizeNodeId(toNodeId!)}'
+                  ? 'node:${_normalizeNodeId(toNodeId!)}'
                   : _key(point);
           vertexKeys.add(key);
           points.putIfAbsent(key, () => point);
