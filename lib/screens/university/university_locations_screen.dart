@@ -763,7 +763,9 @@ class _UniversityLocationsScreenState
       'Faculty of Arts and Education' => const ['AR1'],
       'Faculty of Engineering' => const ['E1'],
       'Faculty of Allied Medical Sciences' => const ['AMS_A'],
-      // MED and AMS_B are not connected to the main path network in QGIS.
+      // MED belongs to isolated ED011 and AMS_B to isolated ED012.
+      // Neither entrance is offered as a routable destination until QGIS
+      // contains a real connecting pedestrian path.
       _ => const <String>[],
     };
   }
