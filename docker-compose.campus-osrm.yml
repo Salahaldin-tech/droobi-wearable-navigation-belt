@@ -1,0 +1,10 @@
+services:
+  campus-osrm:
+    image: ghcr.io/project-osrm/osrm-backend:latest
+    container_name: droobi-campus-osrm
+    command: ["osrm-routed", "--algorithm", "mld", "/data/aaup-campus.osrm", "--port", "5000"]
+    ports:
+      - "5001:5000"
+    volumes:
+      - ./docs/campus-mapping/osm:/data:ro
+    restart: unless-stopped
