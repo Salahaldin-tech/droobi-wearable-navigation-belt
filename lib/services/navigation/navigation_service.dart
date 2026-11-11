@@ -654,6 +654,8 @@ class NavigationService {
       );
       if (!_isNavigating || replacement.polyline.isEmpty) return;
       _route = replacement;
+      _lastRouteTarget = null;
+      _lastRouteTargetFixTimestamp = null;
       _traceLogger.record('campus_reroute_completed', fields: {
         'distance_m': replacement.distanceMeters,
         'point_count': replacement.polyline.length,
