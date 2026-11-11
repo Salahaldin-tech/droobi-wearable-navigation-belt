@@ -191,6 +191,19 @@ class LocationService {
       ),
       accuracyMeters: position.accuracy,
       timestamp: position.timestamp,
+      speedMetersPerSecond:
+          position.speed.isFinite && position.speed >= 0
+              ? position.speed
+              : null,
+      courseDegrees:
+          position.heading.isFinite && position.heading >= 0
+              ? position.heading % 360
+              : null,
+      courseAccuracyDegrees:
+          position.headingAccuracy.isFinite &&
+                  position.headingAccuracy >= 0
+              ? position.headingAccuracy
+              : null,
     );
   }
 }

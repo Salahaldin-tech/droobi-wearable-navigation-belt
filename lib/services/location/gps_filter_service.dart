@@ -6,81 +6,61 @@ class GpsFilterService {
   GpsFilterService({
     this.maxAccuracyMeters = 25.0,
     this.maxWalkingSpeedMetersPerSecond = 3.0,
-  });
+    this.maximumFixAge = const Duration(seconds: 15),
+    this.maximumFutureSkew = const Duration(seconds: 2),
+    DateTime Function()? clock,
+  }) : _clock = clock ?? DateTime.now;
 
   final double maxAccuracyMeters;
-
   final double maxWalkingSpeedMetersPerSecond;
+  final Duration maximumFixAge;
+  final Duration maximumFutureSkew;
+  final DateTime Function() _clock;
 
   LocationFix? _lastAcceptedFix;
 
-  LocationFix? get lastAcceptedFix =>
-      _lastAcceptedFix;
+  LocationFix? get lastAcceptedFix => _lastAcceptedFix;
 
   LocationFix? process(LocationFix fix) {
-    // ----------------------------------------------------------
-    // 1. Accuracy check
-    // ----------------------------------------------------------
-
-    if (!_hasValidAccuracy(fix)) {
-      return null;
-    }
+    if (!_hasValidAccuracy(fix)) return null;
+    if (!_hasValidTimestamp(fix)) return null;
 
     final previous = _lastAcceptedFix;
-
-    // First valid GPS fix.
     if (previous == null) {
       _lastAcceptedFix = fix;
       return fix;
     }
 
-    // ----------------------------------------------------------
-    // 2. Time check
-    // ----------------------------------------------------------
-
-    final timeDifferenceSeconds =
-        fix.timestamp
-                .difference(previous.timestamp)
-                .inMilliseconds /
-            1000.0;
-
-    // Ignore duplicated or invalid timestamps.
-    if (timeDifferenceSeconds <= 0) {
+    final elapsed = fix.timestamp.difference(previous.timestamp);
+    if (elapsed.inMilliseconds <= 0) {
+      // Duplicate and out-of-order fixes must not move the navigation state.
       return null;
     }
 
-    // ----------------------------------------------------------
-    // 3. Distance check
-    // ----------------------------------------------------------
+    // After a long GPS interruption, establish a fresh baseline instead of
+    // rejecting the first resumed fix based on a stale previous position.
+    if (elapsed > const Duration(seconds: 45)) {
+      _lastAcceptedFix = fix;
+      return fix;
+    }
 
-    final distanceMeters =
-        _distanceBetween(
-      previous.position.latitude,
-      previous.position.longitude,
-      fix.position.latitude,
-      fix.position.longitude,
-    );
+    final elapsedSeconds = elapsed.inMicroseconds / Duration.microsecondsPerSecond;
+    final distance = _distanceBetween(previous, fix);
+    final impliedSpeed = distance / elapsedSeconds;
 
-    // ----------------------------------------------------------
-    // 4. Plausible walking speed check
-    // ----------------------------------------------------------
-
-    final impliedSpeed =
-        distanceMeters /
-            timeDifferenceSeconds;
-
-    if (impliedSpeed >
-        maxWalkingSpeedMetersPerSecond) {
-      // GPS probably jumped.
+    if (!impliedSpeed.isFinite ||
+        impliedSpeed > maxWalkingSpeedMetersPerSecond) {
       return null;
     }
 
-    // ----------------------------------------------------------
-    // 5. Accept fix
-    // ----------------------------------------------------------
+    final reportedSpeed = fix.speedMetersPerSecond;
+    if (reportedSpeed != null &&
+        reportedSpeed.isFinite &&
+        reportedSpeed > 5.5) {
+      return null;
+    }
 
     _lastAcceptedFix = fix;
-
     return fix;
   }
 
@@ -88,66 +68,30 @@ class GpsFilterService {
     _lastAcceptedFix = null;
   }
 
-  bool _hasValidAccuracy(
-    LocationFix fix,
-  ) {
-    if (!fix.accuracyMeters.isFinite) {
-      return false;
-    }
-
-    if (fix.accuracyMeters < 0) {
-      return false;
-    }
-
-    return fix.accuracyMeters <=
-        maxAccuracyMeters;
+  bool _hasValidAccuracy(LocationFix fix) {
+    return fix.accuracyMeters.isFinite &&
+        fix.accuracyMeters >= 0 &&
+        fix.accuracyMeters <= maxAccuracyMeters;
   }
 
-  double _distanceBetween(
-    double latitude1,
-    double longitude1,
-    double latitude2,
-    double longitude2,
-  ) {
+  bool _hasValidTimestamp(LocationFix fix) {
+    final age = _clock().difference(fix.timestamp);
+    return age <= maximumFixAge && age >= -maximumFutureSkew;
+  }
+
+  double _distanceBetween(LocationFix first, LocationFix second) {
     const earthRadiusMeters = 6371000.0;
-
-    final lat1 =
-        _degreesToRadians(latitude1);
-
-    final lat2 =
-        _degreesToRadians(latitude2);
-
+    final lat1 = first.position.latitude * math.pi / 180;
+    final lat2 = second.position.latitude * math.pi / 180;
     final deltaLat =
-        _degreesToRadians(
-      latitude2 - latitude1,
-    );
-
+        (second.position.latitude - first.position.latitude) * math.pi / 180;
     final deltaLon =
-        _degreesToRadians(
-      longitude2 - longitude1,
-    );
-
-    final a =
-        math.sin(deltaLat / 2) *
-                math.sin(deltaLat / 2) +
-            math.cos(lat1) *
-                math.cos(lat2) *
-                math.sin(deltaLon / 2) *
-                math.sin(deltaLon / 2);
-
-    final c =
-        2 *
-        math.atan2(
-          math.sqrt(a),
-          math.sqrt(1 - a),
-        );
-
-    return earthRadiusMeters * c;
-  }
-
-  double _degreesToRadians(
-    double degrees,
-  ) {
-    return degrees * math.pi / 180.0;
+        (second.position.longitude - first.position.longitude) * math.pi / 180;
+    final a = math.sin(deltaLat / 2) * math.sin(deltaLat / 2) +
+        math.cos(lat1) *
+            math.cos(lat2) *
+            math.sin(deltaLon / 2) *
+            math.sin(deltaLon / 2);
+    return earthRadiusMeters * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
   }
 }
