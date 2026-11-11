@@ -15,7 +15,7 @@ import '../../core/theme/app_colors.dart';
 class UniversityLocationsScreen extends StatefulWidget {
   const UniversityLocationsScreen({super.key, this.initialQuery});
 
-  /// Optional query supplied by destination search (for example, "Gate 3").
+  /// Optional query supplied by campus destination search.
   final String? initialQuery;
 
   @override
