@@ -561,7 +561,7 @@ class NavigationService {
       _candidateDirectionCount = 0;
     } catch (error) {
       // Do not continue issuing directions along a stale route after the
-      // user has left it and QGIS cannot find a connected replacement.
+      // user has left it and OSRM cannot find a replacement on the OSM graph.
       _isNavigating = false;
       _publish(NavigationSnapshot(
         state: NavigationState.routeUnavailable,
