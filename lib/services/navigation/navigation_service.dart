@@ -1061,6 +1061,7 @@ class NavigationService {
         targetPoint: destination,
         distanceFromRouteMeters: target.distanceFromRouteMeters,
         heading: heading,
+        direction: _confirmedDirection,
         progressMeters: target.progressMeters,
         remainingRouteMeters: target.remainingRouteMeters,
       ));
