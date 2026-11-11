@@ -81,8 +81,8 @@ class _LiveNavigationScreenState
 
           if (snapshot.errorMessage != null) {
             _errorMessage = snapshot.errorMessage;
-          } else if (snapshot.state ==
-              NavigationState.navigating) {
+          } else if (snapshot.state == NavigationState.navigating ||
+              snapshot.state == NavigationState.approaching) {
             _errorMessage = null;
           }
         });
@@ -216,6 +216,18 @@ class _LiveNavigationScreenState
       case NavigationState.navigating:
         return 'Navigation active';
 
+      case NavigationState.positionUncertain:
+        return 'Position uncertain — guidance paused';
+
+      case NavigationState.offRoute:
+        return 'Off mapped path — guidance paused';
+
+      case NavigationState.approaching:
+        return 'Approaching destination';
+
+      case NavigationState.arrivalCandidate:
+        return 'Confirming arrival...';
+
       case NavigationState.gpsUnavailable:
         return 'GPS unavailable';
 
@@ -259,7 +271,8 @@ class _LiveNavigationScreenState
         _snapshot.state == NavigationState.arrived;
 
     final isNavigating =
-        _snapshot.state == NavigationState.navigating;
+        _snapshot.state == NavigationState.navigating ||
+        _snapshot.state == NavigationState.approaching;
 
     final isStarting =
         _snapshot.state == NavigationState.starting;
@@ -536,7 +549,8 @@ class _LiveNavigationScreenState
     }
 
     if (isStarting ||
-        _snapshot.state == NavigationState.recovering) {
+        _snapshot.state == NavigationState.recovering ||
+        _snapshot.state == NavigationState.arrivalCandidate) {
       return _buildLoadingState();
     }
 
