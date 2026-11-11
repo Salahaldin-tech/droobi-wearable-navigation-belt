@@ -589,7 +589,6 @@ class _UniversityLocationsScreenState
             ? _normalize(name)
             : groupId.trim().toLowerCase();
         final record = _CampusNodeRecord(
-          id: id,
           name: name,
           nameAr: nameAr,
           category: category,
@@ -603,7 +602,6 @@ class _UniversityLocationsScreenState
         final first = records.first;
         final uniqueAliases = records.expand((record) => record.aliases).toSet().toList();
         return _CampusLocation(
-          id: first.id,
           name: first.name,
           nameAr: first.nameAr,
           category: first.category,
@@ -737,7 +735,6 @@ class _UniversityLocationsScreenState
 
 class _CampusNodeRecord {
   const _CampusNodeRecord({
-    required this.id,
     required this.name,
     required this.nameAr,
     required this.category,
@@ -745,7 +742,6 @@ class _CampusNodeRecord {
     required this.aliases,
   });
 
-  final String id;
   final String name;
   final String nameAr;
   final String category;
@@ -755,7 +751,6 @@ class _CampusNodeRecord {
 
 class _CampusLocation {
   const _CampusLocation({
-    required this.id,
     required this.name,
     required this.nameAr,
     required this.category,
@@ -763,7 +758,6 @@ class _CampusLocation {
     required this.points,
   });
 
-  final String id;
   final String name;
   final String nameAr;
   final String category;
