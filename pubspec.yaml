@@ -62,8 +62,9 @@ flutter:
     - assets/images/app_logo.png
     - assets/images/Favorites_bg.png
     - assets/images/uni_bg.png
-    - docs/campus-mapping/nodes.geojson
-    - docs/campus-mapping/edges.geojson
+    - docs/campus-mapping/nodes_v3.geojson
+    - docs/campus-mapping/edges_v3.geojson
+    - docs/campus-mapping/node_reference_aliases.json
 
 flutter_launcher_icons:
   android: true
