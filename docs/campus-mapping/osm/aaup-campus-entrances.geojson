@@ -1,0 +1,102 @@
+{
+  "type": "FeatureCollection",
+  "name": "AAUP OSM mapped main entrances",
+  "source": "docs/campus-mapping/osm/aaup-campus.osm",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "node/14368505133",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.3434195,
+          32.4067799
+        ]
+      },
+      "properties": {
+        "osm_type": "node",
+        "osm_id": "14368505133",
+        "entrance": "main",
+        "access": "yes",
+        "ref": "IT main door",
+        "destination_key": "it"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/14368505138",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.3445806,
+          32.4079498
+        ]
+      },
+      "properties": {
+        "osm_type": "node",
+        "osm_id": "14368505138",
+        "entrance": "main",
+        "access": "yes",
+        "ref": "Arts main door",
+        "destination_key": "arts"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/14368505140",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.3456056,
+          32.4082808
+        ]
+      },
+      "properties": {
+        "osm_type": "node",
+        "osm_id": "14368505140",
+        "entrance": "main",
+        "access": "yes",
+        "ref": "Engineering main door",
+        "destination_key": "engineering"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/14368505148",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.3441229,
+          32.4071561
+        ]
+      },
+      "properties": {
+        "osm_type": "node",
+        "osm_id": "14368505148",
+        "entrance": "main",
+        "access": "yes",
+        "ref": "AMS_A main door",
+        "destination_key": "ams_a"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/14368505156",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.3425649,
+          32.4070554
+        ]
+      },
+      "properties": {
+        "osm_type": "node",
+        "osm_id": "14368505156",
+        "entrance": "main",
+        "access": "yes",
+        "ref": "cafeteria main door",
+        "destination_key": "cafeteria"
+      }
+    }
+  ]
+}
