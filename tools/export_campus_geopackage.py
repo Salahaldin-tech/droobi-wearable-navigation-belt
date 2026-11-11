@@ -10,6 +10,7 @@ Optional:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from pathlib import Path
 from typing import Any
@@ -20,6 +21,12 @@ from osgeo import ogr, osr
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_INPUT = ROOT / "assets" / "campus_map_v3" / "campus_network.gpkg"
 DEFAULT_OUTPUT = ROOT / "assets" / "campus_map_v3" / "exported"
+EXPECTED_GPKG_BLOB_SHA1 = "a1eb1b7652d6e6f6251a2dce9f0e7c99d4decf41"
+EXPECTED_PROJECT_BLOB_SHA1 = "ae94aaf49c669bc5e8147ec94b863711a8f3d998"
+EXPECTED_POINT_LAYER = "campus_network"
+EXPECTED_LINE_LAYER = "edges"
+EXPECTED_POINT_FEATURES = 14
+EXPECTED_LINE_FEATURES = 7
 
 
 def json_value(value: Any) -> Any:
@@ -67,6 +74,16 @@ def export_layers(gpkg_path: Path, output_dir: Path) -> None:
     if not gpkg_path.is_file():
         raise FileNotFoundError(f"GeoPackage not found: {gpkg_path}")
 
+    gpkg_bytes = gpkg_path.read_bytes()
+    git_blob_payload = b"blob " + str(len(gpkg_bytes)).encode("ascii") + b"\\0" + gpkg_bytes
+    actual_blob_sha1 = hashlib.sha1(git_blob_payload).hexdigest()
+    if actual_blob_sha1 != EXPECTED_GPKG_BLOB_SHA1:
+        raise RuntimeError(
+            "The supplied GeoPackage is not the exact campus_network.gpkg "
+            "blob copied from main. Expected " + EXPECTED_GPKG_BLOB_SHA1 +
+            ", received " + actual_blob_sha1 + "."
+        )
+
     source = ogr.Open(str(gpkg_path), 0)
     if source is None:
         raise RuntimeError(f"GDAL could not open GeoPackage: {gpkg_path}")
@@ -92,35 +109,40 @@ def export_layers(gpkg_path: Path, output_dir: Path) -> None:
         elif geometry_type in (ogr.wkbLineString, ogr.wkbMultiLineString):
             line_layers.append(layer)
 
-    def choose_layers(candidates, preferred_names, label):
-        exact = [
+    def find_exact_layer(candidates, expected_name, label):
+        matches = [
             layer for layer in candidates
-            if normalized_field_name(layer.GetName()) in preferred_names
+            if normalized_field_name(layer.GetName()) ==
+            normalized_field_name(expected_name)
         ]
-        if exact:
-            return exact
-        preferred = [
-            layer for layer in candidates
-            if any(token in normalized_field_name(layer.GetName()) for token in preferred_names)
-        ]
-        if preferred:
-            return preferred
-        if len(candidates) == 1:
-            return candidates
-        names = [layer.GetName() for layer in candidates]
+        if len(matches) != 1:
+            raise RuntimeError(
+                "Expected exactly one " + label + " layer named '" +
+                expected_name + "', found: " +
+                str([layer.GetName() for layer in candidates])
+            )
+        return matches[0]
+
+    point_layer = find_exact_layer(
+        point_layers, EXPECTED_POINT_LAYER, "point"
+    )
+    line_layer = find_exact_layer(
+        line_layers, EXPECTED_LINE_LAYER, "pedestrian line"
+    )
+    if point_layer.GetFeatureCount() != EXPECTED_POINT_FEATURES:
         raise RuntimeError(
-            f"Could not safely choose the {label} layers from {names}. "
-            "Rename the intended QGIS layer to include a recognized name or "
-            "adapt this exporter explicitly."
+            "Unexpected campus_network feature count: " +
+            str(point_layer.GetFeatureCount()) + ". Expected " +
+            str(EXPECTED_POINT_FEATURES) + "."
+        )
+    if line_layer.GetFeatureCount() != EXPECTED_LINE_FEATURES:
+        raise RuntimeError(
+            "Unexpected edges feature count: " +
+            str(line_layer.GetFeatureCount()) + ". Expected " +
+            str(EXPECTED_LINE_FEATURES) + "."
         )
 
-    selected_points = choose_layers(
-        point_layers, ("nodes", "campusnetwork", "campusnodes"), "point/node"
-    )
-    selected_lines = choose_layers(
-        line_layers, ("edges", "pedestrian", "walkway", "walkingpath", "paths"), "pedestrian-line"
-    )
-    selected_layers = selected_points + selected_lines
+    selected_layers = [point_layer, line_layer]
 
     for layer in selected_layers:
         geometry_type = ogr.GT_Flatten(layer.GetGeomType())
@@ -220,13 +242,29 @@ def export_layers(gpkg_path: Path, output_dir: Path) -> None:
     nodes_path = output_dir / "nodes.geojson"
     edges_path = output_dir / "edges.geojson"
 
+    def collection(features, layer_name):
+        return {
+            "type": "FeatureCollection",
+            "metadata": {
+                "source_repository": "Salahaldin-tech/droobi-wearable-navigation-belt",
+                "source_branch": "main",
+                "source_path": "assets/campus_map_v3/campus_network.gpkg",
+                "source_git_blob_sha1": EXPECTED_GPKG_BLOB_SHA1,
+                "source_project_path": "assets/campus_map_v3/AAUP_Campus_Network.qgz",
+                "source_project_git_blob_sha1": EXPECTED_PROJECT_BLOB_SHA1,
+                "source_layer": layer_name,
+                "crs": "EPSG:4326",
+            },
+            "features": features,
+        }
+
     nodes_path.write_text(
-        json.dumps({"type": "FeatureCollection", "features": point_features},
+        json.dumps(collection(point_features, EXPECTED_POINT_LAYER),
                    ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
     edges_path.write_text(
-        json.dumps({"type": "FeatureCollection", "features": line_features},
+        json.dumps(collection(line_features, EXPECTED_LINE_LAYER),
                    ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
