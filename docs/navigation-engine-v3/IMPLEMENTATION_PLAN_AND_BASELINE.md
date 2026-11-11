@@ -1,149 +1,90 @@
 # Droobi Navigation Engine V3 — Baseline and Execution Log
 
-## Branch and immutable baseline
+## Branch and preserved baseline
 
 - Working branch: `v3`
 - Base branch: `merge/engine-v2-with-brand-theme`
 - Base commit: `822d16db6e13c67abe52f4b5a10a98449d8af42d`
-- This branch was created directly from that ref. No application source files have been changed in this initial baseline commit.
-- The branch preserves the brand theme and firmware as they existed at the selected base.
+- V3 was created directly from this commit. The original branch and its theme/firmware remain unchanged.
+- The latest QGIS GeoPackage and QGIS project were imported from `main` as map assets only; application code continues to originate from the requested base branch.
 
-## Non-negotiable product constraints
+## Product and safety constraints
 
 - Phone held forward in the user's hand; phone is the navigation brain.
-- No external IMU. Do not introduce direct accelerometer/gyroscope navigation dependencies without an explicit decision.
-- Campus routing must use the approved QGIS pedestrian network; do not fabricate walkable connectors.
-- When location or heading confidence is inadequate, suppress decisive guidance and command belt STOP.
-- ESP32 belt is feedback-only. Preserve BLE STOP, heartbeat, watchdog and motor driver power constraints.
-- Keep brand palette and fonts unchanged.
+- No external IMU and no new direct accelerometer/gyroscope navigation dependency.
+- The belt is feedback-only. Preserve BLE STOP, heartbeat, watchdog and driver-powered motors.
+- No fabricated pedestrian connectors. Low-confidence GPS/compass/map matches suppress direction and send STOP.
+- Preserve the exact brand palette and fonts from the base branch.
 
-## Baseline audit — source branch
+## Latest QGIS map source
 
-### Campus assets
-The selected branch contains:
-- `docs/campus-mapping/nodes.geojson`
-- `docs/campus-mapping/edges.geojson`
-- No `.qgz` or `.gpkg` file was present anywhere in the recursive tree returned for this branch.
-- The campus mapping README labels the GeoJSON as a test snapshot, not an approved production network.
+- GeoPackage: `assets/campus_map_v3/campus_network.gpkg`
+- QGIS project: `assets/campus_map_v3/AAUP_Campus_Network.qgz`
+- Source branch/commit: `main` / `9787d1801f132eebc7344e75e598f179ade7152a`
+- Canonical layer counts: 28 nodes, 20 edges, 7 buildings, 16 barriers.
+- CRS: EPSG:32636. Runtime exports are WGS84 EPSG:4326.
+- The older `campus_network` duplicate points layer is not used; runtime uses `nodes`.
+- The source nodes and edges are currently all `verified=false`.
+- Geometry connectivity inspection found 3 weak components: one main component with 18 edges, and isolated ED011/ED012. No proximity-based connections are fabricated.
+- Explicit edge-reference aliases are documented in `docs/campus-mapping/node_reference_aliases.json`.
 
-### Observed GeoJSON integrity issues
-The bundled 14 point features / 7 line features require a normalized data contract before graph construction:
-- Node IDs include `j2`, while edge references use alternate legacy names such as `J001`, `E002`, `ENT002`, `ENT003`, `J002`, and `ARTS DOOR 1`.
-- Some edge `from_node` / `to_node` properties are null or empty.
-- ED003 has a leading whitespace in its edge ID.
-- The edge attribute references do not consistently match node `node_id` values.
-- All current edge features are marked bidirectional; this is a source policy that must be confirmed for the approved map, not generalized automatically to future edits.
-- The current map README states that Gate 1 lies approximately 144.29 m from the nearest mapped edge in this snapshot. No straight-line route connector should be added to compensate.
+Detailed source findings: `docs/campus-mapping/CAMPUS_MAP_V3_AUDIT.md`.
 
-Physical topology has been described by the project owner as correctly drawn. V3 must preserve surveyed geometry and node locations; it should repair and validate software references without redrawing or moving features unless separately authorized.
+## Implemented on V3
 
-### University destinations
-- The University screen loads GeoJSON nodes.
-- It still uses hardcoded presentation lists for colleges/gates/facilities.
-- A node-ID mapping exists for a limited subset, but fallback name/alias matching against Firestore still supplies coordinates for unmapped entries.
-- Cafeteria candidate selection uses C1/C2/C3 coordinates.
-- V3 requirement: all navigable University destinations must resolve to verified GeoPackage/approved network node IDs; no Firestore or hardcoded coordinate fallback. An unmapped destination must be shown unavailable rather than routed to an approximate coordinate.
+### 1. Map data pipeline and audit
+- Imported the latest native GeoPackage and QGIS project from the source branch.
+- Exported the canonical nodes, edges, buildings and barriers to WGS84 GeoJSON.
+- Added a reproducible standard-library Python exporter.
+- Added manifest, alias mapping and source audit.
+- Preserved source node IDs, edge IDs and geometry.
 
-### Router
-The existing CampusGraphRoutingService:
-- Builds graph connectivity from shared edge geometry coordinates, not semantic node references.
-- Treats all segments as bidirectional.
-- Uses up to eight nearest edge-feature snap candidates and shortest route length to select a pair.
-- Includes straight-line origin-to-network and network-to-destination connectors in its generated polyline.
-- Uses a fixed 45 m snap maximum.
-These behaviors are not sufficient for safe production guidance and are to be replaced by validated semantic graph construction and confidence-aware map matching.
+### 2. University destination integration
+- University screen loads the V3 QGIS node export.
+- Firestore coordinate fallback and fuzzy name matching were removed.
+- Navigable places resolve only through explicit node IDs.
+- Added QGIS-backed entries for Gate 2, Medicine and Allied Medical Sciences.
+- Cafeteria and Allied Medical Sciences use their registered entrance alternatives; the route engine chooses among reachable candidates.
+- Unmapped destinations remain unavailable rather than using guessed coordinates.
 
-### Navigation engine
-The existing NavigationService:
-- Starts route calculation, then obtains a stable initial compass heading.
-- Updates navigation on compass and GPS callbacks, so guidance can be recalculated using stale GPS.
-- Uses compass smoothing and direction confirmation, and has campus reroute logic after two accepted off-route GPS fixes.
-- Arrival requires distinct GPS fix timestamps, but V3 still needs route-progress-aware, latched arrival and deterministic state transitions.
-- Existing LocationFix carries only position, accuracy and timestamp; preserve available speed/course from Geolocator where supported.
+### 3. Campus router V3
+- Builds the path graph from shared LineString vertices; validates edge references separately.
+- Respects `bidirectional` per edge.
+- Corrects reversed edge vertex order in memory only when endpoint geometry proves reversal.
+- Chooses the nearest geometric path candidate and rejects ambiguous matches across disconnected components.
+- Removes straight-line GPS-to-path and path-to-destination connectors from the pedestrian route.
+- Exposes graph diagnostics and warnings for components and unverified features.
 
-### Haptics / BLE / firmware
-- Current BLE command protocol: F, B, L, R, FL, FR, BL, BR, ARRIVED, STOP; heartbeat is HB.
-- Firmware watchdog is 10 seconds; direction pattern is 3 seconds ON / 10 seconds OFF; arrival pulse is 1200 ms.
-- Preserve STOP semantics and verify the bridge never transmits a stale direction during uncertain, recovering, stopped, or arrived transitions.
-- Do not power motors from ESP32 3.3V; GPIOs are driver inputs.
+### 4. GPS quality and route progress
+- LocationFix now retains OS-reported speed, GPS course and course accuracy.
+- GPS filter rejects stale, future-dated, duplicate, out-of-order, implausible-jump and poor-accuracy fixes.
+- Position smoothing preserves speed/course metadata.
+- RouteProgressService precomputes cumulative route distance and uses metre/speed/accuracy-aware local search windows.
+- Progress remains monotonic under small GPS retreats and flags large unexpected progress jumps.
 
-## V3 target architecture and work phases
+### 5. Navigation policy, UI and BLE safety
+- Guidance decisions run on a fixed 500 ms policy tick; GPS and compass callbacks update the latest sensor state.
+- Added PositionUncertain, OffRoute, Approaching and ArrivalCandidate states.
+- Stale/failed GPS or compass, implausible progress jumps and off-route positions suppress directional output.
+- Route bearing comes from the route tangent; the direct GPS-to-target bearing fallback was removed.
+- Arrival still requires three distinct GPS fixes and a nearly completed route; ArrivalCandidate suppresses direction while confirmation is pending.
+- BLE now sends direction only in Navigating/Approaching; every other state sends STOP.
+- Arrival pulse is one-shot in the bridge. Firmware protocol/timing was not changed.
 
-1. **Checkpoint and trace instrumentation**
-   - Preserve base commit and add structured diagnostic trace records.
-   - Trace timestamps, GPS fix (accuracy/speed/course), compass heading, chosen edge/segment, snap distance/confidence, cross-track, route progress, state, cue and BLE send result.
-   - Never log sensitive identifiers or unnecessary personal data.
+### 6. Diagnostic trace
+- Added a bounded in-memory trace logger for accepted GPS quality metadata, compass heading and navigation snapshots.
+- The trace omits exact latitude/longitude coordinates.
+- Export is available as JSON Lines through NavigationService.traceLogger.
 
-2. **Map contract and validator**
-   - Treat QGIS GeoPackage as authoritative source; use only a current approved export.
-   - Validate schema, unique IDs, valid WGS84 export coordinates, node references, geometry endpoints, edge lengths, directionality, access, and connected components.
-   - Keep node and edge geometries unchanged.
-   - Require an explicit audited mapping from legacy aliases to canonical node IDs; do not infer IDs from approximate spatial proximity without review.
-   - Make map status/version visible in diagnostics.
+## Work remaining
 
-3. **University destination repository**
-   - Load destinations from the validated map dataset.
-   - Use stable node IDs as identity; labels/translations/categories are presentation metadata only.
-   - Remove Firestore coordinate fallback and all hardcoded coordinate fallback.
-   - Represent multiple entrances as node candidates under one destination, but pick the entrance by graph route cost and accessibility policy.
-   - Fail closed for unmapped/unverified destinations.
+- [ ] Add full deterministic tests for navigation state transitions, arrival latching, BLE fail-safe and map-match edge cases.
+- [ ] Run formatter, analyzer and unit tests in GitHub Actions; fix all failures.
+- [ ] Audit QGIS project relative datasource paths and verify the project opens against the bundled GeoPackage.
+- [ ] Validate destination-node/route endpoint offsets with the map owner; do not bridge them in software.
+- [ ] Supervised phone/ESP32/motor field trials for compass stability, route matching, wrong cues, off-route recovery, arrival overshoot and BLE reconnect.
+- [ ] Complete field measurements and acceptance thresholds before calling V3 field-ready.
 
-4. **Graph router V3**
-   - Build graph from semantic node references and validated edge endpoints.
-   - Insert edge interior vertices as shape geometry while retaining node identity at endpoints.
-   - Respect one-way/bidirectional properties.
-   - Snap GPS to graph segments using distance, reported accuracy, temporal continuity, route context, and valid motion course when available.
-   - Never select a farther edge solely because it yields a shorter route.
-   - No free-space straight connectors across unmapped areas. A controlled gate-to-path access connector is allowed only when explicitly mapped/verified as traversable.
-   - Reject ambiguous/low-confidence snaps.
+## Validation status
 
-5. **GPS quality engine**
-   - Keep raw and accepted fixes plus speed/course/accuracy/time.
-   - Reject stale, duplicate, out-of-order, impossible-jump and poor-accuracy fixes.
-   - Compare smoothing filters on deterministic traces; do not tune from intuition alone.
-
-6. **Route progress V3**
-   - Track segment/edge identity, projected position, along-route progress, cross-track error, remaining distance and confidence.
-   - Use a metre/time/speed-aware local search window and constrain backward progress unless evidence supports it.
-   - Never jump to a geometrically nearby but topologically unrelated route segment.
-
-7. **Navigation state machine**
-   - Explicit states: Initializing, Navigating, PositionUncertain, OffRoute, Approaching, ArrivalCandidate, Arrived (latched), Recovery, Stopped.
-   - Run guidance decisions on a fixed policy tick; sensor updates feed the policy but do not independently publish a cue from stale data.
-   - PositionUncertain suppresses directional commands and sends STOP.
-   - OffRoute requires persistent independent GPS evidence and map-match confidence.
-
-8. **Direction engine**
-   - Compute direction from route tangent at look-ahead target, not a straight-line vector to destination.
-   - Compare route bearing to phone compass heading.
-   - Use empirically justified deadband, hysteresis and minimum cue hold time.
-   - Do not apply arbitrary compass bias. Learn offsets only from reliable straight-walking course evidence if the product owner approves.
-   - No direct phone IMU navigation input without explicit approval.
-
-9. **Arrival and haptic events**
-   - Arrival combines entrance proximity, route progress, GPS quality and independent fixes.
-   - Arrived remains latched until navigation is explicitly stopped/reset; never emit reverse guidance after arrival.
-   - Haptics are event/state-based, not continuous. STOP on uncertain GPS, failed route, recovery, disconnect, and stale guidance.
-   - Keep firmware command/protocol unchanged unless a separately reviewed change is necessary.
-
-10. **Validation and field acceptance**
-    - Unit tests: graph topology, alias mapping, one-way edges, snap confidence, route progress monotonicity, stale fixes, heading deadband, state transitions, arrival latch, BLE fail-safe.
-    - Route scenarios: Gate 3–Cafeteria, Gate 3–IT, Cafeteria–IT both ways, C1/C2/C3, Gate 1 only after verified route coverage, intersections, poor GPS, off-route/re-entry, overshoot.
-    - Measure map-match error, edge accuracy, wrong-cue changes, reroutes, arrival error, latency, and BLE stop reliability.
-    - Do not declare navigation safe or successful based on unit tests alone; supervised physical field testing is mandatory.
-
-## Execution status
-
-- [x] Created `v3` from the exact requested branch and commit.
-- [x] Inspected current map, University screen, router, navigation service, route progress, BLE bridge and firmware.
-- [x] Recorded baseline and safety constraints.
-- [ ] Import/verify the latest approved QGIS export (the selected branch currently has only GeoJSON exports; no QGZ/GeoPackage).
-- [ ] Implement map validator and canonical node mapping.
-- [ ] Implement semantic graph router and destination repository.
-- [ ] Implement trace logger, GPS/map-match confidence, fixed-tick state machine, route progress, direction and arrival changes.
-- [ ] Run `dart format`, `flutter analyze`, and `flutter test` in a Flutter SDK environment.
-- [ ] Supervised device/field validation.
-
-## Validation limitation
-
-This GitHub editing session can read and write repository files but does not provide a local Flutter SDK/device runtime. No test or analyzer result should be represented as passing until run in CI or a local Flutter environment.
+No Flutter analyzer or test results have been claimed yet. CI is being added to execute the real Flutter toolchain against this branch. Even a fully green unit-test run is not a safety certification and does not replace supervised field tests.

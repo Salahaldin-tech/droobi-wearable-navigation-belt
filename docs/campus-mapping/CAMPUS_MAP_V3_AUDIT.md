@@ -1,54 +1,57 @@
 # Campus Map V3 — Source Audit
 
-## Source
+## Source of truth
 
-- GitHub branch: `main`
+- Source branch: `main`
 - Source commit: `9787d1801f132eebc7344e75e598f179ade7152a`
-- GeoPackage: `assets/campus_map_v3/campus_network.gpkg`
-- GeoPackage blob SHA: `a1eb1b7652d6e6f6251a2dce9f0e7c99d4decf41`
-- Coordinate reference system: EPSG:32636 (WGS 84 / UTM zone 36N)
-- GeoPackage `gpkg_contents` timestamps: nodes `2026-11-11T01:17:33.187Z`; edges `2026-11-11T01:18:56.453Z`
+- Source GeoPackage: `assets/campus_map_v3/campus_network.gpkg`
+- GeoPackage Git blob SHA: `a1eb1b7652d6e6f6251a2dce9f0e7c99d4decf41`
+- CRS: EPSG:32636 (WGS 84 / UTM zone 36N)
+- Latest layer timestamps: nodes `2026-11-11T01:17:33.187Z`; edges `2026-11-11T01:18:56.453Z`
 
-## Layers exported for V3
+The native `.gpkg` and `.qgz` files were copied into V3 without changing their contents. V3's runtime GeoJSON exports were generated from the GeoPackage's canonical layers using `tooling/export_campus_gpkg_to_geojson.py`.
 
-| Layer | Features | Use |
+## Layers
+
+| Layer | Features | V3 role |
 |---|---:|---|
-| `nodes` | 29 | Canonical destination and junction points |
-| `edges` | 20 | Pedestrian line features |
-| `buildings` | 7 | Building footprints |
-| `barriers` | 16 | Obstacle/barrier features |
-| `campus_network` | 15 | Older duplicate point layer; not used as the canonical layer |
+| `nodes` | 28 | Canonical node identities and destination entrance points |
+| `edges` | 20 | Pedestrian path geometries and direction flags |
+| `buildings` | 7 | Building footprint context |
+| `barriers` | 16 | Obstacle/barrier context |
+| `campus_network` | 15 | Older duplicate point layer; deliberately not used |
 
-The app must use the `nodes` table, not the older `campus_network` duplicate.
+**Important:** use `nodes`, not the older duplicate `campus_network` layer, as the canonical point table.
 
-## Identifier reference corrections
+## Identifier reference normalization
 
-The source node IDs are preserved. The following edge references do not match node IDs literally and are resolved through `node_reference_aliases.json`:
+Node IDs and geometries are preserved. Only edge-reference strings use the explicit aliases below:
 
 | Edge reference | Canonical node ID | Evidence |
 |---|---|---|
 | `J90-0` | `J90_0` | Endpoint geometry coincides with the `J90_0` point |
 | `J90_4` | `J90-4` | Endpoint geometry coincides with the `J90-4` point |
 | `AWS_B` | `AMS_B` | Endpoint geometry coincides with the `AMS_B` point |
-| leading/trailing whitespace | trimmed comparison only | The source node ID ` J90_5` contains a leading space |
+| leading/trailing whitespace | trim for comparison only | Source node ` J90_5` contains a leading space |
 
-These are reference aliases only. They do not change node IDs or geometries.
+The aliases are in `node_reference_aliases.json`. They do not rename source features, alter node IDs in the GeoPackage, or move any geometry.
 
-## Geometry orientation and endpoint observations
+## Geometry and connectivity findings
 
-- ED06's LineString is stored opposite to its declared `from_node` → `to_node` order; it must be reversed in memory before building the directed graph.
-- ED012's geometry is likewise stored opposite to its declared endpoints.
-- ED003's final vertex is approximately 3.40 m from its declared `J3` node, while it coincides with the separate `C3` point. This is a topology ambiguity, not a spelling correction. V3 must report it and must not silently join C3 to J3.
-- ED006's endpoint for IT1 is approximately 3.62 m from the IT1 point. This is retained as an endpoint-offset warning; it must not be hidden by a free-space connector.
-- The map contains both one-way and bidirectional edges. In particular ED01 and ED03 have `bidirectional=false`; V3 must respect those flags.
-- All 29 source nodes and all 20 source edges currently have `verified=false`. The software must not represent this map as field-verified.
+- ED06 and ED012 are digitized opposite to their declared `from_node` → `to_node` order. V3 reverses their vertex order in memory only when endpoint distances prove the reverse orientation.
+- ED003's final vertex coincides with the separate C3 point but is approximately 3.40 m from its declared J3 node. V3 does not silently merge C3 and J3.
+- ED006's endpoint is approximately 3.62 m from IT1. This remains a warning; V3 does not bridge the gap with a straight connector.
+- ED01 and ED03 are one-way (`bidirectional=false`). The remaining source edges are marked bidirectional. The router respects these source flags rather than globally treating every edge as two-way.
+- Exact shared LineString vertices produce **3 weakly connected geometry components**: one main component containing 18 edges, plus isolated ED011 and ED012. These isolated lines are not connected to the main network by proximity guesses. They remain unroutable from the main component until the source map explicitly connects them.
+- All 28 nodes and all 20 edges are currently `verified=false`. The map is not field-verified.
 
-## Safety policy
+## V3 safety behavior
 
-- Preserve all source node IDs and coordinates.
-- Preserve source line geometry in the generated export.
-- Resolve only the explicit identifier aliases listed above.
-- Do not invent missing paths or connect components by proximity alone.
-- Do not use long GPS-to-path or destination-to-path straight connectors as pedestrian route geometry.
-- An unresolved, ambiguous, off-route, or disconnected request must produce a clear route failure and belt STOP.
-- A software test pass does not certify the campus network or substitute for supervised field testing.
+- Preserve source IDs and geometries.
+- Use node IDs for destinations and map identity.
+- Use shared path geometry for graph junction connectivity, while validating the semantic node references separately.
+- No fabricated GPS-to-path or route-to-destination walking connectors.
+- Select the nearest geometric edge; do not choose a more distant edge just because it produces a shorter route.
+- Reject ambiguous, distant, disconnected or unverified map matches instead of issuing a confident direction.
+- An unresolved, ambiguous, off-route, stale or disconnected request must cause the belt to receive STOP.
+- Software tests do not certify the map or replace supervised field trials.

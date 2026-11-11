@@ -13,10 +13,19 @@
     "edgesTable": "edges",
     "ignoredDuplicatePointTable": "campus_network",
     "sourceTables": {
-      "nodes": 29,
+      "nodes": 28,
       "edges": 20,
       "buildings": 7,
       "barriers": 16
+    },
+    "geometryConnectivity": {
+      "weakComponents": 3,
+      "mainComponentEdgeCount": 18,
+      "isolatedEdges": [
+        "ED011",
+        "ED012"
+      ],
+      "method": "exact shared LineString vertices; weak connectivity independent of one-way traversal"
     }
   },
   "aliases": {
@@ -28,6 +37,7 @@
     "Export generated from the latest GeoPackage blob on main; projected coordinates transformed from WGS84 / UTM zone 36N (EPSG:32636).",
     "Node IDs are preserved exactly as authored; alias map only repairs edge reference strings.",
     "All source nodes and edges currently have verified=false. This is not a field-verified pedestrian network.",
-    "Geometry and points are not modified by this export."
+    "Geometry and points are not modified by this export.",
+    "The nodes table contains 28 features. All 28 nodes and all 20 edges currently have verified=false."
   ]
 }
