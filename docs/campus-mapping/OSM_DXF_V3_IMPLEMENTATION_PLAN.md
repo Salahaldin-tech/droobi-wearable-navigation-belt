@@ -195,7 +195,8 @@ OSM data is available under the Open Database License (ODbL) and requires approp
 ## 11. Current status
 
 - Feature branch created from merge/engine-v2-with-brand-theme.
-- This document records the approved strategy and implementation gates.
-- No OSM extract has been acquired yet.
-- The DXF has not yet been inspected or georeferenced in this branch.
+- The implementation strategy and gates are recorded in this document.
+- The uploaded DXF has received a preliminary structural audit; see DXF_SOURCE_AUDIT_V3.md.
+- EPSG:28191 is a plausible coordinate-system hypothesis based on the drawing bounds, but it is not confirmed. No georeferencing transform is approved yet.
+- No OSM extract has been acquired yet; the AOI will be fixed only after the DXF CRS and control points are validated.
 - No V3 graph has been generated and no routing-engine code has been changed yet.
