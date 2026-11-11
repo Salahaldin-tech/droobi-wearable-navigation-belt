@@ -596,7 +596,7 @@ class NavigationService {
     final progress = _routeProgressService.getNextTarget(
       currentPosition: fix.position,
       route: route,
-      lookAheadMeters: 0,
+      lookAheadMeters: lookAheadMeters,
       speedMetersPerSecond: fix.speedMetersPerSecond,
       horizontalAccuracyMeters: fix.accuracyMeters,
     );
