@@ -198,6 +198,8 @@ class NavigationService {
 
   LocationFix? _lastAcceptedFix;
   DateTime? _lastAcceptedGpsTimestamp;
+  RouteTarget? _lastRouteTarget;
+  DateTime? _lastRouteTargetFixTimestamp;
 
   double? _latestHeading;
 
@@ -361,6 +363,8 @@ class NavigationService {
       _destination = selectedDestination;
       final route = bestRoute;
       _route = route;
+      _lastRouteTarget = null;
+      _lastRouteTargetFixTimestamp = null;
       _traceLogger.record('route_selected', fields: {
         'campus_navigation': campusNavigation,
         'distance_m': route.distanceMeters,
@@ -983,14 +987,21 @@ class NavigationService {
     // GET ADAPTIVE ROUTE TARGET
     // ------------------------------------------------------------
 
-    final target =
-        _routeProgressService.getNextTarget(
-      currentPosition: fix.position,
-      route: route,
-      lookAheadMeters: lookAheadMeters,
-      speedMetersPerSecond: fix.speedMetersPerSecond,
-      horizontalAccuracyMeters: fix.accuracyMeters,
-    );
+    // Route projection/progress is evaluated once per distinct GPS fix.
+    // The 500ms policy tick may refresh the compass-relative cue, but it must
+    // not repeatedly rematch the same stale coordinate against the route.
+    if (_lastRouteTarget == null ||
+        _lastRouteTargetFixTimestamp != fix.timestamp) {
+      _lastRouteTarget = _routeProgressService.getNextTarget(
+        currentPosition: fix.position,
+        route: route,
+        lookAheadMeters: lookAheadMeters,
+        speedMetersPerSecond: fix.speedMetersPerSecond,
+        horizontalAccuracyMeters: fix.accuracyMeters,
+      );
+      _lastRouteTargetFixTimestamp = fix.timestamp;
+    }
+    final target = _lastRouteTarget!;
 
     final offRouteThreshold = _offRouteThresholdFor(fix);
     if (target.progressJumpDetected ||
@@ -1266,6 +1277,8 @@ class NavigationService {
     _latestHeading = null;
 
     _route = null;
+    _lastRouteTarget = null;
+    _lastRouteTargetFixTimestamp = null;
     _destination = null;
     _activeRoutingService = null;
     _isCampusNavigation = false;
