@@ -51,7 +51,7 @@ Detailed data facts and known limitations are recorded in `docs/campus-mapping/C
 - The legacy `UniversityLocation.fromFirestore` factory remains only for other existing Firebase consumers; the University screen does not use it.
 
 ### C. Campus graph router
-- Builds graph connectivity from canonical QGIS `from_node` / `to_node` IDs; coordinate keys are retained only for interior vertices within each LineString.
+- Builds graph connectivity from canonical QGIS `from_node` / `to_node` IDs; interior vertices are private to each Edge, so coordinate coincidence cannot join separate Edges.
 - Validates edge references against source nodes and explicit aliases.
 - Attaches line endpoints to their declared node only when the offset is at most 5m; offsets above 0.2m become explicit connector geometry and warnings, while larger offsets fail graph loading.
 - Current `main` source includes Gate 1 as `G1` and edge `ED08` (`J90_3` → `G1`); the previously reported 144.4m nearest-path distance is not supported by this dataset snapshot.
