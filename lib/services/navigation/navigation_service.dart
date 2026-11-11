@@ -533,28 +533,23 @@ class NavigationService {
     );
     final offRouteThreshold = _offRouteThresholdFor(fix);
 
-    if (progress.progressJumpDetected) {
-      _publish(NavigationSnapshot(
-        state: NavigationState.positionUncertain,
-        currentPosition: fix.position,
-        accuracyMeters: fix.accuracyMeters,
-        route: route,
-        heading: _latestHeading,
-        errorMessage: 'A sudden GPS jump was detected. Waiting for a stable fix.',
-      ));
-      return;
-    }
+    final progressJump = progress.progressJumpDetected;
+    final outsideRoute = progress.distanceFromRouteMeters > offRouteThreshold;
 
-    if (progress.distanceFromRouteMeters > offRouteThreshold) {
+    if (progressJump || outsideRoute) {
       _offRouteSamples++;
       _publish(NavigationSnapshot(
-        state: NavigationState.offRoute,
+        state: progressJump
+            ? NavigationState.positionUncertain
+            : NavigationState.offRoute,
         currentPosition: fix.position,
         accuracyMeters: fix.accuracyMeters,
         route: route,
         distanceFromRouteMeters: progress.distanceFromRouteMeters,
         heading: _latestHeading,
-        errorMessage: 'You appear to be away from the mapped path. Guidance is paused.',
+        errorMessage: progressJump
+            ? 'A sudden route-progress change was detected. Guidance is paused while the mapped position is confirmed.'
+            : 'You appear to be away from the mapped path. Guidance is paused.',
       ));
     } else {
       _offRouteSamples = 0;
