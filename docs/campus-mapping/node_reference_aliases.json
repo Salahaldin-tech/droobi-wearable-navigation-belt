@@ -1,5 +1,5 @@
 {
-  "normalization": "trim whitespace; preserve all canonical node IDs",
+  "normalization": "trim whitespace only; preserve canonical node IDs",
   "aliases": {
     "J90-0": "J90_0",
     "J90_4": "J90-4",

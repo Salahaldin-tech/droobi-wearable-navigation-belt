@@ -2,21 +2,17 @@
   "source": {
     "branch": "main",
     "commit": "9787d1801f132eebc7344e75e598f179ade7152a",
-    "path": "assets/campus_map_v3/campus_network.gpkg",
-    "gitBlobSha": "a1eb1b7652d6e6f6251a2dce9f0e7c99d4decf41",
+    "file": "assets/campus_map_v3/campus_network.gpkg",
+    "blobSha": "a1eb1b7652d6e6f6251a2dce9f0e7c99d4decf41",
     "crs": "EPSG:32636"
   },
-  "export": {
-    "runtimeCrs": "EPSG:4326",
-    "layers": {
-      "nodes": 28,
-      "edges": 20,
-      "buildings": 7,
-      "barriers": 16
-    },
-    "canonicalNodeLayer": "nodes",
-    "duplicateLegacyLayer": "campus_network",
-    "weakGeometryComponents": 3,
+  "runtime": {
+    "crs": "EPSG:4326",
+    "nodes": 28,
+    "edges": 20,
+    "buildings": 7,
+    "barriers": 16,
+    "weakComponents": 3,
     "mainComponentEdges": 18,
     "isolatedEdges": [
       "ED011",
@@ -24,9 +20,9 @@
     ]
   },
   "policy": [
-    "Node IDs and source geometries are preserved.",
-    "Edge aliases normalize source reference strings only.",
-    "Unverified map geometry is not considered field validated.",
-    "No proximity-based graph connections or straight-line pedestrian connectors are fabricated."
+    "Preserve source IDs and geometries.",
+    "Aliases normalize edge references only.",
+    "All source nodes/edges currently unverified.",
+    "Never bridge missing paths or disconnected components by proximity."
   ]
 }
