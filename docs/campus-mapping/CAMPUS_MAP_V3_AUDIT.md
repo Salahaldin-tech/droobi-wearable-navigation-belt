@@ -57,17 +57,18 @@ No source node ID or geometry is renamed or moved by this branch.
 - Shared LineString vertices identify three weak geometry components: one principal component containing 18 edges, plus isolated ED011 and ED012.
 - ED011 is associated with the MED fragment; ED012 is associated with AMS_B. They remain disconnected from the principal pedestrian network and are not connected by software.
 - ED06 and ED012 are stored opposite to their declared `from_node` → `to_node` order. The router reverses the in-memory vertex order only when endpoint distances establish that reversal.
-- ED003's final geometry vertex is associated spatially with C3 while its source endpoint attributes declare J3. This is not silently reconciled by changing IDs or geometry.
-- ED006 has an endpoint offset to IT1. The router does not bridge that offset with an artificial connector.
+- ED003's final geometry vertex is associated spatially with C3 while its source endpoint attributes declare J3. The router follows the declared node ID and records any short endpoint attachment as an explicit connector; it does not rewrite source IDs or geometry.
+- ED006 has an endpoint offset to IT1. The router now attaches the line to its declared IT1 node using explicit connector geometry when the offset is no more than 5m; the offset is surfaced as a warning.
 - ED01 and ED03 are marked one-way; the router respects their `bidirectional` fields.
 - All 28 node and 20 edge source `verified` flags are false. The map is not field-verified.
 
 ## Routing rules
 
-- Graph topology is derived from shared path geometry.
-- Semantic node references are validated separately.
+- Graph topology at every declared Edge endpoint is keyed by canonical `from_node` / `to_node` IDs. Coordinate keys are used only for interior vertices within each LineString.
+- Endpoint offsets up to 5m are attached to the declared node through explicit connector geometry and a diagnostic warning; larger offsets fail graph loading.
+- Semantic node references are validated before graph construction.
 - Origin and destination are snapped to actual edge segments with conservative maximum distances.
 - Ambiguous snaps across disconnected components are rejected.
-- No straight-line GPS-to-path or path-to-destination walking connectors are fabricated.
+- No arbitrary straight-line GPS-to-path or destination-to-path connectors are fabricated. The only permitted connector is the bounded, explicit attachment between an Edge endpoint and the Node ID declared by that same QGIS feature.
 - Disconnected components stay disconnected until the QGIS source map is explicitly updated.
 - Source feature attributes and coordinates remain the spatial authority.
