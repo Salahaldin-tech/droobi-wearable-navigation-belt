@@ -263,7 +263,7 @@ class CampusGraphRoutingService implements RoutingService {
         }
         final rawCoordinates =
             geometry['coordinates'] as List<dynamic>? ?? const [];
-        final line = <LatLon>[];
+        var line = <LatLon>[];
         for (final raw in rawCoordinates) {
           if (raw is! List || raw.length < 2) continue;
           final longitude = (raw[0] as num?)?.toDouble();
@@ -304,7 +304,7 @@ class CampusGraphRoutingService implements RoutingService {
         final reverseError = _distance(line.last, fromPoint) +
             _distance(line.first, toPoint);
         if (reverseError < directError) {
-          line.reverse();
+          line = line.reversed.toList();
         }
 
         final fromOffset = _distance(line.first, fromPoint);

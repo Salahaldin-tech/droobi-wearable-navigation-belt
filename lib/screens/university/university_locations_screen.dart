@@ -420,10 +420,6 @@ class _UniversityLocationsScreenState
                 child: AnimatedBuilder(
                   animation: _backgroundController,
                   builder: (context, child) {
-                    final t = Curves.easeInOut.transform(
-                      _backgroundController.value,
-                    );
-
                     return DecoratedBox(
                       decoration: BoxDecoration(
                         

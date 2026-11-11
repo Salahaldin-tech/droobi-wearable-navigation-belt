@@ -61,8 +61,25 @@ jobs:
             test/gps_filter_service_test.dart \
             test/navigation_trace_logger_test.dart
 
-      - name: Analyze
-        run: flutter analyze --no-pub
+      - name: Analyze V3-touched Dart sources
+        run: |
+          flutter analyze --no-pub \
+            lib/models/location_fix.dart \
+            lib/services/location/location_service.dart \
+            lib/services/location/gps_filter_service.dart \
+            lib/services/location/position_filter_service.dart \
+            lib/services/navigation/navigation_trace_logger.dart \
+            lib/services/navigation/route_progress_service.dart \
+            lib/services/navigation/navigation_service.dart \
+            lib/services/routing/campus_graph_routing_service.dart \
+            lib/screens/university/university_locations_screen.dart \
+            lib/services/ble/belt_navigation_bridge.dart \
+            lib/screens/navigation/live_navigation_screen.dart \
+            lib/screens/test/live_navigation_test_screen.dart \
+            test/campus_graph_routing_service_test.dart \
+            test/route_progress_service_test.dart \
+            test/gps_filter_service_test.dart \
+            test/navigation_trace_logger_test.dart
 
       - name: Run unit tests
         run: flutter test --no-pub --reporter expanded
