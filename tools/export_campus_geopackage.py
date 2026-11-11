@@ -93,6 +93,12 @@ def export_layers(gpkg_path: Path, output_dir: Path) -> None:
             line_layers.append(layer)
 
     def choose_layers(candidates, preferred_names, label):
+        exact = [
+            layer for layer in candidates
+            if normalized_field_name(layer.GetName()) in preferred_names
+        ]
+        if exact:
+            return exact
         preferred = [
             layer for layer in candidates
             if any(token in normalized_field_name(layer.GetName()) for token in preferred_names)
