@@ -51,8 +51,10 @@ Detailed data facts and known limitations are recorded in `docs/campus-mapping/C
 - The legacy `UniversityLocation.fromFirestore` factory remains only for other existing Firebase consumers; the University screen does not use it.
 
 ### C. Campus graph router
-- Builds a directed graph from shared LineString vertices.
-- Validates edge `from_node` and `to_node` references against the source nodes and explicit aliases.
+- Builds graph connectivity from canonical QGIS `from_node` / `to_node` IDs; coordinate keys are retained only for interior vertices within each LineString.
+- Validates edge references against source nodes and explicit aliases.
+- Attaches line endpoints to their declared node only when the offset is at most 5m; offsets above 0.2m become explicit connector geometry and warnings, while larger offsets fail graph loading.
+- Current `main` source includes Gate 1 as `G1` and edge `ED08` (`J90_3` → `G1`); the previously reported 144.4m nearest-path distance is not supported by this dataset snapshot.
 - Corrects reversed LineString orientation in memory when endpoint geometry proves that orientation is reversed.
 - Respects source `bidirectional` flags.
 - Uses one nearest snap per edge with separate conservative limits for GPS and destination.
@@ -63,6 +65,7 @@ Detailed data facts and known limitations are recorded in `docs/campus-mapping/C
 ### D. GPS quality
 - `LocationFix` retains OS-reported speed, GPS course and course accuracy.
 - The GPS filter rejects invalid accuracy, stale/future readings, duplicate/out-of-order timestamps, implausible jumps and implausible reported speed.
+- Accepted GPS events record inter-fix timing in the trace; the actual device cadence remains unmeasured until a user field capture.
 - The position smoother preserves speed/course metadata.
 - No direct accelerometer or gyroscope navigation dependency was introduced.
 
@@ -77,9 +80,12 @@ Detailed data facts and known limitations are recorded in `docs/campus-mapping/C
 - GPS and compass callbacks update data; they do not issue direction decisions directly.
 - Added PositionUncertain, OffRoute, Approaching and ArrivalCandidate states.
 - Stale or poor-quality GPS, stale/failed compass, map-match failures, progress jumps and missing route bearings suppress directional guidance.
+- Initial compass qualification now collects at least 12 samples over at least 1s and requires a circular resultant vector of 0.95; sample count, window and resultant are recorded.
+- Compass declination correction is configurable but remains 0° by default until a device/location-specific WMM or field calibration value is supplied.
 - Route tangent bearing is required; the GPS-to-target bearing fallback was removed.
 - Direction changes require repeated policy observations and a minimum confirmation interval. The previous haptic direction is not retained while a new turn is pending.
-- Arrival still requires three distinct GPS fixes plus near-destination and route-completion evidence.
+- Arrival confirmation requires three distinct GPS fixes, with a 1s minimum and 20s maximum spacing between counted fixes.
+- Arrival evidence includes a bounded 20m along-route endpoint-overshoot check, so a slow GPS cadence does not automatically keep guiding the user beyond the entrance.
 - Campus rerouting uses the current GPS fix and the same mapped pedestrian graph; failure to reconnect ends navigation safely.
 
 ### G. Belt safety
@@ -106,8 +112,10 @@ Detailed data facts and known limitations are recorded in `docs/campus-mapping/C
 
 1. Integrate barrier and accessibility constraints only after source attributes and their operational meaning are formally defined; current barrier labels/access values are inconsistent.
 2. Complete missing destination mappings only when node IDs and connected paths are present in the QGIS source.
-3. Review map endpoint offsets in QGIS; do not hide them with software connectors.
-4. Use the trace logger with user-owned field observations to tune compass deadband, turn confirmation, GPS windows, off-route thresholds and arrival hysteresis.
-5. Run the user's own phone and ESP32 field trials; report field readiness only after those trials.
+3. Review endpoint attachment warnings in QGIS and verify each short node connector is physically walkable; the source map remains `verified=false`.
+4. Supply the campus/device-specific magnetic declination or measured heading offset; no unverified fixed +5° correction is applied.
+5. Define and integrate barrier/accessibility semantics after the source barrier attributes are normalized; barrier geometry is exported but not yet used to block edges.
+6. Use user-owned trace captures to validate GPS cadence and tune compass deadband, turn confirmation, GPS windows, off-route thresholds and arrival hysteresis.
+7. Run the user's own phone and ESP32 field trials; report field readiness only after those trials.
 
 No application or route test results are claimed in this record.
