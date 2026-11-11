@@ -7,7 +7,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/lat_lon.dart';
 import '../../models/university_location.dart';
 import '../../screens/navigation/live_navigation_screen.dart';
-import '../../state/university_locations_notifier.dart';
 import '../../widgets/droobi_bottom_nav.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/app_search_bar.dart';
@@ -53,6 +52,8 @@ class _UniversityLocationsScreenState
   final _searchController = TextEditingController();
   String _searchQuery = '';
   List<UniversityLocation> _qgisLocations = [];
+  bool _isLoadingQgis = true;
+  Object? _qgisLoadError;
 
   @override
   void initState() {
@@ -216,6 +217,11 @@ class _UniversityLocationsScreenState
       ],
     ),
     _UniversityItem(
+      name: 'Faculty of Medicine',
+      nameAr: 'كلية الطب',
+      aliases: ['Faculty of Medicine', 'Medicine', 'MED'],
+    ),
+    _UniversityItem(
       name: 'Faculty of Nursing',
       nameAr: 'كلية التمريض',
       aliases: [
@@ -367,8 +373,6 @@ class _UniversityLocationsScreenState
 
   @override
   Widget build(BuildContext context) {
-    final locationsAsync = ref.watch(universityLocationsProvider);
-
     return Scaffold(
       backgroundColor: _pageBackground,
       body: Stack(
@@ -439,15 +443,15 @@ class _UniversityLocationsScreenState
           // =====================================================================
 
           SafeArea(
-            child: locationsAsync.when(
-              loading: () => const Center(
-                child: CircularProgressIndicator(
-                  color: _primaryBlue,
-                ),
-              ),
-              error: (error, _) => _buildErrorState(error),
-              data: (locations) => _buildCard(context, locations),
-            ),
+            child: _isLoadingQgis
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      color: _primaryBlue,
+                    ),
+                  )
+                : _qgisLoadError != null
+                    ? _buildErrorState(_qgisLoadError!)
+                    : _buildCard(context),
           ),
         ],
       ),
@@ -458,10 +462,7 @@ class _UniversityLocationsScreenState
   // CARD CONTENT (fixed header/search/filters + scroll-if-needed grid)
   // ===========================================================================
 
-  Widget _buildCard(
-    BuildContext context,
-    List<UniversityLocation> locations,
-  ) {
+  Widget _buildCard(BuildContext context) {
     int order = 0;
 
     return Column(
@@ -483,7 +484,6 @@ class _UniversityLocationsScreenState
         Expanded(
           child: _buildGrid(
             context,
-            locations,
             startIndex: order,
           ),
         ),
@@ -619,8 +619,7 @@ class _UniversityLocationsScreenState
   // ===========================================================================
 
   Widget _buildGrid(
-    BuildContext context,
-    List<UniversityLocation> locations, {
+    BuildContext context, {
     required int startIndex,
   }) {
     final items = _visibleItems();
@@ -650,7 +649,6 @@ class _UniversityLocationsScreenState
           _buildLocationCard(
             context: context,
             item: items[index],
-            locations: locations,
           ),
         );
       },
@@ -687,9 +685,8 @@ class _UniversityLocationsScreenState
   Widget _buildLocationCard({
     required BuildContext context,
     required _UniversityItem item,
-    required List<UniversityLocation> locations,
   }) {
-    final location = _findLocation(item, locations);
+    final location = _findLocation(item);
     final isAvailable = location != null;
 
     return AppCard(
@@ -764,38 +761,25 @@ class _UniversityLocationsScreenState
   // FIND LOCATION
   // ===========================================================================
 
-  UniversityLocation? _findLocation(
-    _UniversityItem item,
-    List<UniversityLocation> locations,
-  ) {
-    // Destination coordinates are sourced from the QGIS nodes layer.
-    // Junction nodes are intentionally excluded from the University cards.
-    final nodeIds = switch (item.name) {
+  List<String> _nodeIdsForItem(_UniversityItem item) {
+    return switch (item.name) {
       'Cafeteria' => const ['C1', 'C2', 'C3'],
       'Gate 1' => const ['G1'],
+      'Gate 2' => const ['G2'],
       'Gate 3' => const ['G3'],
       'Faculty of Information Technology' => const ['IT1'],
       'Faculty of Arts and Education' => const ['AR1'],
       'Faculty of Engineering' => const ['E1'],
+      'Faculty of Allied Medical Sciences' => const ['AMS_A', 'AMS_B'],
+      'Faculty of Medicine' => const ['MED'],
       _ => const <String>[],
     };
+  }
 
-    for (final nodeId in nodeIds) {
+  UniversityLocation? _findLocation(_UniversityItem item) {
+    for (final nodeId in _nodeIdsForItem(item)) {
       for (final node in _qgisLocations) {
-        if (node.id == nodeId) return node;
-      }
-    }
-
-    // Keep Firestore-backed locations for destinations not yet mapped in QGIS.
-    for (final location in locations) {
-      final locationName = _normalize(location.name);
-      for (final alias in item.aliases) {
-        final normalizedAlias = _normalize(alias);
-        if (locationName == normalizedAlias ||
-            locationName.contains(normalizedAlias) ||
-            normalizedAlias.contains(locationName)) {
-          return location;
-        }
+        if (node.id.trim() == nodeId) return node;
       }
     }
     return null;
@@ -804,7 +788,7 @@ class _UniversityLocationsScreenState
   Future<void> _loadQgisLocations() async {
     try {
       final source = await rootBundle.loadString(
-        'docs/campus-mapping/nodes.geojson',
+        'docs/campus-mapping/nodes_v3.geojson',
       );
       final collection = jsonDecode(source) as Map<String, dynamic>;
       final features = collection['features'] as List<dynamic>? ?? const [];
@@ -838,20 +822,27 @@ class _UniversityLocationsScreenState
         ));
       }
 
+      if (parsed.isEmpty) {
+        throw const FormatException(
+          'The current QGIS nodes layer contains no usable destination nodes.',
+        );
+      }
       if (mounted) {
-        setState(() => _qgisLocations = parsed);
+        setState(() {
+          _qgisLocations = parsed;
+          _isLoadingQgis = false;
+          _qgisLoadError = null;
+        });
       }
     } catch (error) {
-      debugPrint('Could not load QGIS campus nodes: $error');
+      debugPrint('Could not load V3 QGIS campus nodes: $error');
+      if (mounted) {
+        setState(() {
+          _qgisLoadError = error;
+          _isLoadingQgis = false;
+        });
+      }
     }
-  }
-
-  String _normalize(String value) {
-    return value
-        .trim()
-        .toLowerCase()
-        .replaceAll(RegExp(r'[-_]+'), ' ')
-        .replaceAll(RegExp(r'\s+'), ' ');
   }
 
   // ===========================================================================
@@ -863,6 +854,12 @@ class _UniversityLocationsScreenState
     _UniversityItem item,
     UniversityLocation location,
   ) {
+    final candidates = _nodeIdsForItem(item)
+        .map((id) => _qgisLocations.where((node) => node.id.trim() == id))
+        .where((matches) => matches.isNotEmpty)
+        .map((matches) => matches.first)
+        .toList();
+
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => LiveNavigationScreen(
@@ -870,9 +867,8 @@ class _UniversityLocationsScreenState
             latitude: location.latitude,
             longitude: location.longitude,
           ),
-          destinationCandidates: item.name == 'Cafeteria'
-              ? _qgisLocations
-                  .where((node) => const ['C1', 'C2', 'C3'].contains(node.id))
+          destinationCandidates: candidates.length > 1
+              ? candidates
                   .map((node) => LatLon(
                         latitude: node.latitude,
                         longitude: node.longitude,
