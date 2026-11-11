@@ -68,6 +68,16 @@ def main() -> int:
         if node_id and len(coordinates) >= 2:
             nodes[node_id] = [float(coordinates[0]), float(coordinates[1])]
 
+    def nearest_node_id(coordinate: list[float]) -> str:
+        candidates = [
+            (distance_m(coordinate, node_coordinate), node_id)
+            for node_id, node_coordinate in nodes.items()
+        ]
+        if not candidates:
+            return ""
+        distance, node_id = min(candidates)
+        return node_id if distance <= 3.0 else ""
+
     edges: list[dict[str, Any]] = []
     for feature in edge_features:
         props = feature.get("properties") or {}
@@ -77,10 +87,12 @@ def main() -> int:
         coordinates = geometry.get("coordinates") or []
         if len(coordinates) < 2:
             continue
+        from_id = norm(prop(props, "from_node", "fromnode", "start_node", "source_node"))
+        to_id = norm(prop(props, "to_node", "tonode", "end_node", "target_node"))
         edges.append({
             "id": prop(props, "edge_id", "edgeid", "id") or props.get("_source_fid"),
-            "from": norm(prop(props, "from_node", "fromnode", "start_node", "source_node")),
-            "to": norm(prop(props, "to_node", "tonode", "end_node", "target_node")),
+            "from": from_id or nearest_node_id(coordinates[0]),
+            "to": to_id or nearest_node_id(coordinates[-1]),
             "coordinates": coordinates,
         })
 
