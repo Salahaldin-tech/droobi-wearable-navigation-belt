@@ -803,9 +803,16 @@ class _UniversityLocationsScreenState
 
   Future<void> _loadQgisLocations() async {
     try {
-      final source = await rootBundle.loadString(
-        'docs/campus-mapping/nodes.geojson',
-      );
+      String source;
+      try {
+        source = await rootBundle.loadString(
+          'assets/campus_map_v3/exported/nodes.geojson',
+        );
+      } on FlutterError {
+        source = await rootBundle.loadString(
+          'docs/campus-mapping/nodes.geojson',
+        );
+      }
       final collection = jsonDecode(source) as Map<String, dynamic>;
       final features = collection['features'] as List<dynamic>? ?? const [];
       final parsed = <UniversityLocation>[];
@@ -826,8 +833,16 @@ class _UniversityLocationsScreenState
         if (coordinates == null || coordinates.length < 2) continue;
         final longitude = (coordinates[0] as num?)?.toDouble();
         final latitude = (coordinates[1] as num?)?.toDouble();
-        final id = (properties['node_id'] ?? '').toString();
-        final name = (properties['name'] ?? id).toString();
+        final id = (properties['node_id'] ??
+                properties['nodeid'] ??
+                properties['id'] ??
+                properties['node'] ??
+                '')
+            .toString()
+            .trim();
+        final name = (properties['name'] ?? properties['node_name'] ?? id)
+            .toString()
+            .trim();
         if (longitude == null || latitude == null || id.isEmpty) continue;
 
         parsed.add(UniversityLocation(
