@@ -600,6 +600,8 @@ class NavigationService {
       speedMetersPerSecond: fix.speedMetersPerSecond,
       horizontalAccuracyMeters: fix.accuracyMeters,
     );
+    _lastRouteTarget = progress;
+    _lastRouteTargetFixTimestamp = fix.timestamp;
     final offRouteThreshold = _offRouteThresholdFor(fix);
 
     if (progress.progressJumpDetected ||
