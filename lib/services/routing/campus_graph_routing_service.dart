@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 
 import '../../models/lat_lon.dart';
 import '../../models/route_result.dart';
+import '../campus_map/campus_map_source.dart';
 import 'routing_service.dart';
 
 /// Experimental offline campus router built from the QGIS GeoJSON export.
@@ -14,10 +15,6 @@ class CampusGraphRoutingService implements RoutingService {
   CampusGraphRoutingService({this.maximumSnapMeters = 45.0});
 
   final double maximumSnapMeters;
-  static const String _v3EdgesAsset = 'assets/campus_map_v3/exported/edges.geojson';
-  static const String _v3NodesAsset = 'assets/campus_map_v3/exported/nodes.geojson';
-  static const String _v2EdgesAsset = 'docs/campus-mapping/edges.geojson';
-  static const String _v2NodesAsset = 'docs/campus-mapping/nodes.geojson';
   Future<_CampusGraph>? _graphFuture;
 
   @override
@@ -138,21 +135,17 @@ class CampusGraphRoutingService implements RoutingService {
 
   Future<_CampusGraph> _loadGraph() async {
     try {
-      Map<String, dynamic> edgesJson;
-      Map<String, dynamic> nodesJson;
-      try {
-        // Prefer the exported V3 GeoPackage layers whenever both files exist.
-        edgesJson = jsonDecode(await rootBundle.loadString(_v3EdgesAsset))
-            as Map<String, dynamic>;
-        nodesJson = jsonDecode(await rootBundle.loadString(_v3NodesAsset))
-            as Map<String, dynamic>;
-      } on FlutterError {
-        // Keep the V2 pilot usable until the V3 GeoPackage export is committed.
-        edgesJson = jsonDecode(await rootBundle.loadString(_v2EdgesAsset))
-            as Map<String, dynamic>;
-        nodesJson = jsonDecode(await rootBundle.loadString(_v2NodesAsset))
-            as Map<String, dynamic>;
-      }
+      // Load only the two named layers exported from the exact main-branch
+      // GeoPackage blob. There is deliberately no V2, Firestore, OSRM, or
+      // alternate-asset fallback for campus navigation.
+      final nodesJson = CampusMapSource.decodeAndValidate(
+        await rootBundle.loadString(CampusMapSource.nodesAsset),
+        expectedLayer: CampusMapSource.nodesLayer,
+      );
+      final edgesJson = CampusMapSource.decodeAndValidate(
+        await rootBundle.loadString(CampusMapSource.edgesAsset),
+        expectedLayer: CampusMapSource.edgesLayer,
+      );
       final nodeFeatures = nodesJson['features'] as List<dynamic>? ?? const [];
       final nodeCoordinates = <String, LatLon>{};
       var validNodeCount = 0;
