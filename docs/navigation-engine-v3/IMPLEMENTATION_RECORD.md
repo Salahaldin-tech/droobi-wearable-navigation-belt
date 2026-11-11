@@ -80,7 +80,8 @@ Detailed data facts and known limitations are recorded in `docs/campus-mapping/C
 - GPS and compass callbacks update data; they do not issue direction decisions directly.
 - Added PositionUncertain, OffRoute, Approaching and ArrivalCandidate states.
 - Stale or poor-quality GPS, stale/failed compass, map-match failures, progress jumps and missing route bearings suppress directional guidance.
-- Initial compass qualification now collects at least 12 samples over at least 1s and requires a circular resultant vector of 0.95; sample count, window and resultant are recorded.
+- Initial compass qualification now collects at least 12 samples over at least 1s and requires a circular resultant vector of 0.95; sample count, window, resultant and reported sensor accuracy are recorded.
+- Compass samples with reported accuracy worse than 25° are discarded when the plugin supplies an accuracy value; absent accuracy metadata falls back to circular stability and stale-stream protection.
 - Before compass lock, the service calculates local declination from the accepted GPS fix using the offline NOAA/NCEI WMM2025 model and adds it to magnetic heading to obtain true heading. The model is date-validity checked; navigation refuses to start if the bundled model is expired or returns a non-finite result.
 - No fixed +5° bias is used. The WMM2025 implementation and coefficient set are vendored with their MIT attribution; see `docs/navigation-engine-v3/THIRD_PARTY_NOTICES.md`.
 - Route tangent bearing is required; the GPS-to-target bearing fallback was removed.
