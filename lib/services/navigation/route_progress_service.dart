@@ -10,6 +10,11 @@ class RouteProgressService {
     this.minimumLookAheadMeters = 3.5,
     this.maximumLookAheadMeters = 9.0,
     this.turnDetectionAngleDegrees = 35.0,
+    this.behindWindowMinimumMeters = 12.0,
+    this.forwardWindowMinimumMeters = 35.0,
+    this.forwardWindowMaximumMeters = 100.0,
+    this.forwardSpeedHorizonSeconds = 20.0,
+    this.maximumProgressJumpMeters = 40.0,
   });
 
   /// Normal look-ahead on reasonably straight sections.
@@ -24,19 +29,22 @@ class RouteProgressService {
   /// A route heading change larger than this is treated
   /// as a meaningful turn.
   final double turnDetectionAngleDegrees;
+  final double behindWindowMinimumMeters;
+  final double forwardWindowMinimumMeters;
+  final double forwardWindowMaximumMeters;
+  final double forwardSpeedHorizonSeconds;
+  final double maximumProgressJumpMeters;
 
   RouteResult? _activeRoute;
   int _lastSegmentIndex = 0;
   double _lastProgressMeters = 0;
+  List<double> _cumulativeDistances = const [];
+
+  double get progressMeters => _lastProgressMeters;
 
   double get totalRouteMeters {
-    final route = _activeRoute;
-    if (route == null || route.polyline.length < 2) return 0;
-    var total = 0.0;
-    for (var i = 1; i < route.polyline.length; i++) {
-      total += distanceBetween(route.polyline[i - 1], route.polyline[i]);
-    }
-    return total;
+    if (_cumulativeDistances.isEmpty) return 0;
+    return _cumulativeDistances.last;
   }
 
   double get remainingRouteMeters =>
@@ -46,6 +54,39 @@ class RouteProgressService {
     _activeRoute = null;
     _lastSegmentIndex = 0;
     _lastProgressMeters = 0;
+    _cumulativeDistances = const [];
+  }
+
+  void _prepareRoute(RouteResult route) {
+    if (identical(_activeRoute, route)) return;
+    _activeRoute = route;
+    _lastSegmentIndex = 0;
+    _lastProgressMeters = 0;
+    final cumulative = <double>[0];
+    for (var i = 1; i < route.polyline.length; i++) {
+      cumulative.add(
+        cumulative.last +
+            distanceBetween(route.polyline[i - 1], route.polyline[i]),
+      );
+    }
+    _cumulativeDistances = cumulative;
+  }
+
+  int _segmentAtDistance(double distanceMeters) {
+    final segmentCount = _cumulativeDistances.length - 1;
+    if (segmentCount <= 0) return 0;
+    final distance = distanceMeters.clamp(0.0, totalRouteMeters);
+    var low = 0;
+    var high = segmentCount - 1;
+    while (low < high) {
+      final middle = (low + high) >> 1;
+      if (_cumulativeDistances[middle + 1] < distance) {
+        low = middle + 1;
+      } else {
+        high = middle;
+      }
+    }
+    return low;
   }
 
   // ================================================================
@@ -56,11 +97,15 @@ class RouteProgressService {
     required LatLon currentPosition,
     required RouteResult route,
     double? lookAheadMeters,
+    double? speedMetersPerSecond,
+    double? horizontalAccuracyMeters,
   }) {
     final target = getNextTarget(
       currentPosition: currentPosition,
       route: route,
       lookAheadMeters: lookAheadMeters,
+      speedMetersPerSecond: speedMetersPerSecond,
+      horizontalAccuracyMeters: horizontalAccuracyMeters,
     );
 
     return target.point;
@@ -74,6 +119,8 @@ class RouteProgressService {
     required LatLon currentPosition,
     required RouteResult route,
     double? lookAheadMeters,
+    double? speedMetersPerSecond,
+    double? horizontalAccuracyMeters,
   }) {
     if (route.polyline.isEmpty) {
       throw const RouteProgressFailure(
@@ -92,43 +139,70 @@ class RouteProgressService {
         ),
         routeBearing: null,
         isNearTurn: false,
+        progressMeters: 0,
+        remainingRouteMeters: 0,
       );
     }
 
-    if (!identical(_activeRoute, route)) {
-      _activeRoute = route;
-      _lastSegmentIndex = 0;
-      _lastProgressMeters = 0;
-    }
+    _prepareRoute(route);
 
+    final accuracy = horizontalAccuracyMeters != null &&
+            horizontalAccuracyMeters.isFinite &&
+            horizontalAccuracyMeters > 0
+        ? horizontalAccuracyMeters
+        : 0.0;
+    final speed = speedMetersPerSecond != null &&
+            speedMetersPerSecond.isFinite &&
+            speedMetersPerSecond >= 0
+        ? speedMetersPerSecond
+        : 0.0;
+
+    // Restrict route matching by metres, not by an arbitrary number of
+    // vertices. This behaves consistently on dense and sparse polylines.
+    final behindWindow = math.max(
+      behindWindowMinimumMeters,
+      accuracy * 1.5,
+    ).toDouble();
+    final forwardWindow = (speed * forwardSpeedHorizonSeconds +
+            accuracy * 2)
+        .clamp(
+          forwardWindowMinimumMeters,
+          forwardWindowMaximumMeters,
+        )
+        .toDouble();
+
+    final firstSegment = _segmentAtDistance(
+      math.max(0.0, _lastProgressMeters - behindWindow),
+    );
+    final lastSegment = _segmentAtDistance(
+      math.min(totalRouteMeters, _lastProgressMeters + forwardWindow),
+    );
     final nearest = _findNearestPointOnRoute(
       currentPosition: currentPosition,
       polyline: route.polyline,
-      startIndex: math.max(0, _lastSegmentIndex - 1).toInt(),
-      endIndex: math.min(
-        route.polyline.length - 2,
-        _lastSegmentIndex + 8,
-      ).toInt(),
+      startIndex: math.max(0, firstSegment - 1).toInt(),
+      endIndex: math.min(route.polyline.length - 2, lastSegment + 1).toInt(),
     );
 
-    // Keep progress locally monotonic. A one-segment retreat is tolerated
-    // for GPS jitter; a distant earlier segment cannot steal route matching.
-    if (nearest.segmentIndex >= _lastSegmentIndex - 1) {
-      _lastSegmentIndex = math.max(_lastSegmentIndex, nearest.segmentIndex).toInt();
-    }
+    final progressAtProjection =
+        _cumulativeDistances[nearest.segmentIndex] +
+            distanceBetween(
+              route.polyline[nearest.segmentIndex],
+              nearest.projectedPoint,
+            );
+    final progressJumpDetected = _lastProgressMeters > 0 &&
+        progressAtProjection >
+            _lastProgressMeters + maximumProgressJumpMeters;
 
-    var progressAtProjection = 0.0;
-    for (var i = 0; i < nearest.segmentIndex; i++) {
-      progressAtProjection += distanceBetween(
-        route.polyline[i],
-        route.polyline[i + 1],
-      );
+    // A sudden jump to a distant later segment is not accepted as route
+    // progress. The caller can suppress guidance until another GPS fix
+    // confirms movement rather than immediately skipping turns.
+    if (!progressJumpDetected) {
+      _lastProgressMeters =
+          math.max(_lastProgressMeters, progressAtProjection).toDouble();
+      _lastSegmentIndex =
+          math.max(_lastSegmentIndex, nearest.segmentIndex).toInt();
     }
-    progressAtProjection += distanceBetween(
-      route.polyline[nearest.segmentIndex],
-      nearest.projectedPoint,
-    );
-    _lastProgressMeters = math.max(_lastProgressMeters, progressAtProjection).toDouble();
 
     final adaptiveLookAhead =
         lookAheadMeters ??
@@ -203,6 +277,9 @@ class RouteProgressService {
             segmentIndex:
                 segmentIndex,
           ),
+          progressMeters: _lastProgressMeters,
+          remainingRouteMeters: remainingRouteMeters,
+          progressJumpDetected: progressJumpDetected,
         );
       }
 
@@ -238,6 +315,9 @@ class RouteProgressService {
           nearest.distanceFromRouteMeters,
       routeBearing: finalBearing,
       isNearTurn: false,
+      progressMeters: _lastProgressMeters,
+      remainingRouteMeters: remainingRouteMeters,
+      progressJumpDetected: progressJumpDetected,
     );
   }
 
@@ -736,6 +816,9 @@ class RouteTarget {
     required this.distanceFromRouteMeters,
     required this.routeBearing,
     required this.isNearTurn,
+    this.progressMeters = 0,
+    this.remainingRouteMeters = 0,
+    this.progressJumpDetected = false,
   });
 
   final LatLon point;
@@ -757,6 +840,15 @@ class RouteTarget {
 
   /// Whether the target is close to a meaningful route turn.
   final bool isNearTurn;
+
+  /// Monotonic distance already traversed along the active route.
+  final double progressMeters;
+
+  /// Remaining distance along the active route.
+  final double remainingRouteMeters;
+
+  /// True when the nearest projection implies an implausible progress jump.
+  final bool progressJumpDetected;
 }
 
 // ================================================================
