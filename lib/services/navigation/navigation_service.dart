@@ -133,7 +133,6 @@ class NavigationService {
   int _offRouteSamples = 0;
   DateTime? _lastCampusRerouteAt;
 
-  static const double _campusOffRouteMinimumMeters = 12.0;
   static const int _campusOffRouteSamplesRequired = 2;
   static const Duration _campusRerouteCooldown = Duration(seconds: 5);
 
@@ -1090,7 +1089,7 @@ class NavigationService {
   // DIRECTION STABILITY
   // ================================================================
 
-  NavigationDirection _stabilizeDirection(
+  NavigationDirection? _stabilizeDirection(
     NavigationDirection candidate,
   ) {
     final now = DateTime.now();
@@ -1106,28 +1105,34 @@ class NavigationService {
       _candidateDirection = null;
       _candidateDirectionCount = 0;
       _candidateDirectionSince = null;
-      return _confirmedDirection!;
+      return _confirmedDirection;
     }
 
     if (_candidateDirection != candidate) {
       _candidateDirection = candidate;
       _candidateDirectionCount = 1;
       _candidateDirectionSince = now;
-      return _confirmedDirection!;
+
+      // Do not keep sending the previous direction while a turn is being
+      // confirmed. STOP is safer than a stale haptic cue.
+      return null;
     }
 
-    // Compass streams can emit ~30 samples/second. A time window avoids
-    // confirming a new direction from three adjacent samples in milliseconds.
+    // The policy runs at 2 Hz. Require both multiple policy observations
+    // and a minimum dwell time before changing the active haptic direction.
     _candidateDirectionCount++;
     final since = _candidateDirectionSince;
-    if (since != null &&
+    if (_candidateDirectionCount >= directionConfirmationSamples &&
+        since != null &&
         now.difference(since) >= const Duration(milliseconds: 900)) {
       _confirmedDirection = candidate;
       _candidateDirection = null;
       _candidateDirectionCount = 0;
       _candidateDirectionSince = null;
+      return _confirmedDirection;
     }
-    return _confirmedDirection!;
+
+    return null;
   }
 
   // ================================================================
