@@ -157,6 +157,8 @@ class NavigationService {
   StreamSubscription<LocationFix>? _locationSubscription;
 
   StreamSubscription<double>? _compassSubscription;
+  Timer? _navigationTicker;
+  double _magneticDeclinationDegrees = 0.0;
 
   final StreamController<NavigationSnapshot>
       _snapshotController =
@@ -329,18 +331,30 @@ class NavigationService {
       // 3. INITIAL COMPASS
       // ------------------------------------------------------------
 
-      final initialHeading =
-          await _compassService.getStableHeading();
+      final initialMagneticHeading =
+          await _compassService.getStableHeading(
+        sampleCount: 12,
+        minimumSamplingWindow: const Duration(seconds: 1),
+      );
+
+      // WMM2025 declination converts magnetic north to true north at the
+      // initial GPS location. The correction is cached for this route.
+      _magneticDeclinationDegrees =
+          _compassService.getDeclinationDegrees(
+        latitude: filteredFix.position.latitude,
+        longitude: filteredFix.position.longitude,
+      );
 
       _resetCompassSmoothing();
-
-      final smoothedInitialHeading =
+      final smoothedInitialMagneticHeading =
           _addCompassSample(
-                initialHeading,
+                initialMagneticHeading,
                 forcePublish: true,
               ) ??
-              initialHeading;
-
+              initialMagneticHeading;
+      final smoothedInitialHeading = _normalizeHeading(
+        smoothedInitialMagneticHeading + _magneticDeclinationDegrees,
+      );
       _latestHeading = smoothedInitialHeading;
 
       // ------------------------------------------------------------
@@ -360,17 +374,8 @@ class NavigationService {
       );
 
       _startCompassStream();
-
       _startLocationStream();
-
-      // ------------------------------------------------------------
-      // 5. FIRST CALCULATION
-      // ------------------------------------------------------------
-
-      _updateNavigation(
-        filteredFix,
-        smoothedInitialHeading,
-      );
+      _startNavigationTicker();
     } catch (e) {
       _isNavigating = false;
 
@@ -496,10 +501,7 @@ class NavigationService {
       return;
     }
 
-    _updateNavigation(
-      filteredFix,
-      heading,
-    );
+    // Navigation decisions are made by the fixed 500 ms ticker.
   }
 
   // ================================================================
@@ -620,11 +622,24 @@ class NavigationService {
       return;
     }
 
-    _latestHeading = smoothedHeading;
+    _latestHeading = _normalizeHeading(
+      smoothedHeading + _magneticDeclinationDegrees,
+    );
+    // Sensor callbacks update the latest sample only. Navigation decisions
+    // are evaluated at a fixed 500 ms cadence.
+  }
 
-    _updateNavigation(
-      _lastAcceptedFix!,
-      smoothedHeading,
+  void _startNavigationTicker() {
+    _navigationTicker?.cancel();
+    _navigationTicker = Timer.periodic(
+      const Duration(milliseconds: 500),
+      (_) {
+        if (!_isNavigating || _isRerouting) return;
+        final fix = _lastAcceptedFix;
+        final heading = _latestHeading;
+        if (fix == null || heading == null || _route == null) return;
+        _updateNavigation(fix, heading);
+      },
     );
   }
 
@@ -943,6 +958,8 @@ class NavigationService {
 
   Future<void> stop() async {
     _isNavigating = false;
+    _navigationTicker?.cancel();
+    _navigationTicker = null;
 
     await _locationSubscription?.cancel();
     _locationSubscription = null;
@@ -1004,6 +1021,8 @@ class NavigationService {
     _isDisposed = true;
 
     _isNavigating = false;
+    _navigationTicker?.cancel();
+    _navigationTicker = null;
 
     await _locationSubscription?.cancel();
     await _compassSubscription?.cancel();
