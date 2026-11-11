@@ -69,6 +69,20 @@ class CampusMapSource {
         'The verified ' + expectedLayer + ' layer contains no features.',
       );
     }
+    for (final feature in features) {
+      if (feature is! Map<String, dynamic>) {
+        throw FormatException(
+          'The verified ' + expectedLayer + ' layer contains an invalid feature.',
+        );
+      }
+      final properties = feature['properties'];
+      if (properties is! Map<String, dynamic> ||
+          properties['_source_layer']?.toString() != expectedLayer) {
+        throw FormatException(
+          'A feature does not belong to the expected ' + expectedLayer + ' layer.',
+        );
+      }
+    }
 
     return decoded;
   }
