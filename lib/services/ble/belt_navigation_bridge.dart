@@ -21,6 +21,7 @@ class BeltNavigationBridge {
 
   bool _started = false;
   bool _disposed = false;
+  BeltCommand? _lastCommand;
 
   void start() {
     debugPrint('[BLE BRIDGE] Started');
@@ -45,26 +46,37 @@ class BeltNavigationBridge {
       return;
     }
 
-    // Destination reached: pulse all four belt motors together.
-    // This is a one-shot firmware pattern, not a navigation direction.
+    // Arrival is a one-shot event; repeated UI/timer snapshots must not
+    // restart the all-motor pulse.
     if (snapshot.state == NavigationState.arrived) {
-      await _beltConnectionService.sendCommand(BeltCommand.arrived);
+      if (_lastCommand != BeltCommand.arrived) {
+        await _beltConnectionService.sendCommand(BeltCommand.arrived);
+        _lastCommand = BeltCommand.arrived;
+      }
       return;
     }
 
     final direction = snapshot.direction;
+    final guidanceAllowed =
+        snapshot.state == NavigationState.navigating ||
+        snapshot.state == NavigationState.approaching;
 
-    // Fail safe for GPS errors, recovery states, or any snapshot
-    // without a valid direction: never leave an old pattern running.
-    if (direction == null ||
-        snapshot.state == NavigationState.gpsUnavailable ||
-        snapshot.state == NavigationState.routeUnavailable) {
-      await _beltConnectionService.sendCommand(BeltCommand.stop);
+    // Every state outside active route following is fail-safe STOP.
+    // This also prevents a stale direction from surviving GPS/compass
+    // uncertainty, an off-route transition, arrival confirmation, or recovery.
+    if (!guidanceAllowed || direction == null) {
+      if (_lastCommand != BeltCommand.stop) {
+        await _beltConnectionService.sendCommand(BeltCommand.stop);
+        _lastCommand = BeltCommand.stop;
+      }
       return;
     }
 
     final command = _beltCommandFromDirection(direction);
-    await _beltConnectionService.sendCommand(command);
+    if (_lastCommand != command) {
+      await _beltConnectionService.sendCommand(command);
+      _lastCommand = command;
+    }
   }
 
   Future<void> _sendCurrentNavigationCommand() async {
@@ -77,12 +89,17 @@ class BeltNavigationBridge {
 
     // Do not replay an arrival pulse or stale direction on reconnect.
     // If there is no current navigation direction, explicitly stop.
-    final command = direction == null ||
-            snapshot.state != NavigationState.navigating
-        ? BeltCommand.stop
-        : _beltCommandFromDirection(direction);
+    final canGuide = direction != null &&
+        (snapshot.state == NavigationState.navigating ||
+            snapshot.state == NavigationState.approaching);
+    final command = canGuide
+        ? _beltCommandFromDirection(direction)
+        : BeltCommand.stop;
 
+    // A reconnect must always reassert the current safe state even if it
+    // matches the last attempted command from before the disconnect.
     await _beltConnectionService.sendCommand(command);
+    _lastCommand = command;
   }
 
   BeltCommand _beltCommandFromDirection(
