@@ -158,6 +158,18 @@ class _LiveNavigationTestScreenState
       case NavigationState.navigating:
         return 'NAVIGATING';
 
+      case NavigationState.positionUncertain:
+        return 'POSITION UNCERTAIN';
+
+      case NavigationState.offRoute:
+        return 'OFF ROUTE';
+
+      case NavigationState.approaching:
+        return 'APPROACHING';
+
+      case NavigationState.arrivalCandidate:
+        return 'VERIFYING ARRIVAL';
+
       case NavigationState.gpsUnavailable:
         return 'GPS UNAVAILABLE';
 
@@ -178,6 +190,7 @@ class _LiveNavigationTestScreenState
   Color _stateColor(NavigationState state) {
     switch (state) {
       case NavigationState.navigating:
+      case NavigationState.approaching:
         return Colors.green;
 
       case NavigationState.arrived:
@@ -185,8 +198,11 @@ class _LiveNavigationTestScreenState
 
       case NavigationState.starting:
       case NavigationState.recovering:
+      case NavigationState.positionUncertain:
+      case NavigationState.arrivalCandidate:
         return Colors.orange;
 
+      case NavigationState.offRoute:
       case NavigationState.gpsUnavailable:
       case NavigationState.routeUnavailable:
         return Colors.red;
