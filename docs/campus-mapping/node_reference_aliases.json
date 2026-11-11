@@ -1,0 +1,8 @@
+{
+  "normalization": "trim whitespace; do not rewrite node IDs",
+  "aliases": {
+    "J90-0": "J90_0",
+    "J90_4": "J90-4",
+    "AWS_B": "AMS_B"
+  }
+}

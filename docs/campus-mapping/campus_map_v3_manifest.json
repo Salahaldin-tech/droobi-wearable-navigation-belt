@@ -1,0 +1,33 @@
+{
+  "source": {
+    "path": "assets/campus_map_v3/campus_network.gpkg",
+    "branch": "main",
+    "commit": "9787d1801f132eebc7344e75e598f179ade7152a",
+    "gitBlobSha": "a1eb1b7652d6e6f6251a2dce9f0e7c99d4decf41",
+    "crs": "EPSG:32636"
+  },
+  "export": {
+    "crs": "EPSG:4326",
+    "converter": "tooling/export_campus_gpkg_to_geojson.py",
+    "nodesTable": "nodes",
+    "edgesTable": "edges",
+    "ignoredDuplicatePointTable": "campus_network",
+    "sourceTables": {
+      "nodes": 29,
+      "edges": 20,
+      "buildings": 7,
+      "barriers": 16
+    }
+  },
+  "aliases": {
+    "J90-0": "J90_0",
+    "J90_4": "J90-4",
+    "AWS_B": "AMS_B"
+  },
+  "notes": [
+    "Export generated from the latest GeoPackage blob on main; projected coordinates transformed from WGS84 / UTM zone 36N (EPSG:32636).",
+    "Node IDs are preserved exactly as authored; alias map only repairs edge reference strings.",
+    "All source nodes and edges currently have verified=false. This is not a field-verified pedestrian network.",
+    "Geometry and points are not modified by this export."
+  ]
+}

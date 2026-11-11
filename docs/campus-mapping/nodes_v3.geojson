@@ -1,0 +1,509 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": 15,
+      "properties": {
+        "fid": 15,
+        "node_id": "G3",
+        "node_type": "gate",
+        "name": "gate 3",
+        "verified": false
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.34132248882196,
+          32.407343612351234
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 16,
+      "properties": {
+        "fid": 16,
+        "node_id": "C1",
+        "node_type": "building entrance",
+        "name": "caffeteria door 1",
+        "verified": false
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.342165855390974,
+          32.40702199291816
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 17,
+      "properties": {
+        "fid": 17,
+        "node_id": "C2",
+        "node_type": "bulding entrance",
+        "name": "caffeteria door 2 (main door 1)",
+        "verified": false
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.34246387321887,
+          32.407014039236
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 18,
+      "properties": {
+        "fid": 18,
+        "node_id": "C3",
+        "node_type": "building entrance 3",
+        "name": "caffeteria door 3 ( main door 2)",
+        "verified": false
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.34267909357366,
+          32.40711407634209
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 19,
+      "properties": {
+        "fid": 19,
+        "node_id": "IT1",
+        "node_type": "building entrance",
+        "name": "it main entrance",
+        "verified": false
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.34341922867782,
+          32.406762881757636
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 20,
+      "properties": {
+        "fid": 20,
+        "node_id": "AR1",
+        "node_type": "building entrance ",
+        "name": "Arts Facuilty main entrance",
+        "verified": false
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.34459590815139,
+          32.40798931227382
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 22,
+      "properties": {
+        "fid": 22,
+        "node_id": "G1",
+        "node_type": "GATE",
+        "name": "GATE1",
+        "verified": false
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.342239729578615,
+          32.4055253160422
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 23,
+      "properties": {
+        "fid": 23,
+        "node_id": "J1",
+        "node_type": "junction",
+        "name": "junction 1",
+        "verified": false
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.342086905877345,
+          32.40699174651755
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 24,
+      "properties": {
+        "fid": 24,
+        "node_id": "J2",
+        "node_type": "junction",
+        "name": "junction2",
+        "verified": false
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.34247979580985,
+          32.40699275473106
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 25,
+      "properties": {
+        "fid": 25,
+        "node_id": "J3",
+        "node_type": "junction",
+        "name": "junction3",
+        "verified": false
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.34270828499045,
+          32.407095928521436
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 26,
+      "properties": {
+        "fid": 26,
+        "node_id": "J90_0",
+        "node_type": "junction",
+        "name": "junction 90",
+        "verified": false
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.343009752713044,
+          32.406908064756315
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 27,
+      "properties": {
+        "fid": 27,
+        "node_id": "J90_1",
+        "node_type": "junction",
+        "name": "junction 5",
+        "verified": false
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.343615607299924,
+          32.40712494262794
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 28,
+      "properties": {
+        "fid": 28,
+        "node_id": "J90_2",
+        "node_type": "junction",
+        "name": "junction 6",
+        "verified": false
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.344561409204275,
+          32.407993793173176
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 29,
+      "properties": {
+        "fid": 29,
+        "node_id": "J90_3",
+        "node_type": "junction",
+        "name": "junction 7",
+        "verified": false
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.34543999076147,
+          32.40817722784271
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 31,
+      "properties": {
+        "fid": 31,
+        "node_id": " J90_5",
+        "node_type": "junction",
+        "name": "junction 10",
+        "verified": false
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.3440497632807,
+          32.407273261698805
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 32,
+      "properties": {
+        "fid": 32,
+        "node_id": "AMS_A",
+        "node_type": "facility entrance",
+        "name": "Allied Medical Sciences A entrance",
+        "verified": false
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.34412952070336,
+          32.4071651284486
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 33,
+      "properties": {
+        "fid": 33,
+        "node_id": "J90_6",
+        "node_type": "junction",
+        "name": "junction 11",
+        "verified": false
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.34415591388724,
+          32.40728670450283
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 34,
+      "properties": {
+        "fid": 34,
+        "node_id": "MED",
+        "node_type": "facility entrance",
+        "name": "faculty of medicine",
+        "verified": false
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.34492687872492,
+          32.407006828855685
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 35,
+      "properties": {
+        "fid": 35,
+        "node_id": "J4",
+        "node_type": "junction",
+        "name": "junction 12",
+        "verified": false
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.344873759196894,
+          32.40703545448076
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 36,
+      "properties": {
+        "fid": 36,
+        "node_id": "AMS_B",
+        "node_type": "faculty entrance",
+        "name": "Alied Medical Sciences B",
+        "verified": false
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.34454701758947,
+          32.40649595534037
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 37,
+      "properties": {
+        "fid": 37,
+        "node_id": "J5",
+        "node_type": "junction",
+        "name": "junction 13",
+        "verified": false
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.34449785377099,
+          32.40652648951293
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 38,
+      "properties": {
+        "fid": 38,
+        "node_id": "J6",
+        "node_type": "junction",
+        "name": "junction 14",
+        "verified": false
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.3425275635828,
+          32.406840402338474
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 39,
+      "properties": {
+        "fid": 39,
+        "node_id": "G2",
+        "node_type": "gate entrance",
+        "name": "GATE 2",
+        "verified": false
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.34154870278381,
+          32.40616771233306
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 40,
+      "properties": {
+        "fid": 40,
+        "node_id": "J7",
+        "node_type": "junction",
+        "name": "junction 14",
+        "verified": false
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.34200914737344,
+          32.406474390574864
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 41,
+      "properties": {
+        "fid": 41,
+        "node_id": "J8",
+        "node_type": "junction",
+        "name": "junction 15",
+        "verified": false
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.34251321778821,
+          32.40673488496491
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 42,
+      "properties": {
+        "fid": 42,
+        "node_id": "J9",
+        "node_type": "junction",
+        "name": "junction 15",
+        "verified": false
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.34265630145302,
+          32.40678488453475
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 43,
+      "properties": {
+        "fid": 43,
+        "node_id": "E1",
+        "node_type": "Faculty entrance",
+        "name": "engineering faculty main entrance",
+        "verified": false
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.34564986940725,
+          32.40830546890924
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 44,
+      "properties": {
+        "fid": 44,
+        "node_id": "J90-4",
+        "node_type": "junction",
+        "name": "junction 17",
+        "verified": false
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.34528658370729,
+          32.40826990016105
+        ]
+      }
+    }
+  ]
+}
