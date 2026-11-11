@@ -79,11 +79,17 @@ class _LiveNavigationScreenState
         setState(() {
           _snapshot = snapshot;
 
-          if (snapshot.errorMessage != null) {
-            _errorMessage = snapshot.errorMessage;
-          } else if (snapshot.state == NavigationState.navigating ||
-              snapshot.state == NavigationState.approaching) {
+          final retainingGuidance =
+              snapshot.state == NavigationState.navigating ||
+              snapshot.state == NavigationState.approaching ||
+              snapshot.state == NavigationState.recovering ||
+              snapshot.state == NavigationState.positionUncertain ||
+              snapshot.state == NavigationState.offRoute ||
+              snapshot.state == NavigationState.arrivalCandidate;
+          if (retainingGuidance) {
             _errorMessage = null;
+          } else if (snapshot.errorMessage != null) {
+            _errorMessage = snapshot.errorMessage;
           }
         });
       },
@@ -217,10 +223,10 @@ class _LiveNavigationScreenState
         return 'Navigation active';
 
       case NavigationState.positionUncertain:
-        return 'Position uncertain — guidance paused';
+        return 'Updating position — last direction retained';
 
       case NavigationState.offRoute:
-        return 'Off mapped path — guidance paused';
+        return 'Reconnecting to campus path';
 
       case NavigationState.approaching:
         return 'Approaching destination';
@@ -272,7 +278,11 @@ class _LiveNavigationScreenState
 
     final isNavigating =
         _snapshot.state == NavigationState.navigating ||
-        _snapshot.state == NavigationState.approaching;
+        _snapshot.state == NavigationState.approaching ||
+        _snapshot.state == NavigationState.recovering ||
+        _snapshot.state == NavigationState.positionUncertain ||
+        _snapshot.state == NavigationState.offRoute ||
+        _snapshot.state == NavigationState.arrivalCandidate;
 
     final isStarting =
         _snapshot.state == NavigationState.starting;
@@ -540,7 +550,12 @@ class _LiveNavigationScreenState
     required bool isStarting,
   }) {
     if (_errorMessage != null &&
-        _snapshot.state != NavigationState.navigating) {
+        _snapshot.state != NavigationState.navigating &&
+        _snapshot.state != NavigationState.approaching &&
+        _snapshot.state != NavigationState.recovering &&
+        _snapshot.state != NavigationState.positionUncertain &&
+        _snapshot.state != NavigationState.offRoute &&
+        _snapshot.state != NavigationState.arrivalCandidate) {
       return _buildErrorState();
     }
 
@@ -548,10 +563,20 @@ class _LiveNavigationScreenState
       return _buildArrivedState();
     }
 
-    if (isStarting ||
-        _snapshot.state == NavigationState.recovering ||
-        _snapshot.state == NavigationState.arrivalCandidate) {
+    if (isStarting) {
       return _buildLoadingState();
+    }
+
+    // Keep the last confirmed direction visible during GPS/compass recovery
+    // and arrival confirmation instead of replacing it with a spinner.
+    if (_snapshot.state == NavigationState.recovering ||
+        _snapshot.state == NavigationState.positionUncertain ||
+        _snapshot.state == NavigationState.offRoute ||
+        _snapshot.state == NavigationState.arrivalCandidate) {
+      return _buildDirectionState(
+        direction: direction,
+        isNavigating: isNavigating,
+      );
     }
 
     return _buildDirectionState(
