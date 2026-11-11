@@ -1,91 +1,63 @@
-# Droobi Campus Navigation — OSM + OSRM V4
+# Droobi Campus Navigation — Public OSM + OSRM
 
-## Decision
+## Current decision
 
-The AAUP campus map exported by the user from OpenStreetMap is the authoritative campus routing source for this branch. The campus graph is no longer loaded from the legacy QGIS `nodes.geojson` / `edges.geojson` assets.
+Campus Navigation uses the public OpenStreetMap pedestrian data through the public OSRM demo service:
 
-The user confirmed that the mapped campus paths are connected. This branch treats that as the intended map topology; the OSRM extraction and route smoke tests are the next machine-level checks of reachability. No claim of physical accessibility or field safety is made.
+`https://router.project-osrm.org`
 
-The supplied source snapshot is stored at:
+The campus route request uses the OSRM `foot` profile and a 20 m endpoint snap radius. No local OSRM server, Docker Desktop, or FOSSGIS endpoint is part of this implementation.
+
+The general navigation provider remains separate and unchanged. Campus navigation receives its own `OsrmRoutingService` instance configured with the same public endpoint.
+
+## Campus map source
+
+The campus entrance anchors are loaded from:
+
+- `docs/campus-mapping/osm/aaup-campus-entrances.geojson`
+
+The OSM snapshot is retained at:
 
 - `docs/campus-mapping/osm/aaup-campus.osm`
-- Source format: OpenStreetMap XML
-- OSM attribution and ODbL licence metadata are retained in the source file.
 
-The app uses a separate OSRM endpoint for campus navigation. The general routing provider remains separate.
+The app uses the entrance GeoJSON to locate mapped main doors. OSRM calculates the pedestrian route from the public routing graph; the app does not locally route over the OSM XML snapshot.
 
-## Why a dedicated OSRM instance is required
+The currently mapped main-door anchors include IT, Arts, Engineering, AMS_A, and Cafeteria.
 
-The public OSRM demo endpoint is not guaranteed to contain the user's latest AAUP edits. Campus routing must use an OSRM dataset extracted from the exact `aaup-campus.osm` snapshot in this repository.
+## Public OSRM limitations
 
-OSRM's built-in `foot` profile is used. OSRM profiles are applied during data extraction, not per request. Rebuild the OSRM dataset whenever the OSM source snapshot changes.
+The public demo service maintains its own imported OSM dataset. A newly edited way appearing on openstreetmap.org does not prove that it has already been imported by the OSRM demo backend.
 
-## Build and run
+Therefore, route geometry must be inspected during the user's field tests. A response with `code: Ok` proves that OSRM returned a route, but it does not by itself prove that the returned route follows the latest campus edits.
 
-Requirements: Docker Desktop / Docker Engine.
+The public demo service is operated for demonstration use. Availability, request limits, import freshness, and service performance are outside this app's control. The app must display a clear route/network error when a request cannot be completed; it must not silently switch to a different routing provider.
 
-PowerShell:
+## Routing behavior
 
-```powershell
-.scriptsuild_campus_osrm.ps1
-docker compose -f docker-compose.campus-osrm.yml up -d
-```
+- Use the `foot` profile.
+- Send coordinates in OSRM order: longitude,latitude.
+- Request full GeoJSON geometry.
+- Apply the campus-specific 20 m snap radius.
+- Reject empty or malformed route geometry.
+- Keep campus routing in its own service instance.
+- Keep the existing general routing provider unchanged.
+- Do not create a straight-line route when OSRM cannot find a pedestrian route.
+- When multiple entrance candidates are supplied, calculate each reachable route and select the shortest valid one.
 
-Bash / WSL:
+## Navigation continuity
 
-```bash
-bash scripts/build_campus_osrm.sh
-docker compose -f docker-compose.campus-osrm.yml up -d
-```
+A single rejected GPS fix, sudden movement, temporary GPS degradation, compass outlier, or failed reroute must not stop an active navigation session.
 
-The OSRM HTTP service is exposed on port `5001`.
+Campus GPS filtering is isolated from general navigation. Suspicious fixes are rejected while the last accepted position is retained. If a campus reroute request fails, guidance pauses for that fix and the navigation session remains active so recovery can be retried on a later accepted fix.
 
-Health / route smoke test (coordinates are longitude,latitude):
+## Scope
 
-```text
-http://127.0.0.1:5001/route/v1/foot/35.3434195,32.4067799;35.3445806,32.4079498?overview=full&geometries=geojson
-```
+This integration changes campus routing configuration only. GPS filtering and route recovery changes are campus-specific. General navigation behavior and its routing provider must remain unchanged.
 
-A successful response must contain `"code":"Ok"` and a non-empty route geometry. This smoke test must be run after each rebuild.
+No route, sensor, accessibility, or field-safety test is claimed by this document. The user will perform device and campus field testing manually.
 
-## Flutter configuration
+## Safety and attribution
 
-The campus OSRM endpoint is supplied at build/run time:
+A successful OSRM route does not establish that a path is physically accessible, unobstructed, or safe for a blind pedestrian. Verify gates, steps, surface, width, slope, temporary closures, and entrance-to-path connections during supervised field testing.
 
-- Android emulator: `--dart-define=CAMPUS_OSRM_BASE_URL=http://10.0.2.2:5001`
-- Physical Android phone on the same LAN: `--dart-define=CAMPUS_OSRM_BASE_URL=http://<COMPUTER_LAN_IP>:5001`
-- iOS simulator: `--dart-define=CAMPUS_OSRM_BASE_URL=http://127.0.0.1:5001`
-
-Debug Android builds allow local HTTP for this endpoint. Release builds keep cleartext traffic disabled; deploy the OSRM service behind HTTPS before configuring a release build.
-
-Do not use `localhost` from a physical phone; it points to the phone itself. Campus navigation deliberately fails with a configuration error if this endpoint is absent. It must not silently fall back to the public demo or to the old QGIS graph.
-
-The campus OSRM client uses the `foot` route profile and a bounded 20 m snap radius for both endpoints. If OSRM cannot snap an endpoint within this radius, routing should fail rather than inventing a long straight-line connector.
-
-## OSM entrance points
-
-`aaup-campus-entrances.geojson` is a compact app asset generated from the main entrance nodes in the OSM source snapshot. It currently contains the five named main doors:
-
-- IT main door
-- Arts main door
-- Engineering main door
-- AMS_A main door
-- cafeteria main door
-
-These are destination anchors. The route itself is computed by OSRM over the OSM pedestrian graph.
-
-Other destinations that do not yet have a mapped OSM entrance may continue to use the existing Firestore location record temporarily; they are still snapped by the campus OSRM endpoint and must pass the 20 m snap limit. Add explicit OSM entrance nodes for these destinations before production use.
-
-## What is and is not integrated
-
-- The OSM snapshot is now the campus routing graph source, and the five explicitly tagged main-door nodes are used as destination anchors in the University screen.
-- The app does not yet render a live interactive OSM tile basemap. This change uses OSM data for route computation and entrance coordinates; a visible map layer is a separate UI task.
-
-## Scope and safety
-
-- This branch changes the campus routing data source and endpoint wiring only.
-- It does not redesign compass, GPS filtering, route progress, haptic patterns, or arrival logic.
-- No routing result has been field-validated by this commit.
-- A successful OSRM route proves graph reachability in the imported OSM data, not that a path is physically accessible, unobstructed, or safe for a blind pedestrian.
-- Review access restrictions, steps, surface, width, slopes, gates, temporary closures, and entrance-to-path connections before supervised field testing.
-- Preserve OSM attribution and comply with ODbL when distributing derived data.
+Retain OpenStreetMap attribution and comply with the ODbL when distributing derived data.
