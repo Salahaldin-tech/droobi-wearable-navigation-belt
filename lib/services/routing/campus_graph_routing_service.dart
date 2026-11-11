@@ -154,14 +154,28 @@ class CampusGraphRoutingService implements RoutingService {
             as Map<String, dynamic>;
       }
       final nodeFeatures = nodesJson['features'] as List<dynamic>? ?? const [];
-      final validNodeCount = nodeFeatures.where((feature) {
-        if (feature is! Map<String, dynamic>) return false;
-        final geometry = feature['geometry'];
-        return geometry is Map<String, dynamic> &&
-            geometry['type'] == 'Point' &&
-            geometry['coordinates'] is List &&
-            (geometry['coordinates'] as List).length >= 2;
-      }).length;
+      final nodeCoordinates = <String, LatLon>{};
+      var validNodeCount = 0;
+      for (final feature in nodeFeatures) {
+        if (feature is! Map<String, dynamic>) continue;
+        final properties = feature['properties'] as Map<String, dynamic>? ?? {};
+        final geometry = feature['geometry'] as Map<String, dynamic>?;
+        if (geometry == null || geometry['type'] != 'Point') continue;
+        final coordinates = geometry['coordinates'] as List<dynamic>?;
+        if (coordinates == null || coordinates.length < 2) continue;
+        final longitude = (coordinates[0] as num?)?.toDouble();
+        final latitude = (coordinates[1] as num?)?.toDouble();
+        if (latitude == null || longitude == null) continue;
+        validNodeCount++;
+        final nodeId = _readProperty(
+          properties,
+          const ['node_id', 'nodeid', 'id', 'node'],
+        );
+        if (nodeId != null) {
+          nodeCoordinates[_normalizeNodeId(nodeId)] =
+              LatLon(latitude: latitude, longitude: longitude);
+        }
+      }
 
       final edgeFeatures = edgesJson['features'] as List<dynamic>? ?? const [];
       final adjacency = <String, List<_Arc>>{};
@@ -191,15 +205,55 @@ class CampusGraphRoutingService implements RoutingService {
           line.add(LatLon(latitude: lat, longitude: lon));
         }
         if (line.length < 2) continue;
-        for (var i = 0; i < line.length - 1; i++) {
-          final from = line[i];
-          final to = line[i + 1];
+
+        // Use explicit QGIS endpoint IDs when they resolve to the node layer.
+        // This joins edges by logical node identity, not coordinate equality alone.
+        final fromNodeId = _readProperty(
+          properties,
+          const ['from_node', 'fromnode', 'start_node', 'source_node'],
+        );
+        final toNodeId = _readProperty(
+          properties,
+          const ['to_node', 'tonode', 'end_node', 'target_node'],
+        );
+        final fromNode = fromNodeId == null
+            ? null
+            : nodeCoordinates[_normalizeNodeId(fromNodeId)];
+        final toNode = toNodeId == null
+            ? null
+            : nodeCoordinates[_normalizeNodeId(toNodeId)];
+        final useFromNode = fromNodeId != null &&
+            (fromNode == null || _distance(fromNode, line.first) <= 5.0);
+        final useToNode = toNodeId != null &&
+            (toNode == null || _distance(toNode, line.last) <= 5.0);
+
+        final effectiveLine = List<LatLon>.from(line);
+        if (useFromNode && fromNode != null) {
+          effectiveLine[0] = fromNode;
+        }
+        if (useToNode && toNode != null) {
+          effectiveLine[effectiveLine.length - 1] = toNode;
+        }
+
+        final vertexKeys = <String>[];
+        for (var i = 0; i < effectiveLine.length; i++) {
+          final point = effectiveLine[i];
+          final key = i == 0 && useFromNode
+              ? 'node:\${_normalizeNodeId(fromNodeId!)}'
+              : i == effectiveLine.length - 1 && useToNode
+                  ? 'node:\${_normalizeNodeId(toNodeId!)}'
+                  : _key(point);
+          vertexKeys.add(key);
+          points.putIfAbsent(key, () => point);
+        }
+
+        for (var i = 0; i < effectiveLine.length - 1; i++) {
+          final from = effectiveLine[i];
+          final to = effectiveLine[i + 1];
           final length = _distance(from, to);
           if (length < 0.05) continue;
-          final fromKey = _key(from);
-          final toKey = _key(to);
-          points[fromKey] = from;
-          points[toKey] = to;
+          final fromKey = vertexKeys[i];
+          final toKey = vertexKeys[i + 1];
           adjacency.putIfAbsent(fromKey, () => <_Arc>[]);
           adjacency.putIfAbsent(toKey, () => <_Arc>[]);
           _addArc(adjacency, fromKey, toKey, length);
@@ -223,6 +277,28 @@ class CampusGraphRoutingService implements RoutingService {
           'Could not load the QGIS campus map: ' + error.toString());
     }
   }
+
+  static String? _readProperty(
+    Map<String, dynamic> properties,
+    List<String> candidates,
+  ) {
+    final normalized = <String, dynamic>{
+      for (final entry in properties.entries)
+        entry.key.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), ''):
+            entry.value,
+    };
+    for (final candidate in candidates) {
+      final value = normalized[
+          candidate.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '')];
+      if (value != null && value.toString().trim().isNotEmpty) {
+        return value.toString().trim();
+      }
+    }
+    return null;
+  }
+
+  static String _normalizeNodeId(String value) =>
+      value.trim().toUpperCase();
 
   List<_Snap> _nearestSegments(
     LatLon position,
