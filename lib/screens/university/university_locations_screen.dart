@@ -1,4 +1,3 @@
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -41,10 +40,7 @@ class _UniversityLocationsScreenState
   // ---------------------------------------------------------------------
   // CATEGORY FILTER + SEARCH
   //
-  // New, additive UI state — doesn't touch _colleges/_gates/_facilities,
-  // _findLocation, _handleLocationSelect, or _showUnavailableMessage.
-  // Picking a category just changes which of the existing lists is
-  // rendered; typing a search query just narrows that list by name.
+  // Category labels and destinations are loaded from the verified map.
   // ---------------------------------------------------------------------
   final _searchController = TextEditingController();
   String _searchQuery = '';
@@ -436,7 +432,6 @@ class _UniversityLocationsScreenState
           _buildLocationCard(
             context: context,
             item: items[index],
-            locations: locations,
           ),
         );
       },
@@ -556,6 +551,14 @@ class _UniversityLocationsScreenState
           const ['node_id', 'nodeid', 'id', 'node', '_source_fid'],
         );
         if (id == null || id.isEmpty) continue;
+        final rawNodeType = _readMapProperty(
+          properties,
+          const ['node_type', 'feature_type', 'type'],
+        );
+        if (rawNodeType != null &&
+            rawNodeType.toLowerCase().contains('junction')) {
+          continue;
+        }
         final rawName = _readMapProperty(
           properties,
           const ['name', 'node_name', 'building_name', 'label', 'description'],
@@ -657,7 +660,7 @@ class _UniversityLocationsScreenState
   String _displayCategory(String? value) {
     if (value == null || value.trim().isEmpty) return 'Campus';
     final words = value.trim().replaceAll(RegExp(r'[_-]+'), ' ')
-        .replaceAll(RegExp(r'\\s+'), ' ').split(' ');
+        .replaceAll(RegExp(r'\s+'), ' ').split(' ');
     return words.map((word) => word.isEmpty
         ? word
         : word[0].toUpperCase() + word.substring(1).toLowerCase()).join(' ');
