@@ -201,7 +201,7 @@ def export_layers(gpkg_path: Path, output_dir: Path) -> None:
                     properties, ("node_id", "nodeid", "node", "id", "fid")
                 )
                 node_name = find_value(
-                    properties, ("name", "node_name", "label", "description")
+                    properties, ("name", "node_name", "building_name", "label", "description")
                 )
                 properties["node_id"] = (
                     str(node_id).strip() if node_id is not None
