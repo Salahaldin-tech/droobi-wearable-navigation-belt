@@ -30,6 +30,13 @@ jobs:
       - name: Show toolchain
         run: flutter --version
 
+      - name: Validate QGIS source, runtime exports and project paths
+        run: |
+          python3 tooling/validate_campus_map.py \
+            --gpkg assets/campus_map_v3/campus_network.gpkg \
+            --project assets/campus_map_v3/AAUP_Campus_Network.qgz \
+            --export-dir docs/campus-mapping
+
       - name: Resolve dependencies
         run: flutter pub get
 
@@ -56,6 +63,7 @@ jobs:
             lib/screens/university/university_locations_screen.dart \
             lib/services/ble/belt_navigation_bridge.dart \
             lib/screens/navigation/live_navigation_screen.dart \
+            lib/screens/test/live_navigation_test_screen.dart \
             test/campus_graph_routing_service_test.dart \
             test/route_progress_service_test.dart \
             test/gps_filter_service_test.dart \
