@@ -351,7 +351,8 @@ class CampusGraphRoutingService implements RoutingService {
         );
       }
 
-      final components = _countComponents(adjacency);
+      final weakAdjacency = _buildWeakAdjacency(adjacency);
+      final components = _countComponents(weakAdjacency);
       if (components > 1) {
         warnings.add(
           'The QGIS edge geometry contains $components disconnected '
@@ -367,6 +368,7 @@ class CampusGraphRoutingService implements RoutingService {
 
       return _CampusGraph(
         adjacency: adjacency,
+        weakAdjacency: weakAdjacency,
         points: points,
         segments: segments,
         nodeCount: nodeCoordinates.length,
@@ -445,17 +447,18 @@ class CampusGraphRoutingService implements RoutingService {
   }
 
   String _componentFor(_CampusGraph graph, _Segment segment) {
-    // Components are computed lazily for this small static campus network.
     final visited = <String>{};
     final queue = <String>[segment.fromKey];
     visited.add(segment.fromKey);
     while (queue.isNotEmpty) {
       final current = queue.removeLast();
-      for (final arc in graph.adjacency[current] ?? const <_Arc>[]) {
-        if (visited.add(arc.to)) queue.add(arc.to);
+      for (final neighbour
+          in graph.weakAdjacency[current] ?? const <String>{}) {
+        if (visited.add(neighbour)) queue.add(neighbour);
       }
     }
-    return visited.toList()..sort().join('|');
+    final keys = visited.toList()..sort();
+    return keys.join('|');
   }
 
   void _attachOrigin(
@@ -539,8 +542,23 @@ class CampusGraphRoutingService implements RoutingService {
     return path.reversed.toList();
   }
 
-  static int _countComponents(
+  static Map<String, Set<String>> _buildWeakAdjacency(
     Map<String, List<_Arc>> adjacency,
+  ) {
+    final weak = <String, Set<String>>{
+      for (final key in adjacency.keys) key: <String>{},
+    };
+    for (final entry in adjacency.entries) {
+      for (final arc in entry.value) {
+        weak.putIfAbsent(entry.key, () => <String>{}).add(arc.to);
+        weak.putIfAbsent(arc.to, () => <String>{}).add(entry.key);
+      }
+    }
+    return weak;
+  }
+
+  static int _countComponents(
+    Map<String, Set<String>> adjacency,
   ) {
     final visited = <String>{};
     var count = 0;
@@ -550,8 +568,8 @@ class CampusGraphRoutingService implements RoutingService {
       final queue = <String>[start];
       while (queue.isNotEmpty) {
         final current = queue.removeLast();
-        for (final arc in adjacency[current] ?? const <_Arc>[]) {
-          if (visited.add(arc.to)) queue.add(arc.to);
+        for (final neighbour in adjacency[current] ?? const <String>{}) {
+          if (visited.add(neighbour)) queue.add(neighbour);
         }
       }
     }
@@ -649,6 +667,7 @@ class CampusGraphDiagnostics {
 class _CampusGraph {
   const _CampusGraph({
     required this.adjacency,
+    required this.weakAdjacency,
     required this.points,
     required this.segments,
     required this.nodeCount,
@@ -659,6 +678,7 @@ class _CampusGraph {
   });
 
   final Map<String, List<_Arc>> adjacency;
+  final Map<String, Set<String>> weakAdjacency;
   final Map<String, LatLon> points;
   final List<_Segment> segments;
   final int nodeCount;
