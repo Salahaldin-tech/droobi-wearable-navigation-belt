@@ -50,6 +50,10 @@ class BeltNavigationBridge {
       if (_lastCommand != BeltCommand.arrived) {
         await _beltConnectionService.sendCommand(BeltCommand.arrived);
         _lastCommand = BeltCommand.arrived;
+        _navigationService.traceLogger.record('belt_command', fields: {
+          'command': BeltCommand.arrived.name,
+          'reason': 'arrived',
+        });
       }
       return;
     }
@@ -63,6 +67,10 @@ class BeltNavigationBridge {
       if (_lastCommand != BeltCommand.stop) {
         await _beltConnectionService.sendCommand(BeltCommand.stop);
         _lastCommand = BeltCommand.stop;
+        _navigationService.traceLogger.record('belt_command', fields: {
+          'command': BeltCommand.stop.name,
+          'reason': snapshot.state.name,
+        });
       }
       return;
     }
@@ -71,6 +79,11 @@ class BeltNavigationBridge {
     if (_lastCommand != command) {
       await _beltConnectionService.sendCommand(command);
       _lastCommand = command;
+      _navigationService.traceLogger.record('belt_command', fields: {
+        'command': command.name,
+        'reason': snapshot.state.name,
+        'direction': direction.name,
+      });
     }
   }
 
