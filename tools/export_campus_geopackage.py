@@ -165,15 +165,13 @@ def export_layers(gpkg_path: Path, output_dir: Path) -> None:
                 node_name = find_value(
                     properties, ("name", "node_name", "label", "description")
                 )
-                properties.setdefault(
-                    "node_id",
+                properties["node_id"] = (
                     str(node_id).strip() if node_id is not None
-                    else f"{layer.GetName()}_{feature.GetFID()}",
+                    else f"{layer.GetName()}_{feature.GetFID()}"
                 )
-                properties.setdefault(
-                    "name",
+                properties["name"] = (
                     str(node_name).strip() if node_name is not None
-                    else str(properties["node_id"]),
+                    else str(properties["node_id"])
                 )
                 for part_index, part in enumerate(flatten_geometries(geometry, ogr.wkbPoint)):
                     item_properties = dict(properties)
@@ -191,10 +189,9 @@ def export_layers(gpkg_path: Path, output_dir: Path) -> None:
                 to_node = find_value(
                     properties, ("to_node", "tonode", "end_node", "endnode", "target_node")
                 )
-                properties.setdefault(
-                    "edge_id",
+                properties["edge_id"] = (
                     str(edge_id).strip() if edge_id is not None
-                    else f"{layer.GetName()}_{feature.GetFID()}",
+                    else f"{layer.GetName()}_{feature.GetFID()}"
                 )
                 if from_node is not None:
                     properties.setdefault("from_node", str(from_node).strip())
