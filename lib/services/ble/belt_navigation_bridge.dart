@@ -61,7 +61,11 @@ class BeltNavigationBridge {
     final direction = snapshot.direction;
     final guidanceAllowed =
         snapshot.state == NavigationState.navigating ||
-        snapshot.state == NavigationState.approaching;
+        snapshot.state == NavigationState.approaching ||
+        snapshot.state == NavigationState.recovering ||
+        snapshot.state == NavigationState.positionUncertain ||
+        snapshot.state == NavigationState.offRoute ||
+        snapshot.state == NavigationState.arrivalCandidate;
 
     if (!guidanceAllowed || direction == null) {
       if (_lastCommand != BeltCommand.stop) {
@@ -99,7 +103,11 @@ class BeltNavigationBridge {
     // If there is no current navigation direction, explicitly stop.
     final canGuide = direction != null &&
         (snapshot.state == NavigationState.navigating ||
-            snapshot.state == NavigationState.approaching);
+            snapshot.state == NavigationState.approaching ||
+            snapshot.state == NavigationState.recovering ||
+            snapshot.state == NavigationState.positionUncertain ||
+            snapshot.state == NavigationState.offRoute ||
+            snapshot.state == NavigationState.arrivalCandidate);
     final command = canGuide
         ? _beltCommandFromDirection(direction)
         : BeltCommand.stop;
