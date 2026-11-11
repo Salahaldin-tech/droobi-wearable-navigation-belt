@@ -519,6 +519,8 @@ class NavigationService {
       currentPosition: fix.position,
       route: route,
       lookAheadMeters: 0,
+      speedMetersPerSecond: fix.speedMetersPerSecond,
+      horizontalAccuracyMeters: fix.accuracyMeters,
     );
     final offRouteThreshold = math.max(
       _campusOffRouteMinimumMeters,
@@ -769,6 +771,8 @@ class NavigationService {
       // null tells RouteProgressService to choose
       // the appropriate look-ahead automatically.
       lookAheadMeters: lookAheadMeters,
+      speedMetersPerSecond: fix.speedMetersPerSecond,
+      horizontalAccuracyMeters: fix.accuracyMeters,
     );
 
     // ------------------------------------------------------------
