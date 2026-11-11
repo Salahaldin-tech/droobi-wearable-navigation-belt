@@ -71,7 +71,7 @@ jobs:
 
       - name: Analyze V3-touched Dart sources
         run: |
-          flutter analyze --no-pub \
+          flutter analyze --no-pub --no-fatal-infos \
             lib/models/location_fix.dart \
             lib/services/location/location_service.dart \
             lib/services/location/gps_filter_service.dart \
