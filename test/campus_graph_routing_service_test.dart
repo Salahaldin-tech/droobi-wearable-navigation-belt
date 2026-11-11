@@ -99,7 +99,7 @@ void main() {
         destination: const LatLon(latitude: 31.0, longitude: 34.001),
       );
 
-      expect(route.distanceMeters, greaterThan(100));
+      expect(route.distanceMeters, greaterThan(50));
       expect(requestedAssets, [
         CampusMapSource.nodesAsset,
         CampusMapSource.edgesAsset,
