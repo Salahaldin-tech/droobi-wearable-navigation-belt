@@ -291,6 +291,12 @@ class NavigationService {
 
       _lastAcceptedFix = filteredFix;
       _gpsStreamHealthy = true;
+      _traceLogger.record('gps_initial_fix', fields: {
+        'accuracy_m': filteredFix.accuracyMeters,
+        'speed_mps': filteredFix.speedMetersPerSecond,
+        'course_deg': filteredFix.courseDegrees,
+        'course_accuracy_deg': filteredFix.courseAccuracyDegrees,
+      });
 
       // ------------------------------------------------------------
       // 2. ROUTE
@@ -345,6 +351,12 @@ class NavigationService {
       _destination = selectedDestination;
       final route = bestRoute;
       _route = route;
+      _traceLogger.record('route_selected', fields: {
+        'campus_navigation': campusNavigation,
+        'distance_m': route.distanceMeters,
+        'point_count': route.polyline.length,
+        'alternative_entrance_selected': selectedDestination != destination,
+      });
 
       // ------------------------------------------------------------
       // 3. INITIAL COMPASS
@@ -559,6 +571,11 @@ class NavigationService {
 
     _isRerouting = true;
     _lastCampusRerouteAt = now;
+    _traceLogger.record('campus_reroute_started', fields: {
+      'cross_track_m': progress.distanceFromRouteMeters,
+      'progress_jump': progress.progressJumpDetected,
+      'accuracy_m': fix.accuracyMeters,
+    });
     _publish(NavigationSnapshot(
       state: NavigationState.recovering,
       currentPosition: fix.position,
@@ -576,6 +593,10 @@ class NavigationService {
       );
       if (!_isNavigating || replacement.polyline.isEmpty) return;
       _route = replacement;
+      _traceLogger.record('campus_reroute_completed', fields: {
+        'distance_m': replacement.distanceMeters,
+        'point_count': replacement.polyline.length,
+      });
       _offRouteSamples = 0;
       // A replacement route starts a new arrival evaluation window.
       _arrivalFixCount = 0;
@@ -588,6 +609,9 @@ class NavigationService {
       // user has left it and QGIS cannot find a connected replacement.
       _isNavigating = false;
       _cancelPolicyAndSensorStreams();
+      _traceLogger.record('campus_reroute_failed', fields: {
+        'error': error.toString(),
+      });
       _publish(NavigationSnapshot(
         state: NavigationState.routeUnavailable,
         currentPosition: fix.position,
