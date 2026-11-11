@@ -81,7 +81,8 @@ Detailed data facts and known limitations are recorded in `docs/campus-mapping/C
 - Added PositionUncertain, OffRoute, Approaching and ArrivalCandidate states.
 - Stale or poor-quality GPS, stale/failed compass, map-match failures, progress jumps and missing route bearings suppress directional guidance.
 - Initial compass qualification now collects at least 12 samples over at least 1s and requires a circular resultant vector of 0.95; sample count, window and resultant are recorded.
-- Compass declination correction is configurable but remains 0° by default until a device/location-specific WMM or field calibration value is supplied.
+- Before compass lock, the service calculates local declination from the accepted GPS fix using the offline NOAA/NCEI WMM2025 model and adds it to magnetic heading to obtain true heading. The model is date-validity checked; navigation refuses to start if the bundled model is expired or returns a non-finite result.
+- No fixed +5° bias is used. The WMM2025 implementation and coefficient set are vendored with their MIT attribution; see `docs/navigation-engine-v3/THIRD_PARTY_NOTICES.md`.
 - Route tangent bearing is required; the GPS-to-target bearing fallback was removed.
 - Direction changes require repeated policy observations and a minimum confirmation interval. The previous haptic direction is not retained while a new turn is pending.
 - Arrival confirmation requires three distinct GPS fixes, with a 1s minimum and 20s maximum spacing between counted fixes.
@@ -113,7 +114,7 @@ Detailed data facts and known limitations are recorded in `docs/campus-mapping/C
 1. Integrate barrier and accessibility constraints only after source attributes and their operational meaning are formally defined; current barrier labels/access values are inconsistent.
 2. Complete missing destination mappings only when node IDs and connected paths are present in the QGIS source.
 3. Review endpoint attachment warnings in QGIS and verify each short node connector is physically walkable; the source map remains `verified=false`.
-4. Supply the campus/device-specific magnetic declination or measured heading offset; no unverified fixed +5° correction is applied.
+4. Validate the WMM2025-corrected compass against the actual phone's calibration state and local magnetic interference; WMM corrects declination, not nearby metal/magnetic distortion.
 5. Define and integrate barrier/accessibility semantics after the source barrier attributes are normalized; barrier geometry is exported but not yet used to block edges.
 6. Use user-owned trace captures to validate GPS cadence and tune compass deadband, turn confirmation, GPS windows, off-route thresholds and arrival hysteresis.
 7. Run the user's own phone and ESP32 field trials; report field readiness only after those trials.
