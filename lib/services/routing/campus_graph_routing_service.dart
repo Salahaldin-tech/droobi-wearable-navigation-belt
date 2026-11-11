@@ -172,8 +172,15 @@ class CampusGraphRoutingService implements RoutingService {
           const ['node_id', 'nodeid', 'id', 'node'],
         );
         if (nodeId != null) {
-          nodeCoordinates[_normalizeNodeId(nodeId)] =
-              LatLon(latitude: latitude, longitude: longitude);
+          final normalizedId = _normalizeNodeId(nodeId);
+          final coordinate = LatLon(latitude: latitude, longitude: longitude);
+          final previous = nodeCoordinates[normalizedId];
+          if (previous != null && _distance(previous, coordinate) > 5.0) {
+            throw FormatException(
+              'Duplicate QGIS node ID $normalizedId has conflicting coordinates.',
+            );
+          }
+          nodeCoordinates[normalizedId] = coordinate;
         }
       }
 
@@ -209,13 +216,15 @@ class CampusGraphRoutingService implements RoutingService {
         // Use explicit QGIS endpoint IDs when they resolve to the node layer.
         // This joins edges by logical node identity, not coordinate equality alone.
         final fromNodeId = _readProperty(
-          properties,
-          const ['from_node', 'fromnode', 'start_node', 'source_node'],
-        );
+              properties,
+              const ['from_node', 'fromnode', 'start_node', 'source_node'],
+            ) ??
+            _nearestNodeId(line.first, nodeCoordinates);
         final toNodeId = _readProperty(
-          properties,
-          const ['to_node', 'tonode', 'end_node', 'target_node'],
-        );
+              properties,
+              const ['to_node', 'tonode', 'end_node', 'target_node'],
+            ) ??
+            _nearestNodeId(line.last, nodeCoordinates);
         final fromNode = fromNodeId == null
             ? null
             : nodeCoordinates[_normalizeNodeId(fromNodeId)];
@@ -299,6 +308,23 @@ class CampusGraphRoutingService implements RoutingService {
 
   static String _normalizeNodeId(String value) =>
       value.trim().toUpperCase();
+
+  static String? _nearestNodeId(
+    LatLon endpoint,
+    Map<String, LatLon> nodes, {
+    double maximumDistanceMeters = 3.0,
+  }) {
+    String? nearestId;
+    var nearestDistance = maximumDistanceMeters;
+    for (final entry in nodes.entries) {
+      final distance = _distance(endpoint, entry.value);
+      if (distance <= nearestDistance) {
+        nearestDistance = distance;
+        nearestId = entry.key;
+      }
+    }
+    return nearestId;
+  }
 
   List<_Snap> _nearestSegments(
     LatLon position,
