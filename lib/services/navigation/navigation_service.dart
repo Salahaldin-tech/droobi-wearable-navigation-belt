@@ -247,7 +247,9 @@ class NavigationService {
         : _routingService;
     if (_activeRoutingService == null) {
       throw const NavigationFailure(
-        'Campus routing is not configured.',
+        'Campus OSRM is not configured. Start the app with
+        --dart-define=CAMPUS_OSRM_BASE_URL=http://<HOST>:5001
+        after building the campus OSRM dataset.',
       );
     }
     _destination = destination;
@@ -275,9 +277,9 @@ class NavigationService {
       // 2. ROUTE
       // ------------------------------------------------------------
 
-      // If the selected campus destination has multiple QGIS entrances,
-      // compute a pedestrian route to each entrance and choose the shortest
-      // reachable route. Straight-line distance is not used for this choice.
+      // If a campus destination has multiple OSM entrance candidates,
+      // compute a pedestrian route to each and choose the shortest reachable
+      // route. OSRM performs the network snap; no straight-line route is made.
       final candidates = destinationCandidates
               ?.where((point) =>
                   point.latitude != 0 && point.longitude != 0)
@@ -315,7 +317,7 @@ class NavigationService {
       if (bestRoute == null || bestRoute.polyline.isEmpty) {
         if (lastRouteError != null) throw lastRouteError;
         throw const NavigationFailure(
-          'No reachable QGIS entrance was found for this destination.',
+          'No reachable OSM pedestrian route was found for this destination.',
         );
       }
 
@@ -542,8 +544,8 @@ class NavigationService {
     _isRerouting = true;
     _lastCampusRerouteAt = now;
     try {
-      // CampusGraphRoutingService snaps this fresh GPS fix to the nearest
-      // QGIS edge and runs shortest-path routing to the original destination.
+      // The campus OSRM foot profile snaps this fresh GPS fix to the
+      // imported OSM pedestrian graph and recalculates the route.
       final replacement = await router.computeRoute(
         origin: fix.position,
         destination: destination,
@@ -567,7 +569,7 @@ class NavigationService {
         accuracyMeters: fix.accuracyMeters,
         route: _route,
         heading: _latestHeading,
-        errorMessage: 'Could not reconnect to the campus paths: $error',
+        errorMessage: 'Could not reconnect to the OSM campus pedestrian network: $error',
       ));
     } finally {
       _isRerouting = false;
