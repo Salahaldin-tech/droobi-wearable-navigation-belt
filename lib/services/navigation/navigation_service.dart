@@ -247,9 +247,9 @@ class NavigationService {
         : _routingService;
     if (_activeRoutingService == null) {
       throw const NavigationFailure(
-        'Campus OSRM is not configured. Start the app with
-        --dart-define=CAMPUS_OSRM_BASE_URL=http://<HOST>:5001
-        after building the campus OSRM dataset.',
+        'Campus OSRM is not configured. Start the app with '
+        '--dart-define=CAMPUS_OSRM_BASE_URL=http://<HOST>:5001 '
+        'after building the campus OSRM dataset.',
       );
     }
     _destination = destination;
