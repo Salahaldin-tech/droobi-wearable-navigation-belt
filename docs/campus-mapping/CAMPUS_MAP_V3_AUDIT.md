@@ -54,8 +54,8 @@ No source node ID or geometry is renamed or moved by this branch.
 
 - Graph connectivity is now keyed by canonical `from_node` / `to_node` IDs. Shared coordinates remain the mechanism for connecting interior vertices within each LineString, not the authority for joining declared edge endpoints.
 - A declared edge endpoint may be attached to its QGIS node only when the endpoint offset is at most 5m. Offsets above 5m fail graph loading; offsets above 0.2m are represented as explicit short connector geometry and logged as warnings.
-- Shared LineString vertices identify three weak geometry components: one principal component containing 18 edges, plus isolated ED011 and ED012.
-- ED011 is associated with the MED fragment; ED012 is associated with AMS_B. They remain disconnected from the principal pedestrian network and are not connected by software.
+- A prior geometry-only review identified three weak components (18 edges in the largest geometry component, with ED011 and ED012 isolated). This is a geometry observation only, not a validation of the current Node-ID graph.
+- ED011 references `J4` → `MED`; ED012 references `J5` → `AWS_B` (alias `AMS_B`). These source fragments have no shared declared endpoint IDs with the other listed edges and are not joined by software.
 - ED06 and ED012 are stored opposite to their declared `from_node` → `to_node` order. The router reverses the in-memory vertex order only when endpoint distances establish that reversal.
 - ED003's final geometry vertex is associated spatially with C3 while its source endpoint attributes declare J3. The router follows the declared node ID and records any short endpoint attachment as an explicit connector; it does not rewrite source IDs or geometry.
 - ED006 has an endpoint offset to IT1. The router now attaches the line to its declared IT1 node using explicit connector geometry when the offset is no more than 5m; the offset is surfaced as a warning.
