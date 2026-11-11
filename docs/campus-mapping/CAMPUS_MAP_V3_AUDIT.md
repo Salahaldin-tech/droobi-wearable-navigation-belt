@@ -64,7 +64,7 @@ No source node ID or geometry is renamed or moved by this branch.
 
 ## Routing rules
 
-- Graph topology at every declared Edge endpoint is keyed by canonical `from_node` / `to_node` IDs. Coordinate keys are used only for interior vertices within each LineString.
+- Graph topology at every declared Edge endpoint is keyed by canonical `from_node` / `to_node` IDs. Interior vertices are private to their own Edge geometry.
 - Endpoint offsets up to 5m are attached to the declared node through explicit connector geometry and a diagnostic warning; larger offsets fail graph loading.
 - Semantic node references are validated before graph construction.
 - Origin and destination are snapped to actual edge segments with conservative maximum distances.
