@@ -855,12 +855,22 @@ class NavigationService {
     // The route itself determines the direction of travel.
     // ------------------------------------------------------------
 
-    final bearing =
-        target.routeBearing ??
-            _directionCalculator.calculateBearing(
-              from: fix.position,
-              to: target.point,
-            );
+    final bearing = target.routeBearing;
+    if (bearing == null) {
+      // Never invent a campus direction from the GPS position to a target.
+      // If the route has no usable segment tangent, fail closed and wait.
+      _publish(NavigationSnapshot(
+        state: NavigationState.recovering,
+        currentPosition: fix.position,
+        accuracyMeters: fix.accuracyMeters,
+        route: route,
+        targetPoint: target.point,
+        distanceFromRouteMeters: target.distanceFromRouteMeters,
+        heading: heading,
+        errorMessage: 'The route has no usable segment bearing yet.',
+      ));
+      return;
+    }
 
     // ------------------------------------------------------------
     // RELATIVE ANGLE
