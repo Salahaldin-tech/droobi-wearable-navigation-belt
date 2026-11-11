@@ -169,6 +169,8 @@ class NavigationService {
   StreamSubscription<double>? _compassSubscription;
   Timer? _policyTimer;
   DateTime? _lastCompassAt;
+  bool _gpsStreamHealthy = true;
+  bool _compassStreamHealthy = true;
 
   static const Duration _policyInterval = Duration(milliseconds: 500);
   static const Duration _maximumFixAgeForGuidance = Duration(seconds: 12);
@@ -455,6 +457,7 @@ class NavigationService {
         }
 
         _publish(
+          _gpsStreamHealthy = false;
           NavigationSnapshot(
             state: NavigationState.gpsUnavailable,
             currentPosition: _lastAcceptedFix?.position,
@@ -485,6 +488,7 @@ class NavigationService {
     }
 
     _lastAcceptedFix = filteredFix;
+    _gpsStreamHealthy = true;
 
     if (_isCampusNavigation) {
       await _maybeRerouteCampus(filteredFix);
@@ -606,6 +610,8 @@ class NavigationService {
           return;
         }
 
+        _compassStreamHealthy = false;
+        _latestHeading = null;
         _publish(
           NavigationSnapshot(
             state: NavigationState.positionUncertain,
@@ -639,6 +645,7 @@ class NavigationService {
 
     _latestHeading = smoothedHeading;
     _lastCompassAt = DateTime.now();
+    _compassStreamHealthy = true;
     // The next fixed policy tick uses this fresh heading.
   }
 
@@ -699,10 +706,23 @@ class NavigationService {
   void _runPolicyTick() {
     if (!_isNavigating || _isDisposed) return;
 
+    if (_isRerouting) {
+      _publish(NavigationSnapshot(
+        state: NavigationState.recovering,
+        currentPosition: _lastAcceptedFix?.position,
+        accuracyMeters: _lastAcceptedFix?.accuracyMeters,
+        route: _route,
+        heading: _latestHeading,
+        errorMessage: 'Reconnecting to the mapped pedestrian network.',
+      ));
+      return;
+    }
+
     final route = _route;
     final fix = _lastAcceptedFix;
     final heading = _latestHeading;
-    if (route == null || fix == null || heading == null) {
+    if (!_gpsStreamHealthy || !_compassStreamHealthy ||
+        route == null || fix == null || heading == null) {
       _publish(NavigationSnapshot(
         state: NavigationState.positionUncertain,
         currentPosition: fix?.position,
@@ -839,6 +859,40 @@ class NavigationService {
       horizontalAccuracyMeters: fix.accuracyMeters,
     );
 
+    if (target.progressJumpDetected) {
+      _publish(NavigationSnapshot(
+        state: NavigationState.positionUncertain,
+        currentPosition: fix.position,
+        accuracyMeters: fix.accuracyMeters,
+        route: route,
+        distanceFromRouteMeters: target.distanceFromRouteMeters,
+        heading: heading,
+        progressMeters: target.progressMeters,
+        remainingRouteMeters: target.remainingRouteMeters,
+        errorMessage: 'Route progress changed unexpectedly. Waiting for GPS confirmation.',
+      ));
+      return;
+    }
+
+    final offRouteThreshold = math.max(
+      _campusOffRouteMinimumMeters,
+      fix.accuracyMeters * 1.5,
+    );
+    if (target.distanceFromRouteMeters > offRouteThreshold) {
+      _publish(NavigationSnapshot(
+        state: NavigationState.offRoute,
+        currentPosition: fix.position,
+        accuracyMeters: fix.accuracyMeters,
+        route: route,
+        distanceFromRouteMeters: target.distanceFromRouteMeters,
+        heading: heading,
+        progressMeters: target.progressMeters,
+        remainingRouteMeters: target.remainingRouteMeters,
+        errorMessage: 'Position is outside the mapped route. Directional guidance is paused.',
+      ));
+      return;
+    }
+
     // ------------------------------------------------------------
     // ARRIVAL
     // ------------------------------------------------------------
@@ -877,6 +931,21 @@ class NavigationService {
       }
     }
 
+    if (_arrivalFixCount > 0 && _arrivalFixCount < 3) {
+      _publish(NavigationSnapshot(
+        state: NavigationState.arrivalCandidate,
+        currentPosition: fix.position,
+        accuracyMeters: fix.accuracyMeters,
+        route: route,
+        targetPoint: destination,
+        distanceFromRouteMeters: target.distanceFromRouteMeters,
+        heading: heading,
+        progressMeters: target.progressMeters,
+        remainingRouteMeters: target.remainingRouteMeters,
+      ));
+      return;
+    }
+
     if (_arrivalFixCount >= 3) {
       _publish(
         NavigationSnapshot(
@@ -887,6 +956,8 @@ class NavigationService {
           targetPoint: destination,
           distanceFromRouteMeters: target.distanceFromRouteMeters,
           heading: heading,
+          progressMeters: target.progressMeters,
+          remainingRouteMeters: target.remainingRouteMeters,
         ),
       );
       _isNavigating = false;
@@ -908,12 +979,19 @@ class NavigationService {
     // The route itself determines the direction of travel.
     // ------------------------------------------------------------
 
-    final bearing =
-        target.routeBearing ??
-            _directionCalculator.calculateBearing(
-              from: fix.position,
-              to: target.point,
-            );
+    final bearing = target.routeBearing;
+    if (bearing == null || !bearing.isFinite) {
+      _publish(NavigationSnapshot(
+        state: NavigationState.positionUncertain,
+        currentPosition: fix.position,
+        accuracyMeters: fix.accuracyMeters,
+        route: route,
+        distanceFromRouteMeters: target.distanceFromRouteMeters,
+        heading: heading,
+        errorMessage: 'The current route segment has no reliable bearing.',
+      ));
+      return;
+    }
 
     // ------------------------------------------------------------
     // RELATIVE ANGLE
@@ -944,9 +1022,13 @@ class NavigationService {
     // PUBLISH
     // ------------------------------------------------------------
 
+    final nextState = target.remainingRouteMeters <= 20.0
+        ? NavigationState.approaching
+        : NavigationState.navigating;
+
     _publish(
       NavigationSnapshot(
-        state: NavigationState.navigating,
+        state: nextState,
         currentPosition: fix.position,
         accuracyMeters: fix.accuracyMeters,
         route: route,
@@ -957,6 +1039,8 @@ class NavigationService {
         heading: heading,
         relativeAngle: relativeAngle,
         direction: direction,
+        progressMeters: target.progressMeters,
+        remainingRouteMeters: target.remainingRouteMeters,
       ),
     );
   }
@@ -1041,6 +1125,8 @@ class NavigationService {
     _policyTimer?.cancel();
     _policyTimer = null;
     _lastCompassAt = null;
+    _gpsStreamHealthy = true;
+    _compassStreamHealthy = true;
 
     _resetCompassSmoothing();
 
