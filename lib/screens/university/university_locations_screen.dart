@@ -2,12 +2,10 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/lat_lon.dart';
 import '../../models/university_location.dart';
 import '../../screens/navigation/live_navigation_screen.dart';
-import '../../state/university_locations_notifier.dart';
 import '../../widgets/droobi_bottom_nav.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/app_search_bar.dart';
@@ -15,19 +13,19 @@ import '../../widgets/page_help_button.dart';
 
 import '../../core/theme/app_colors.dart';
 
-class UniversityLocationsScreen extends ConsumerStatefulWidget {
+class UniversityLocationsScreen extends StatefulWidget {
   const UniversityLocationsScreen({super.key, this.initialQuery});
 
   /// Optional query supplied by destination search (for example, "Gate 3").
   final String? initialQuery;
 
   @override
-  ConsumerState<UniversityLocationsScreen> createState() =>
+  State<UniversityLocationsScreen> createState() =>
       _UniversityLocationsScreenState();
 }
 
 class _UniversityLocationsScreenState
-    extends ConsumerState<UniversityLocationsScreen>
+    extends State<UniversityLocationsScreen>
     with SingleTickerProviderStateMixin {
   static const Color _primaryBlue = AppColors.brown;
   static const Color _pageBackground = AppColors.cream;
@@ -53,6 +51,8 @@ class _UniversityLocationsScreenState
   final _searchController = TextEditingController();
   String _searchQuery = '';
   List<UniversityLocation> _qgisLocations = [];
+  bool _isLoadingQgis = true;
+  Object? _qgisLoadError;
 
   @override
   void initState() {
@@ -367,8 +367,6 @@ class _UniversityLocationsScreenState
 
   @override
   Widget build(BuildContext context) {
-    final locationsAsync = ref.watch(universityLocationsProvider);
-
     return Scaffold(
       backgroundColor: _pageBackground,
       body: Stack(
@@ -439,15 +437,13 @@ class _UniversityLocationsScreenState
           // =====================================================================
 
           SafeArea(
-            child: locationsAsync.when(
-              loading: () => const Center(
-                child: CircularProgressIndicator(
-                  color: _primaryBlue,
-                ),
-              ),
-              error: (error, _) => _buildErrorState(error),
-              data: (locations) => _buildCard(context, locations),
-            ),
+            child: _isLoadingQgis
+                ? const Center(
+                    child: CircularProgressIndicator(color: _primaryBlue),
+                  )
+                : _qgisLoadError != null
+                    ? _buildErrorState(_qgisLoadError!)
+                    : _buildCard(context),
           ),
         ],
       ),
@@ -458,10 +454,7 @@ class _UniversityLocationsScreenState
   // CARD CONTENT (fixed header/search/filters + scroll-if-needed grid)
   // ===========================================================================
 
-  Widget _buildCard(
-    BuildContext context,
-    List<UniversityLocation> locations,
-  ) {
+  Widget _buildCard(BuildContext context) {
     int order = 0;
 
     return Column(
@@ -483,7 +476,6 @@ class _UniversityLocationsScreenState
         Expanded(
           child: _buildGrid(
             context,
-            locations,
             startIndex: order,
           ),
         ),
@@ -619,8 +611,7 @@ class _UniversityLocationsScreenState
   // ===========================================================================
 
   Widget _buildGrid(
-    BuildContext context,
-    List<UniversityLocation> locations, {
+    BuildContext context, {
     required int startIndex,
   }) {
     final items = _visibleItems();
@@ -650,7 +641,6 @@ class _UniversityLocationsScreenState
           _buildLocationCard(
             context: context,
             item: items[index],
-            locations: locations,
           ),
         );
       },
@@ -687,9 +677,8 @@ class _UniversityLocationsScreenState
   Widget _buildLocationCard({
     required BuildContext context,
     required _UniversityItem item,
-    required List<UniversityLocation> locations,
   }) {
-    final location = _findLocation(item, locations);
+    final location = _findLocation(item);
     final isAvailable = location != null;
 
     return AppCard(
@@ -764,38 +753,25 @@ class _UniversityLocationsScreenState
   // FIND LOCATION
   // ===========================================================================
 
-  UniversityLocation? _findLocation(
-    _UniversityItem item,
-    List<UniversityLocation> locations,
-  ) {
-    // Destination coordinates are sourced from the QGIS nodes layer.
-    // Junction nodes are intentionally excluded from the University cards.
-    final nodeIds = switch (item.name) {
+  List<String> _nodeIdsForItem(_UniversityItem item) {
+    return switch (item.name) {
       'Cafeteria' => const ['C1', 'C2', 'C3'],
       'Gate 1' => const ['G1'],
+      'Gate 2' => const ['G2'],
       'Gate 3' => const ['G3'],
       'Faculty of Information Technology' => const ['IT1'],
       'Faculty of Arts and Education' => const ['AR1'],
       'Faculty of Engineering' => const ['E1'],
+      'Faculty of Allied Medical Sciences' => const ['AMS_A'],
+      // MED and AMS_B are not connected to the main path network in QGIS.
       _ => const <String>[],
     };
+  }
 
-    for (final nodeId in nodeIds) {
+  UniversityLocation? _findLocation(_UniversityItem item) {
+    for (final id in _nodeIdsForItem(item)) {
       for (final node in _qgisLocations) {
-        if (node.id == nodeId) return node;
-      }
-    }
-
-    // Keep Firestore-backed locations for destinations not yet mapped in QGIS.
-    for (final location in locations) {
-      final locationName = _normalize(location.name);
-      for (final alias in item.aliases) {
-        final normalizedAlias = _normalize(alias);
-        if (locationName == normalizedAlias ||
-            locationName.contains(normalizedAlias) ||
-            normalizedAlias.contains(locationName)) {
-          return location;
-        }
+        if (node.id.trim() == id) return node;
       }
     }
     return null;
@@ -804,11 +780,12 @@ class _UniversityLocationsScreenState
   Future<void> _loadQgisLocations() async {
     try {
       final source = await rootBundle.loadString(
-        'docs/campus-mapping/nodes.geojson',
+        'docs/campus-mapping/nodes_v3.geojson',
       );
       final collection = jsonDecode(source) as Map<String, dynamic>;
       final features = collection['features'] as List<dynamic>? ?? const [];
       final parsed = <UniversityLocation>[];
+      final seen = <String>{};
 
       for (final feature in features) {
         if (feature is! Map<String, dynamic>) continue;
@@ -816,47 +793,51 @@ class _UniversityLocationsScreenState
             feature['properties'] as Map<String, dynamic>? ?? const {};
         final geometry = feature['geometry'] as Map<String, dynamic>?;
         if (geometry == null || geometry['type'] != 'Point') continue;
-
-        final nodeType = (properties['node_type'] ?? '')
-            .toString()
-            .toLowerCase();
-        if (nodeType.contains('junction')) continue;
-
+        final id = (properties['node_id'] ?? '').toString().trim();
+        if (id.isEmpty || !seen.add(id)) {
+          throw FormatException('Empty or duplicate QGIS node ID: "$id".');
+        }
         final coordinates = geometry['coordinates'] as List<dynamic>?;
-        if (coordinates == null || coordinates.length < 2) continue;
+        if (coordinates == null || coordinates.length < 2) {
+          throw FormatException('Node $id contains invalid coordinates.');
+        }
         final longitude = (coordinates[0] as num?)?.toDouble();
         final latitude = (coordinates[1] as num?)?.toDouble();
-        final id = (properties['node_id'] ?? '').toString();
-        final name = (properties['name'] ?? id).toString();
-        if (longitude == null || latitude == null || id.isEmpty) continue;
-
+        if (longitude == null || latitude == null ||
+            !longitude.isFinite || !latitude.isFinite ||
+            longitude < -180 || longitude > 180 ||
+            latitude < -90 || latitude > 90) {
+          throw FormatException('Node $id contains out-of-range coordinates.');
+        }
+        final nodeType =
+            (properties['node_type'] ?? '').toString().toLowerCase();
+        if (nodeType.contains('junction')) continue;
         parsed.add(UniversityLocation(
           id: id,
-          name: name,
+          name: (properties['name'] ?? id).toString(),
           latitude: latitude,
           longitude: longitude,
         ));
       }
 
-      if (mounted) {
-        setState(() => _qgisLocations = parsed);
+      if (parsed.isEmpty) {
+        throw const FormatException('QGIS nodes layer has no destinations.');
       }
+      if (!mounted) return;
+      setState(() {
+        _qgisLocations = parsed;
+        _isLoadingQgis = false;
+        _qgisLoadError = null;
+      });
     } catch (error) {
-      debugPrint('Could not load QGIS campus nodes: $error');
+      debugPrint('Could not load V3 QGIS campus nodes: $error');
+      if (!mounted) return;
+      setState(() {
+        _qgisLoadError = error;
+        _isLoadingQgis = false;
+      });
     }
   }
-
-  String _normalize(String value) {
-    return value
-        .trim()
-        .toLowerCase()
-        .replaceAll(RegExp(r'[-_]+'), ' ')
-        .replaceAll(RegExp(r'\s+'), ' ');
-  }
-
-  // ===========================================================================
-  // LOCATION SELECT
-  // ===========================================================================
 
   void _handleLocationSelect(
     BuildContext context,
@@ -893,15 +874,13 @@ class _UniversityLocationsScreenState
     BuildContext context,
     _UniversityItem item,
   ) {
+    final message = item.name == 'Faculty of Medicine'
+        ? 'The Faculty of Medicine entrance is mapped, but no connected pedestrian path exists yet.'
+        : '${item.name} is not available in the current QGIS pedestrian map.';
+
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(
-            '${item.name} is not available yet.',
-          ),
-        ),
-      );
+      ..showSnackBar(SnackBar(content: Text(message)));
   }
 
   // ===========================================================================
