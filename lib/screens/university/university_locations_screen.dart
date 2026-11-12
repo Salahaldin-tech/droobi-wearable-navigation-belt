@@ -51,9 +51,6 @@ class _UniversityLocationsScreenState
   String _searchQuery = '';
   final CampusOsmEntranceService _osmEntranceService =
       CampusOsmEntranceService();
-  List<UniversityLocation> _osmEntrances = [];
-  bool _isLoadingOsmEntrances = true;
-  Object? _osmLoadError;
 
   @override
   void initState() {
@@ -69,8 +66,6 @@ class _UniversityLocationsScreenState
       _searchController.text = initialQuery;
       _searchQuery = initialQuery.toLowerCase();
     }
-
-    _loadOsmEntrances();
 
     _searchController.addListener(() {
       setState(() {
@@ -438,16 +433,10 @@ class _UniversityLocationsScreenState
           // the animated background — no outer card/container wrapping them.
           // =====================================================================
 
+          // Render the original University choices immediately. OSM is
+          // queried only after the user taps a destination card.
           SafeArea(
-            child: _isLoadingOsmEntrances
-                ? const Center(
-                    child: CircularProgressIndicator(
-                      color: _primaryBlue,
-                    ),
-                  )
-                : _osmLoadError != null
-                    ? _buildErrorState(_osmLoadError!)
-                    : _buildCard(context, _osmEntrances),
+            child: _buildCard(context, const <UniversityLocation>[]),
           ),
         ],
       ),
@@ -689,8 +678,9 @@ class _UniversityLocationsScreenState
     required _UniversityItem item,
     required List<UniversityLocation> locations,
   }) {
-    final entranceCandidates = _findLocationsForItem(item, locations);
-    final isAvailable = entranceCandidates.isNotEmpty;
+    // Destination availability is resolved from live OSM only after tap.
+    // Do not hide or disable the original University choices while offline.
+    const isAvailable = true;
 
     return AppCard(
       padding: EdgeInsets.zero,
@@ -706,13 +696,7 @@ class _UniversityLocationsScreenState
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: isAvailable
-              ? () {
-                  _handleLocationSelect(context, item, entranceCandidates);
-                }
-              : () {
-                  _showUnavailableMessage(context, item);
-                },
+          onTap: () => _handleLocationSelect(context, item),
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Column(
@@ -812,31 +796,6 @@ class _UniversityLocationsScreenState
     return matches;
   }
 
-  Future<void> _loadOsmEntrances() async {
-    if (mounted) {
-      setState(() {
-        _isLoadingOsmEntrances = true;
-        _osmLoadError = null;
-      });
-    }
-
-    try {
-      final entrances = await _osmEntranceService.fetchEntrances();
-      if (!mounted) return;
-      setState(() {
-        _osmEntrances = entrances;
-        _isLoadingOsmEntrances = false;
-        _osmLoadError = null;
-      });
-    } catch (error) {
-      if (!mounted) return;
-      setState(() {
-        _isLoadingOsmEntrances = false;
-        _osmLoadError = error;
-      });
-    }
-  }
-
   String _normalize(String value) {
     return value
         .trim()
@@ -849,33 +808,77 @@ class _UniversityLocationsScreenState
   // LOCATION SELECT
   // ===========================================================================
 
-  void _handleLocationSelect(
+  Future<void> _handleLocationSelect(
     BuildContext context,
     _UniversityItem item,
-    List<UniversityLocation> entranceCandidates,
-  ) {
-    if (entranceCandidates.isEmpty) return;
-
-    final destination = entranceCandidates.first;
-    final candidates = entranceCandidates
-        .map((entrance) => LatLon(
-              latitude: entrance.latitude,
-              longitude: entrance.longitude,
-            ))
-        .toList();
-
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => LiveNavigationScreen(
-          destination: LatLon(
-            latitude: destination.latitude,
-            longitude: destination.longitude,
+  ) async {
+    // Keep the original University page visible. Resolve the selected
+    // destination against current OSM entrance nodes only after this tap.
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(
+        child: Card(
+          child: Padding(
+            padding: EdgeInsets.all(20),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(color: _primaryBlue),
+                SizedBox(width: 16),
+                Text('Finding campus entrance...'),
+              ],
+            ),
           ),
-          destinationCandidates: candidates,
-          campusNavigation: true,
         ),
       ),
     );
+
+    try {
+      final entrances = await _osmEntranceService.fetchEntrances();
+      if (!mounted) return;
+
+      final entranceCandidates = _findLocationsForItem(item, entrances);
+      Navigator.of(context, rootNavigator: true).pop();
+
+      if (entranceCandidates.isEmpty) {
+        _showUnavailableMessage(context, item);
+        return;
+      }
+
+      final destination = entranceCandidates.first;
+      final candidates = entranceCandidates
+          .map((entrance) => LatLon(
+                latitude: entrance.latitude,
+                longitude: entrance.longitude,
+              ))
+          .toList();
+
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => LiveNavigationScreen(
+            destination: LatLon(
+              latitude: destination.latitude,
+              longitude: destination.longitude,
+            ),
+            destinationCandidates: candidates,
+            campusNavigation: true,
+          ),
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      Navigator.of(context, rootNavigator: true).pop();
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              'Could not retrieve this destination from OSM: $error',
+            ),
+          ),
+        );
+    }
   }
 
   // ===========================================================================
@@ -897,54 +900,7 @@ class _UniversityLocationsScreenState
       );
   }
 
-  // ===========================================================================
-  // ERROR STATE
-  // ===========================================================================
 
-  Widget _buildErrorState(Object error) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Semantics(
-          liveRegion: true,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.error_outline,
-                size: 48,
-                color: AppColors.brown.shade400,
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Could not load university locations.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: _textColor,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                error.toString(),
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: _secondaryText,
-                ),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _loadOsmEntrances,
-                child: const Text('RETRY OSM'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 // ==============================================================================
