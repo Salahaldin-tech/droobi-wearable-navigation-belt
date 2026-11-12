@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/lat_lon.dart';
 import '../../models/university_location.dart';
-import '../../services/routing/campus_osm_entrance_service.dart';
 import '../../screens/navigation/live_navigation_screen.dart';
 import '../../widgets/droobi_bottom_nav.dart';
 import '../../widgets/app_card.dart';
@@ -49,8 +48,6 @@ class _UniversityLocationsScreenState
   String _selectedCategory = _categories.first;
   final _searchController = TextEditingController();
   String _searchQuery = '';
-  final CampusOsmEntranceService _osmEntranceService =
-      CampusOsmEntranceService();
 
   @override
   void initState() {
@@ -92,7 +89,6 @@ class _UniversityLocationsScreenState
   void dispose() {
     _backgroundController.dispose();
     _searchController.dispose();
-    _osmEntranceService.dispose();
     super.dispose();
   }
 
@@ -130,7 +126,7 @@ class _UniversityLocationsScreenState
   }
 
   // ===========================================================================
-  // UNIVERSITY LOCATION LABELS — coordinates always come from live OSM.
+  // UNIVERSITY LOCATION LABELS — fixed pilot destinations use surveyed coordinates.
   // ===========================================================================
 
   static const List<_UniversityItem> _colleges = [
@@ -741,137 +737,50 @@ class _UniversityLocationsScreenState
   // FIND LOCATION
   // ===========================================================================
 
-  List<UniversityLocation> _findLocationsForItem(
-    _UniversityItem item,
-    List<UniversityLocation> entrances,
-  ) {
-    // These keys correspond to destination_key tags on the mapped OSM
-    // entrance nodes. They identify a building, not a hard-coded coordinate.
-    final explicitKeys = switch (item.name) {
-      'Cafeteria' => const {'cafeteria'},
-      'Faculty of Information Technology' => const {'it'},
-      'Faculty of Arts and Education' => const {'arts'},
-      'Faculty of Engineering' => const {'engineering'},
-      'Faculty of Allied Medical Sciences' => const {'ams a'},
-      _ => const <String>{},
-    };
-
-    final aliases = <String>{
-      _normalize(item.name),
-      _normalize(item.nameAr),
-      ...item.aliases.map(_normalize),
-    };
-
-    final matches = entrances.where((entrance) {
-      final key = _normalize(entrance.destinationKey ?? '');
-      final ref = _normalize(entrance.ref ?? entrance.name);
-      final name = _normalize(entrance.name);
-
-      if (key.isNotEmpty &&
-          (explicitKeys.contains(key) || aliases.contains(key))) {
-        return true;
-      }
-
-      bool matchesDoorLabel(String value) {
-        if (value.isEmpty) return false;
-        if (aliases.contains(value)) return true;
-        return aliases.any((alias) =>
-            value.startsWith('$alias main door') ||
-            value.startsWith('$alias entrance'));
-      }
-
-      return matchesDoorLabel(ref) || matchesDoorLabel(name);
-    }).toList();
-
-    // Keep every matching OSM entrance. Navigation will ask OSRM for a
-    // pedestrian route to each candidate and select the shortest reachable
-    // door, rather than assuming one old/stored coordinate is correct.
-    return matches;
-  }
-
-  String _normalize(String value) {
-    return value
-        .trim()
-        .toLowerCase()
-        .replaceAll(RegExp(r'[-_]+'), ' ')
-        .replaceAll(RegExp(r'\s+'), ' ');
-  }
+  // Fixed destination coordinates for the first University navigation pilot.
+  // These are destination points only; the route is calculated dynamically
+  // from the user's current GPS position by the same OSRM flow as Home.
+  static const Map<String, LatLon> _fixedDestinations = {
+    'Faculty of Arts and Education': LatLon(
+      latitude: 32.40795937,
+      longitude: 35.34453554,
+    ),
+    'Faculty of Engineering': LatLon(
+      latitude: 32.40795937,
+      longitude: 35.34453554,
+    ),
+    'Faculty of Information Technology': LatLon(
+      latitude: 32.40679231,
+      longitude: 35.34339778,
+    ),
+  };
 
   // ===========================================================================
   // LOCATION SELECT
   // ===========================================================================
 
-  Future<void> _handleLocationSelect(
+  void _handleLocationSelect(
     BuildContext context,
     _UniversityItem item,
-  ) async {
-    // Keep the original University page visible. Resolve the selected
-    // destination against current OSM entrance nodes only after this tap.
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const Center(
-        child: Card(
-          child: Padding(
-            padding: EdgeInsets.all(20),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircularProgressIndicator(color: _primaryBlue),
-                SizedBox(width: 16),
-                Text('Finding campus entrance...'),
-              ],
-            ),
-          ),
+  ) {
+    final destination = _fixedDestinations[item.name];
+
+    if (destination == null) {
+      _showUnavailableMessage(context, item);
+      return;
+    }
+
+    // Match the Home destination flow exactly:
+    // pass one LatLon destination to LiveNavigationScreen, leaving
+    // campusNavigation false so NavigationService uses routingServiceProvider.
+    // No Overpass lookup and no separate campus OSRM client are involved.
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => LiveNavigationScreen(
+          destination: destination,
         ),
       ),
     );
-
-    try {
-      final entrances = await _osmEntranceService.fetchEntrances();
-      if (!mounted) return;
-
-      final entranceCandidates = _findLocationsForItem(item, entrances);
-      Navigator.of(context, rootNavigator: true).pop();
-
-      if (entranceCandidates.isEmpty) {
-        _showUnavailableMessage(context, item);
-        return;
-      }
-
-      final destination = entranceCandidates.first;
-      final candidates = entranceCandidates
-          .map((entrance) => LatLon(
-                latitude: entrance.latitude,
-                longitude: entrance.longitude,
-              ))
-          .toList();
-
-      Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => LiveNavigationScreen(
-            destination: LatLon(
-              latitude: destination.latitude,
-              longitude: destination.longitude,
-            ),
-            destinationCandidates: candidates,
-            campusNavigation: true,
-          ),
-        ),
-      );
-    } catch (error) {
-      if (!mounted) return;
-      Navigator.of(context, rootNavigator: true).pop();
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: Text(
-              'Could not retrieve this destination from OSM: $error',
-            ),
-          ),
-        );
-    }
   }
 
   // ===========================================================================
