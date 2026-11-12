@@ -842,7 +842,7 @@ class _UniversityLocationsScreenState
         .trim()
         .toLowerCase()
         .replaceAll(RegExp(r'[-_]+'), ' ')
-        .replaceAll(RegExp(r'\\s+'), ' ');
+        .replaceAll(RegExp(r'\s+'), ' ');
   }
 
   // ===========================================================================
