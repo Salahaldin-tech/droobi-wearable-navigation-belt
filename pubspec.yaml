@@ -63,7 +63,6 @@ flutter:
     - assets/images/uni_bg.png
     - docs/campus-mapping/nodes.geojson
     - docs/campus-mapping/edges.geojson
-    - docs/campus-mapping/osm/aaup-campus-entrances.geojson
 
 flutter_launcher_icons:
   android: true
