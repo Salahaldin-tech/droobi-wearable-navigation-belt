@@ -28,7 +28,7 @@ class LiveNavigationScreen extends ConsumerStatefulWidget {
   /// True only when navigation was launched from the University screen.
   final bool campusNavigation;
 
-  /// Alternative QGIS entrance points; the campus router chooses the
+  /// Alternative OSM entrance nodes; the campus router chooses the
   /// reachable entrance with the shortest pedestrian route.
   final List<LatLon>? destinationCandidates;
 
@@ -442,7 +442,7 @@ class _LiveNavigationScreenState
 
     final state =
         _stateText(_snapshot.state);
-    final routingMethod = widget.campusNavigation ? 'QGIS' : 'OSRM';
+    final routingMethod = widget.campusNavigation ? 'OSM + Public OSRM' : 'OSRM';
 
     return Container(
       width: double.infinity,
