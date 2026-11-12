@@ -538,7 +538,7 @@ class NavigationService {
       _offRouteSamples++;
     } else {
       _offRouteSamples = 0;
-      return;
+      return true;
     }
 
     if (_offRouteSamples < _campusOffRouteSamplesRequired) return true;
@@ -557,7 +557,7 @@ class NavigationService {
         origin: fix.position,
         destination: destination,
       );
-      if (!_isNavigating || replacement.polyline.isEmpty) return;
+      if (!_isNavigating || replacement.polyline.isEmpty) return false;
       _route = replacement;
       _offRouteSamples = 0;
       // A replacement route starts a new arrival evaluation window.
