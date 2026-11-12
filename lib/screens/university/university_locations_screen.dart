@@ -135,7 +135,7 @@ class _UniversityLocationsScreenState
   }
 
   // ===========================================================================
-  // FIGMA DATA
+  // UNIVERSITY LOCATION LABELS — coordinates always come from live OSM.
   // ===========================================================================
 
   static const List<_UniversityItem> _colleges = [
@@ -775,7 +775,7 @@ class _UniversityLocationsScreenState
       'Faculty of Information Technology' => const {'it'},
       'Faculty of Arts and Education' => const {'arts'},
       'Faculty of Engineering' => const {'engineering'},
-      'Faculty of Allied Medical Sciences' => const {'ams_a'},
+      'Faculty of Allied Medical Sciences' => const {'ams a'},
       _ => const <String>{},
     };
 
