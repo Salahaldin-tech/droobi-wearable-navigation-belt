@@ -34,39 +34,8 @@ class _SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF9F2E0),
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Image.asset(
-              'assets/images/app_logo.png',
-              width: 132,
-              height: 132,
-              fit: BoxFit.contain,
-            ),
-            const SizedBox(height: 18),
-            const Text(
-              'Droobi',
-              style: TextStyle(
-                color: Color(0xFF896E5F),
-                fontSize: 26,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 22),
-            const SizedBox(
-              width: 22,
-              height: 22,
-              child: CircularProgressIndicator(
-                strokeWidth: 2.2,
-                color: Color(0xFF896E5F),
-              ),
-            ),
-          ],
-        ),
-      ),
+    return const Scaffold(
+      body: Center(child: CircularProgressIndicator()),
     );
   }
 }
