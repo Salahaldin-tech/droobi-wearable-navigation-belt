@@ -18,9 +18,7 @@ final navigationServiceProvider =
     baseUrl: 'https://router.project-osrm.org',
     maxSnapRadiusMeters: 20,
   );
-  if (campusRoutingService != null) {
-    ref.onDispose(campusRoutingService.dispose);
-  }
+  ref.onDispose(campusRoutingService.dispose);
 
   final service = NavigationService(
     locationService:
