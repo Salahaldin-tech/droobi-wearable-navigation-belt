@@ -436,7 +436,7 @@ class _UniversityLocationsScreenState
           // Render the original University choices immediately. OSM is
           // queried only after the user taps a destination card.
           SafeArea(
-            child: _buildCard(context, const <UniversityLocation>[]),
+            child: _buildCard(context),
           ),
         ],
       ),
@@ -447,10 +447,7 @@ class _UniversityLocationsScreenState
   // CARD CONTENT (fixed header/search/filters + scroll-if-needed grid)
   // ===========================================================================
 
-  Widget _buildCard(
-    BuildContext context,
-    List<UniversityLocation> locations,
-  ) {
+  Widget _buildCard(BuildContext context) {
     int order = 0;
 
     return Column(
@@ -472,7 +469,6 @@ class _UniversityLocationsScreenState
         Expanded(
           child: _buildGrid(
             context,
-            locations,
             startIndex: order,
           ),
         ),
@@ -608,8 +604,7 @@ class _UniversityLocationsScreenState
   // ===========================================================================
 
   Widget _buildGrid(
-    BuildContext context,
-    List<UniversityLocation> locations, {
+    BuildContext context, {
     required int startIndex,
   }) {
     final items = _visibleItems();
@@ -639,7 +634,6 @@ class _UniversityLocationsScreenState
           _buildLocationCard(
             context: context,
             item: items[index],
-            locations: locations,
           ),
         );
       },
@@ -676,7 +670,6 @@ class _UniversityLocationsScreenState
   Widget _buildLocationCard({
     required BuildContext context,
     required _UniversityItem item,
-    required List<UniversityLocation> locations,
   }) {
     // Destination availability is resolved from live OSM only after tap.
     // Do not hide or disable the original University choices while offline.
