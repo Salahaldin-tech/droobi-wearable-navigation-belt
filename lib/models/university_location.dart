@@ -1,6 +1,6 @@
-/// A static/seeded university location, matching the
-/// universityLocations/{locationId} schema from Stage 2. Read-only
-/// from the app's perspective.
+/// A university location record. Firestore locations and live OSM entrance
+/// nodes share this coordinate model; runtime campus targets are loaded from
+/// OSM and carry the optional OSM tags below.
 class UniversityLocation {
   const UniversityLocation({
     required this.id,
