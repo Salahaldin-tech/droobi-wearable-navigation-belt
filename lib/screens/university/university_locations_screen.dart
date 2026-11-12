@@ -1,13 +1,10 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/lat_lon.dart';
 import '../../models/university_location.dart';
+import '../../services/routing/campus_osm_entrance_service.dart';
 import '../../screens/navigation/live_navigation_screen.dart';
-import '../../state/university_locations_notifier.dart';
 import '../../widgets/droobi_bottom_nav.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/app_search_bar.dart';
@@ -52,7 +49,11 @@ class _UniversityLocationsScreenState
   String _selectedCategory = _categories.first;
   final _searchController = TextEditingController();
   String _searchQuery = '';
+  final CampusOsmEntranceService _osmEntranceService =
+      CampusOsmEntranceService();
   List<UniversityLocation> _osmEntrances = [];
+  bool _isLoadingOsmEntrances = true;
+  Object? _osmLoadError;
 
   @override
   void initState() {
@@ -96,6 +97,7 @@ class _UniversityLocationsScreenState
   void dispose() {
     _backgroundController.dispose();
     _searchController.dispose();
+    _osmEntranceService.dispose();
     super.dispose();
   }
 
@@ -367,8 +369,6 @@ class _UniversityLocationsScreenState
 
   @override
   Widget build(BuildContext context) {
-    final locationsAsync = ref.watch(universityLocationsProvider);
-
     return Scaffold(
       backgroundColor: _pageBackground,
       body: Stack(
@@ -439,15 +439,15 @@ class _UniversityLocationsScreenState
           // =====================================================================
 
           SafeArea(
-            child: locationsAsync.when(
-              loading: () => const Center(
-                child: CircularProgressIndicator(
-                  color: _primaryBlue,
-                ),
-              ),
-              error: (error, _) => _buildErrorState(error),
-              data: (locations) => _buildCard(context, locations),
-            ),
+            child: _isLoadingOsmEntrances
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      color: _primaryBlue,
+                    ),
+                  )
+                : _osmLoadError != null
+                    ? _buildErrorState(_osmLoadError!)
+                    : _buildCard(context, _osmEntrances),
           ),
         ],
       ),
@@ -689,8 +689,8 @@ class _UniversityLocationsScreenState
     required _UniversityItem item,
     required List<UniversityLocation> locations,
   }) {
-    final location = _findLocation(item, locations);
-    final isAvailable = location != null;
+    final entranceCandidates = _findLocationsForItem(item, locations);
+    final isAvailable = entranceCandidates.isNotEmpty;
 
     return AppCard(
       padding: EdgeInsets.zero,
@@ -708,7 +708,7 @@ class _UniversityLocationsScreenState
           borderRadius: BorderRadius.circular(16),
           onTap: isAvailable
               ? () {
-                  _handleLocationSelect(context, item, location);
+                  _handleLocationSelect(context, item, entranceCandidates);
                 }
               : () {
                   _showUnavailableMessage(context, item);
@@ -764,87 +764,76 @@ class _UniversityLocationsScreenState
   // FIND LOCATION
   // ===========================================================================
 
-  UniversityLocation? _findLocation(
+  List<UniversityLocation> _findLocationsForItem(
     _UniversityItem item,
-    List<UniversityLocation> locations,
+    List<UniversityLocation> entrances,
   ) {
-    // Prefer the explicit entrance nodes mapped in the current OSM snapshot.
-    // These are exact door anchors, not building centroids.
-    final entranceRefs = switch (item.name) {
-      'Cafeteria' => const ['cafeteria main door'],
-      'Faculty of Information Technology' => const ['IT main door'],
-      'Faculty of Arts and Education' => const ['Arts main door'],
-      'Faculty of Engineering' => const ['Engineering main door'],
-      'Faculty of Allied Medical Sciences' => const ['AMS_A main door'],
-      _ => const <String>[],
+    // These keys correspond to destination_key tags on the mapped OSM
+    // entrance nodes. They identify a building, not a hard-coded coordinate.
+    final explicitKeys = switch (item.name) {
+      'Cafeteria' => const {'cafeteria'},
+      'Faculty of Information Technology' => const {'it'},
+      'Faculty of Arts and Education' => const {'arts'},
+      'Faculty of Engineering' => const {'engineering'},
+      'Faculty of Allied Medical Sciences' => const {'ams_a'},
+      _ => const <String>{},
     };
 
-    for (final entranceRef in entranceRefs) {
-      for (final entrance in _osmEntrances) {
-        if (_normalize(entrance.name) == _normalize(entranceRef)) {
-          return entrance;
-        }
-      }
-    }
+    final aliases = <String>{
+      _normalize(item.name),
+      _normalize(item.nameAr),
+      ...item.aliases.map(_normalize),
+    };
 
-    // Keep existing Firestore locations for campus destinations that have
-    // not yet received an explicit entrance node in the OSM map. Campus
-    // OSRM still applies its bounded snap radius before returning a route.
-    for (final location in locations) {
-      final locationName = _normalize(location.name);
-      for (final alias in item.aliases) {
-        final normalizedAlias = _normalize(alias);
-        if (locationName == normalizedAlias ||
-            locationName.contains(normalizedAlias) ||
-            normalizedAlias.contains(locationName)) {
-          return location;
-        }
+    final matches = entrances.where((entrance) {
+      final key = _normalize(entrance.destinationKey ?? '');
+      final ref = _normalize(entrance.ref ?? entrance.name);
+      final name = _normalize(entrance.name);
+
+      if (key.isNotEmpty &&
+          (explicitKeys.contains(key) || aliases.contains(key))) {
+        return true;
       }
-    }
-    return null;
+
+      bool matchesDoorLabel(String value) {
+        if (value.isEmpty) return false;
+        if (aliases.contains(value)) return true;
+        return aliases.any((alias) =>
+            value.startsWith('$alias main door') ||
+            value.startsWith('$alias entrance'));
+      }
+
+      return matchesDoorLabel(ref) || matchesDoorLabel(name);
+    }).toList();
+
+    // Keep every matching OSM entrance. Navigation will ask OSRM for a
+    // pedestrian route to each candidate and select the shortest reachable
+    // door, rather than assuming one old/stored coordinate is correct.
+    return matches;
   }
 
   Future<void> _loadOsmEntrances() async {
+    if (mounted) {
+      setState(() {
+        _isLoadingOsmEntrances = true;
+        _osmLoadError = null;
+      });
+    }
+
     try {
-      final source = await rootBundle.loadString(
-        'docs/campus-mapping/osm/aaup-campus-entrances.geojson',
-      );
-      final collection = jsonDecode(source) as Map<String, dynamic>;
-      final features = collection['features'] as List<dynamic>? ?? const [];
-      final parsed = <UniversityLocation>[];
-
-      for (final feature in features) {
-        if (feature is! Map<String, dynamic>) continue;
-        final properties =
-            feature['properties'] as Map<String, dynamic>? ?? const {};
-        final geometry = feature['geometry'] as Map<String, dynamic>?;
-        if (geometry == null || geometry['type'] != 'Point') continue;
-        if ((properties['entrance'] ?? '').toString() != 'main') continue;
-        if ((properties['access'] ?? 'yes').toString() == 'no') continue;
-
-        final coordinates = geometry['coordinates'] as List<dynamic>?;
-        if (coordinates == null || coordinates.length < 2) continue;
-        final longitude = (coordinates[0] as num?)?.toDouble();
-        final latitude = (coordinates[1] as num?)?.toDouble();
-        final id = (properties['osm_id'] ?? '').toString();
-        final name = (properties['ref'] ?? '').toString();
-        if (longitude == null || latitude == null || id.isEmpty || name.isEmpty) {
-          continue;
-        }
-
-        parsed.add(UniversityLocation(
-          id: id,
-          name: name,
-          latitude: latitude,
-          longitude: longitude,
-        ));
-      }
-
-      if (mounted) {
-        setState(() => _osmEntrances = parsed);
-      }
+      final entrances = await _osmEntranceService.fetchEntrances();
+      if (!mounted) return;
+      setState(() {
+        _osmEntrances = entrances;
+        _isLoadingOsmEntrances = false;
+        _osmLoadError = null;
+      });
     } catch (error) {
-      debugPrint('Could not load OSM campus entrances: $error');
+      if (!mounted) return;
+      setState(() {
+        _isLoadingOsmEntrances = false;
+        _osmLoadError = error;
+      });
     }
   }
 
@@ -853,7 +842,7 @@ class _UniversityLocationsScreenState
         .trim()
         .toLowerCase()
         .replaceAll(RegExp(r'[-_]+'), ' ')
-        .replaceAll(RegExp(r'\s+'), ' ');
+        .replaceAll(RegExp(r'\\s+'), ' ');
   }
 
   // ===========================================================================
@@ -863,15 +852,26 @@ class _UniversityLocationsScreenState
   void _handleLocationSelect(
     BuildContext context,
     _UniversityItem item,
-    UniversityLocation location,
+    List<UniversityLocation> entranceCandidates,
   ) {
+    if (entranceCandidates.isEmpty) return;
+
+    final destination = entranceCandidates.first;
+    final candidates = entranceCandidates
+        .map((entrance) => LatLon(
+              latitude: entrance.latitude,
+              longitude: entrance.longitude,
+            ))
+        .toList();
+
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => LiveNavigationScreen(
           destination: LatLon(
-            latitude: location.latitude,
-            longitude: location.longitude,
+            latitude: destination.latitude,
+            longitude: destination.longitude,
           ),
+          destinationCandidates: candidates,
           campusNavigation: true,
         ),
       ),
@@ -933,6 +933,11 @@ class _UniversityLocationsScreenState
                   fontSize: 12,
                   color: _secondaryText,
                 ),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _loadOsmEntrances,
+                child: const Text('RETRY OSM'),
               ),
             ],
           ),
