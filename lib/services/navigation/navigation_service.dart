@@ -962,7 +962,8 @@ class NavigationService {
     await _compassSubscription?.cancel();
     _compassSubscription = null;
 
-    _activeGpsFilterService?.reset();
+    _gpsFilterService.reset();
+    _campusGpsFilterService.reset();
     _activeGpsFilterService = null;
 
     _lastAcceptedFix = null;
