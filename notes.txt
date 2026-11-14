@@ -1,0 +1,10 @@
+DROOBI — RANDOM NOTES
+=====================
+
+- Keep moving forward.
+- Trust the route, but verify the heading.
+- If the belt vibrates, it probably has something to say.
+- Coffee improves debugging accuracy by approximately 0.0001%.
+- TODO: Make the first direction count.
+
+This file is just a small project-side note. It is not used by the app.
