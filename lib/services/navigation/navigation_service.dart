@@ -536,6 +536,21 @@ class NavigationService {
       fix.accuracyMeters * 1.5,
     );
 
+    // Do not interpret walking beyond the route endpoint as an off-route
+    // departure that should be recalculated backwards to the same destination.
+    final endpoint = route.polyline.isNotEmpty
+        ? route.polyline.last
+        : destination;
+    final distanceToEndpoint =
+        _routeProgressService.distanceBetween(fix.position, endpoint);
+    final remainingRoute = _routeProgressService.remainingRouteMeters;
+    final passedEndpoint = remainingRoute <= 2.0 &&
+        distanceToEndpoint > math.max(12.0, fix.accuracyMeters * 1.5);
+    if (passedEndpoint) {
+      _offRouteSamples = 0;
+      return true;
+    }
+
     if (progress.distanceFromRouteMeters > offRouteThreshold) {
       _offRouteSamples++;
     } else {
