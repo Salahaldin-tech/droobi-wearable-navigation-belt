@@ -86,14 +86,14 @@ class RelativeDirectionEngine {
     final delta = _wrap180(angle - center);
     final candidateDelta = _wrap180(angle - candidateCenter);
 
-    // Decide transition direction using the signed circular distance
-    // between sector centers (never ordinary numeric comparison).
+    // Signed angular travel from the current sector center. For a new sector,
+    // the sample must clear the shared edge by the hysteresis margin.
     final sectorStep = _wrap180(candidateCenter - center);
-    final crossedBoundary = sectorStep > 0
-        ? delta > 22.5 + hysteresisDegrees
-        : delta < -22.5 - hysteresisDegrees;
-
-    return crossedBoundary ||
+    final crossesPositive = sectorStep > 0 &&
+        delta > 22.5 + hysteresisDegrees;
+    final crossesNegative = sectorStep < 0 &&
+        delta < -22.5 - hysteresisDegrees;
+    return crossesPositive || crossesNegative ||
         candidateDelta.abs() > 22.5 + hysteresisDegrees;
   }
   NavigationDirection _sector(double angle) {
