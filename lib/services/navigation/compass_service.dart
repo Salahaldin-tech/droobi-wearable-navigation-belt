@@ -1,18 +1,67 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_compass/flutter_compass.dart';
+
+/// One compass event, preserving the plugin's accuracy metadata.
+///
+/// Android headings are magnetic azimuths; iOS headings are trueHeading.
+/// Android accuracy codes are 15 (high), 30 (medium), 45 (low), and null
+/// when the native sensor reports unreliable or has not reported accuracy.
+@immutable
+class CompassSample {
+  const CompassSample({
+    required this.rawHeadingDegrees,
+    required this.accuracyDegrees,
+    required this.timestamp,
+  });
+
+  final double rawHeadingDegrees;
+  final double? accuracyDegrees;
+  final DateTime timestamp;
+}
 
 class CompassService {
   CompassService({
     Stream<double>? headingSource,
     double Function()? declinationProvider,
+    Stream<CompassSample>? sampleSource,
+    TargetPlatform? platform,
   })  : _headingSource = headingSource,
-        _declinationProvider = declinationProvider;
+        _declinationProvider = declinationProvider,
+        _sampleSource = sampleSource,
+        _platform = platform;
 
-  // Injectable source keeps compass sampling deterministic in unit tests.
+  // Keep the legacy API unchanged for standard navigation.
   final Stream<double>? _headingSource;
   final double Function()? _declinationProvider;
+  final Stream<CompassSample>? _sampleSource;
+  final TargetPlatform? _platform;
+
+  /// Emits readings with their native accuracy and capture time.
+  ///
+  /// This stream intentionally does not apply declination. Its consumer must
+  /// convert magnetic Android heading to true north exactly once.
+  Stream<CompassSample> get sampleStream {
+    final source = _sampleSource;
+    if (source != null) return source;
+
+    final platform = _platform ?? defaultTargetPlatform;
+    final events = FlutterCompass.events;
+    if (events == null) return const Stream<CompassSample>.empty();
+
+    return events
+        .where((event) =>
+            event.heading != null && event.heading!.isFinite)
+        .where((event) =>
+            !(platform == TargetPlatform.iOS && event.heading! < 0))
+        .map((event) => CompassSample(
+              rawHeadingDegrees: _normalize(event.heading!),
+              accuracyDegrees: event.accuracy,
+              timestamp: DateTime.now(),
+            ));
+  }
 
   Stream<double> get headingStream {
     final source = _headingSource;
@@ -82,7 +131,7 @@ class CompassService {
     try {
       subscription = headingStream.listen(
         (heading) {
-          samples.add(_normalizeHeading(heading));
+          samples.add(_normalize(heading));
           final windowElapsed =
               DateTime.now().difference(startedAt) >= minimumSamplingWindow;
           if (samples.length >= sampleCount &&
@@ -141,21 +190,19 @@ class CompassService {
 
     var mean = math.atan2(sinSum, cosSum) * 180.0 / math.pi;
     if (mean < 0) mean += 360.0;
-    return _normalizeHeading(mean);
+    return _normalize(mean);
   }
 
   double _applyDeclination(double magneticHeading) {
-    // Android flutter_compass reports magnetic azimuth. iOS reports trueHeading.
-    // Do not apply Android declination to iOS a second time.
+    // The legacy path remains unchanged; the injected provider is responsible
+    // for being platform-aware. The new sample path corrects explicitly.
     final correction = _declinationProvider?.call() ?? 0.0;
-    return _normalizeHeading(magneticHeading + correction);
+    return _normalize(magneticHeading + correction);
   }
 
-  double _normalizeHeading(double heading) {
+  static double _normalize(double heading) {
     var normalized = heading % 360;
-    if (normalized < 0) {
-      normalized += 360;
-    }
+    if (normalized < 0) normalized += 360;
     return normalized;
   }
 }
