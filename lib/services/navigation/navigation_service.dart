@@ -171,6 +171,14 @@ class NavigationService {
       StreamController<NavigationSnapshot>.broadcast();
 
   // ================================================================
+  // HEADING AND DIRECTION ENGINES
+  // ================================================================
+
+  final HeadingEstimator _headingEstimator = HeadingEstimator();
+  final RelativeDirectionEngine _relativeDirectionEngine =
+      RelativeDirectionEngine();
+
+  // ================================================================
   // STATE
   // ================================================================
 
