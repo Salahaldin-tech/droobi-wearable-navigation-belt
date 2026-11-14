@@ -71,7 +71,6 @@ class NavigationService {
     required RoutingService routingService,
     RoutingService? campusRoutingService,
     required CompassService compassService,
-    HeadingNorthCorrector? headingNorthCorrector,
     GpsFilterService? gpsFilterService,
     GpsFilterService? campusGpsFilterService,
     RouteProgressService? routeProgressService,
@@ -105,7 +104,6 @@ class NavigationService {
         _routingService = routingService,
         _campusRoutingService = campusRoutingService,
         _compassService = compassService,
-        _headingNorthCorrector = headingNorthCorrector ?? HeadingNorthCorrector(),
         _gpsFilterService =
             gpsFilterService ?? GpsFilterService(),
         _campusGpsFilterService =
@@ -134,7 +132,7 @@ class NavigationService {
 
   final CompassService _compassService;
 
-  final HeadingNorthCorrector _headingNorthCorrector;
+  final HeadingNorthCorrector _headingNorthCorrector = HeadingNorthCorrector();
 
   final GpsFilterService _gpsFilterService;
 
