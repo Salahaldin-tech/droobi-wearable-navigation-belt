@@ -9,6 +9,7 @@ import '../location/gps_filter_service.dart';
 import '../location/location_service.dart';
 import '../routing/routing_service.dart';
 import 'compass_service.dart';
+import 'heading_north_corrector.dart';
 import 'direction_calculator.dart';
 import 'heading_estimator.dart';
 import 'relative_direction_engine.dart';
@@ -70,6 +71,7 @@ class NavigationService {
     required RoutingService routingService,
     RoutingService? campusRoutingService,
     required CompassService compassService,
+    HeadingNorthCorrector? headingNorthCorrector,
     GpsFilterService? gpsFilterService,
     GpsFilterService? campusGpsFilterService,
     RouteProgressService? routeProgressService,
@@ -103,6 +105,7 @@ class NavigationService {
         _routingService = routingService,
         _campusRoutingService = campusRoutingService,
         _compassService = compassService,
+        _headingNorthCorrector = headingNorthCorrector ?? HeadingNorthCorrector(),
         _gpsFilterService =
             gpsFilterService ?? GpsFilterService(),
         _campusGpsFilterService =
@@ -130,6 +133,8 @@ class NavigationService {
   static const Duration _campusRerouteCooldown = Duration(seconds: 5);
 
   final CompassService _compassService;
+
+  final HeadingNorthCorrector _headingNorthCorrector;
 
   final GpsFilterService _gpsFilterService;
 
@@ -166,6 +171,7 @@ class NavigationService {
   StreamSubscription<LocationFix>? _locationSubscription;
 
   StreamSubscription<double>? _compassSubscription;
+  StreamSubscription<CompassSample>? _campusCompassSubscription;
 
   final StreamController<NavigationSnapshot>
       _snapshotController =
@@ -333,8 +339,14 @@ class NavigationService {
       // 3. INITIAL COMPASS
       // ------------------------------------------------------------
 
-      final initialHeading =
+      final initialRawHeading =
           await _compassService.getStableHeading();
+      final initialHeading = campusNavigation
+          ? HeadingNorthCorrector.apply(
+              initialRawHeading,
+              _headingNorthCorrector.correctionDegrees(filteredFix.position),
+            )
+          : initialRawHeading;
 
       _resetCompassSmoothing();
 
@@ -363,7 +375,11 @@ class NavigationService {
         ),
       );
 
+      if (campusNavigation) {
+      _startCampusCompassStream();
+    } else {
       _startCompassStream();
+    }
 
       _startLocationStream();
 
@@ -596,6 +612,47 @@ class NavigationService {
   // ================================================================
   // COMPASS STREAM
   // ================================================================
+
+  void _startCampusCompassStream() {
+    _campusCompassSubscription?.cancel();
+    _campusCompassSubscription = _compassService.sampleStream.listen(
+      _handleCampusCompassSample,
+      onError: (Object error) {
+        if (!_isNavigating) return;
+        _publish(NavigationSnapshot(
+          state: NavigationState.recovering,
+          currentPosition: _lastAcceptedFix?.position,
+          accuracyMeters: _lastAcceptedFix?.accuracyMeters,
+          route: _route,
+          heading: _latestHeading,
+          errorMessage: 'Compass error: $error',
+        ));
+      },
+    );
+  }
+
+  void _handleCampusCompassSample(CompassSample sample) {
+    if (!_isNavigating || _lastAcceptedFix == null || _route == null) return;
+    final accuracy = sample.accuracyDegrees;
+    // Android maps unreliable/unknown sensor states to null; iOS reports
+    // headingAccuracy in degrees. Do not feed unknown readings to the filter.
+    if (accuracy == null || !accuracy.isFinite || accuracy < 0 || accuracy > 45) {
+      return;
+    }
+    final correction = _headingNorthCorrector.correctionDegrees(_lastAcceptedFix!.position);
+    final trueHeading = HeadingNorthCorrector.apply(
+      sample.rawHeadingDegrees,
+      correction,
+    );
+    final smoothedHeading = _headingEstimator.update(
+      trueHeading,
+      accuracyDegrees: accuracy,
+      timestamp: sample.timestamp,
+    );
+    if (smoothedHeading == null) return;
+    _latestHeading = smoothedHeading;
+    _updateNavigation(_lastAcceptedFix!, smoothedHeading);
+  }
 
   void _startCompassStream() {
     _compassSubscription?.cancel();
@@ -831,6 +888,8 @@ class NavigationService {
 
     await _compassSubscription?.cancel();
     _compassSubscription = null;
+    await _campusCompassSubscription?.cancel();
+    _campusCompassSubscription = null;
 
     _gpsFilterService.reset();
     _campusGpsFilterService.reset();
