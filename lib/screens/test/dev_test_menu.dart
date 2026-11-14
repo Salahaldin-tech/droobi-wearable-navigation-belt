@@ -10,6 +10,7 @@ import 'route_progress_test_screen.dart';
 import 'navigation_direction_test_screen.dart';
 import 'gps_filter_test_screen.dart';
 import 'live_navigation_test_screen.dart';
+import 'navigation_simulator_screen.dart';
 
 /// TEMPORARY dev-only menu. Routes between the per-stage test
 /// screens used to validate individual service layers (BLE, search,
@@ -136,6 +137,18 @@ ListTile(
     );
   },
 ),
+          ListTile(
+            leading: const Icon(Icons.route),
+            title: const Text('Navigation Simulator'),
+            subtitle: const Text(
+              'Simulate route progress, phone heading, GPS drift, and direction output',
+            ),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => const NavigationSimulatorScreen(),
+              ),
+            ),
+          ),
         ],
       ),
     );
