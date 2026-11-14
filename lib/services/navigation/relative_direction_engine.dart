@@ -82,12 +82,17 @@ class RelativeDirectionEngine {
   ) {
     final center = _sectorCenter(current);
     final delta = _wrap180(angle - center);
-    // Determine the adjacent sector in the direction of rotation.
-    // This avoids the false symmetry of an absolute-distance check:
-    // a turn to -30 degrees must not be treated as clearing the +22.5 edge.
-    final adjacentEdge = delta >= 0 ? 22.5 : -22.5;
-    return delta > adjacentEdge + hysteresisDegrees ||
-        delta < adjacentEdge - hysteresisDegrees && delta < -22.5 - hysteresisDegrees;
+    final rawCenter = _sectorCenter(_sector(angle));
+    final candidateDelta = _wrap180(angle - rawCenter);
+    // A candidate is accepted only after crossing the shared boundary
+    // by the configured margin in the candidate's direction.
+    final crossedPositive = delta > 22.5 + hysteresisDegrees;
+    final crossedNegative = delta < -22.5 - hysteresisDegrees;
+    return (rawCenter > center && crossedPositive) ||
+        (rawCenter < center && crossedNegative) ||
+        (center > 135 && rawCenter < -135 && crossedPositive) ||
+        (center < -135 && rawCenter > 135 && crossedNegative) ||
+        candidateDelta.abs() > 22.5 + hysteresisDegrees;
   }
 
   NavigationDirection _sector(double angle) {
