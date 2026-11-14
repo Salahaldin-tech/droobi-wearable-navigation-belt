@@ -4,6 +4,7 @@ import '../services/location/gps_filter_service.dart';
 import '../services/navigation/compass_service.dart';
 import '../services/navigation/direction_calculator.dart';
 import '../services/navigation/navigation_service.dart';
+import '../services/navigation/heading_north_corrector.dart';
 import '../services/navigation/route_progress_service.dart';
 import '../services/routing/osrm_routing_service.dart';
 import 'location_notifier.dart';
@@ -31,6 +32,9 @@ final navigationServiceProvider =
 
     compassService:
         CompassService(),
+
+    headingNorthCorrector:
+        HeadingNorthCorrector(),
 
     gpsFilterService:
         GpsFilterService(),
