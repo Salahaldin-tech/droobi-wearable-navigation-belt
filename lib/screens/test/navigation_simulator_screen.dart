@@ -102,12 +102,28 @@ class _NavigationSimulatorScreenState
 
   LatLon _applyGpsDrift(LatLon position) {
     if (!_gpsDriftEnabled || _gpsDriftMeters == 0) return position;
-    // Deterministic lateral offset (east-west) to make off-route matching
-    // visible without introducing random, irreproducible test data.
-    final longitudeMeters = 111320 * math.cos(position.latitude * math.pi / 180);
+
+    var remaining = _distanceTravelled;
+    var segmentIndex = 0;
+    while (segmentIndex < _segmentLengths.length - 1 &&
+        remaining > _segmentLengths[segmentIndex]) {
+      remaining -= _segmentLengths[segmentIndex];
+      segmentIndex++;
+    }
+    final segmentBearing = _directionCalculator.calculateBearing(
+      from: _routePoints[segmentIndex],
+      to: _routePoints[segmentIndex + 1],
+    );
+    final lateralBearing = (segmentBearing + 90) * math.pi / 180;
+    final eastMeters = math.sin(lateralBearing) * _gpsDriftMeters;
+    final northMeters = math.cos(lateralBearing) * _gpsDriftMeters;
+    final longitudeMeters =
+        111320 * math.cos(position.latitude * math.pi / 180);
+
+    // Offset perpendicular to the active route segment, not always east-west.
     return LatLon(
-      latitude: position.latitude,
-      longitude: position.longitude + (_gpsDriftMeters / longitudeMeters),
+      latitude: position.latitude + northMeters / 111320,
+      longitude: position.longitude + eastMeters / longitudeMeters,
     );
   }
 
