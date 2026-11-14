@@ -140,11 +140,10 @@ class RouteProgressService {
               nearest.projectedPoint,
         );
 
-    var remainingLookAhead =
-        adaptiveLookAhead;
+    final progressBeforeLookAhead = _lastProgressMeters;
+    var remainingLookAhead = adaptiveLookAhead;
 
-    var segmentIndex =
-        nearest.segmentIndex;
+    var segmentIndex = nearest.segmentIndex;
 
     var segmentStart =
         nearest.projectedPoint;
@@ -181,19 +180,20 @@ class RouteProgressService {
           factor,
         );
 
-        final routeBearing =
-            calculateBearing(
-          from: segmentStart,
-          to: segmentEnd,
+        // Use the segment that contains the projected user location
+        // as route bearing. The target may lie beyond a corner, but the cue
+        // must not rotate early merely because the look-ahead crosses it.
+        final routeBearing = calculateBearing(
+          from: route.polyline[nearest.segmentIndex],
+          to: route.polyline[nearest.segmentIndex + 1],
         );
 
         return RouteTarget(
           point: target,
           index: segmentIndex + 1,
           distanceAheadMeters:
-              adaptiveLookAhead -
-                  remainingLookAhead +
-                  remainingLookAhead,
+              math.max(0.0, _lastProgressMeters - progressBeforeLookAhead) +
+                  adaptiveLookAhead,
           distanceFromRouteMeters:
               nearest.distanceFromRouteMeters,
           routeBearing: routeBearing,
