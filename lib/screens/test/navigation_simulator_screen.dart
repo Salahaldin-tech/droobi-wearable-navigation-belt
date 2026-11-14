@@ -72,7 +72,7 @@ class _NavigationSimulatorScreenState
       for (var i = 0; i < _routePoints.length - 1; i++)
         _distanceBetween(_routePoints[i], _routePoints[i + 1]),
     ];
-    _totalDistance = _segmentLengths.fold(0, (sum, value) => sum + value);
+    _totalDistance = _segmentLengths.fold<double>(0.0, (sum, value) => sum + value);
     _recalculate();
   }
 
@@ -155,7 +155,7 @@ class _NavigationSimulatorScreenState
       if (!mounted) return;
       final next = _distanceTravelled + _speedMetersPerSecond * 0.25;
       setState(() {
-        _distanceTravelled = math.min(next, _totalDistance);
+        _distanceTravelled = math.min(next, _totalDistance).toDouble();
         if (_distanceTravelled >= _totalDistance) _isPlaying = false;
       });
       _recalculate();
@@ -431,10 +431,10 @@ class _RoutePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (points.length < 2) return;
     const padding = 22.0;
-    final minLat = points.map((p) => p.latitude).reduce(math.min);
-    final maxLat = points.map((p) => p.latitude).reduce(math.max);
-    final minLon = points.map((p) => p.longitude).reduce(math.min);
-    final maxLon = points.map((p) => p.longitude).reduce(math.max);
+    final minLat = points.map((p) => p.latitude).reduce((a, b) => math.min(a, b).toDouble());
+    final maxLat = points.map((p) => p.latitude).reduce((a, b) => math.max(a, b).toDouble());
+    final minLon = points.map((p) => p.longitude).reduce((a, b) => math.min(a, b).toDouble());
+    final maxLon = points.map((p) => p.longitude).reduce((a, b) => math.max(a, b).toDouble());
     final latRange = (maxLat - minLat).abs();
     final lonRange = (maxLon - minLon).abs();
 
