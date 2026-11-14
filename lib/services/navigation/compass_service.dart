@@ -4,16 +4,20 @@ import 'dart:math' as math;
 import 'package:flutter_compass/flutter_compass.dart';
 
 class CompassService {
-  CompassService({Stream<double>? headingSource})
-      : _headingSource = headingSource;
+  CompassService({
+    Stream<double>? headingSource,
+    double Function()? declinationProvider,
+  })  : _headingSource = headingSource,
+        _declinationProvider = declinationProvider;
 
   // Injectable source keeps compass sampling deterministic in unit tests.
   final Stream<double>? _headingSource;
+  final double Function()? _declinationProvider;
 
   Stream<double> get headingStream {
     final source = _headingSource;
     if (source != null) {
-      return source.map(_normalizeHeading);
+      return source.map(_applyDeclination);
     }
 
     final events = FlutterCompass.events;
@@ -24,7 +28,7 @@ class CompassService {
     return events
         .map((event) => event.heading)
         .where((heading) => heading != null)
-        .map((heading) => _normalizeHeading(heading!));
+        .map((heading) => _applyDeclination(heading!));
   }
 
   Future<double> getCurrentHeading() async {
@@ -138,6 +142,13 @@ class CompassService {
     var mean = math.atan2(sinSum, cosSum) * 180.0 / math.pi;
     if (mean < 0) mean += 360.0;
     return _normalizeHeading(mean);
+  }
+
+  double _applyDeclination(double magneticHeading) {
+    // Android flutter_compass reports magnetic azimuth. iOS reports trueHeading.
+    // Do not apply Android declination to iOS a second time.
+    final correction = _declinationProvider?.call() ?? 0.0;
+    return _normalizeHeading(magneticHeading + correction);
   }
 
   double _normalizeHeading(double heading) {
