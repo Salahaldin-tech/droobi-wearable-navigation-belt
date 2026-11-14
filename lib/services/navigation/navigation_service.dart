@@ -206,13 +206,6 @@ class NavigationService {
   // DIRECTION STABILITY
   // ================================================================
 
-  NavigationDirection? _confirmedDirection;
-
-  NavigationDirection? _candidateDirection;
-
-  int _candidateDirectionCount = 0;
-
-  DateTime? _candidateDirectionSince;
   DateTime? _lastArrivalFixTimestamp;
   int _arrivalFixCount = 0;
 
@@ -580,9 +573,6 @@ class NavigationService {
       // A replacement route starts a new arrival evaluation window.
       _arrivalFixCount = 0;
       _lastArrivalFixTimestamp = null;
-      _confirmedDirection = null;
-      _candidateDirection = null;
-      _candidateDirectionCount = 0;
       return true;
     } catch (error) {
       // A failed reroute must not terminate the navigation session.
