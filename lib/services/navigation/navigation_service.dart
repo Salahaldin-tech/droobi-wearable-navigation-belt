@@ -725,8 +725,12 @@ class NavigationService {
           distanceToEndpoint <= arrivalRadius;
       final routeNearlyComplete = remainingRoute <=
           math.max(10.0, fix.accuracyMeters * 0.75);
+      final passedEndpoint = remainingRoute <= 2.0 &&
+          distanceToEndpoint > arrivalRadius;
 
-      if (nearDestination && routeNearlyComplete) {
+      if (passedEndpoint) {
+        _arrivalFixCount = 0;
+      } else if (nearDestination && routeNearlyComplete) {
         _arrivalFixCount++;
       } else {
         _arrivalFixCount = 0;
