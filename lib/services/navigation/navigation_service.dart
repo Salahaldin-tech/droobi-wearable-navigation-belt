@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import '../../models/lat_lon.dart';
 import '../../models/location_fix.dart';
