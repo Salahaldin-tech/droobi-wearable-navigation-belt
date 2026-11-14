@@ -238,29 +238,29 @@ class _NavigationSimulatorScreenState
       value == null ? '—' : '${value.toStringAsFixed(1)}°';
 
   Widget _metric(String label, String value, {bool highlight = false}) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          border: Border.all(color: AppColors.brown.withValues(alpha: 0.25)),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label, style: Theme.of(context).textTheme.bodySmall),
-            const SizedBox(height: 5),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
-                color: AppColors.brown,
-                backgroundColor: highlight ? AppColors.cream : null,
-              ),
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        border: Border.all(color: AppColors.brown.withValues(alpha: 0.25)),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: Theme.of(context).textTheme.bodySmall),
+          const SizedBox(height: 5),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+              color: AppColors.brown,
+              backgroundColor: highlight ? AppColors.cream : null,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -398,17 +398,17 @@ class _NavigationSimulatorScreenState
           _section('Navigation Engine Output', [
             Row(
               children: [
-                _metric('Route bearing', _degrees(_routeBearing)),
+                Expanded(child: _metric('Route bearing', _degrees(_routeBearing))),
                 const SizedBox(width: 8),
-                _metric('Phone heading', _degrees(_phoneHeading)),
+                Expanded(child: _metric('Phone heading', _degrees(_phoneHeading))),
               ],
             ),
             const SizedBox(height: 8),
             Row(
               children: [
-                _metric('Relative angle', _degrees(_relativeAngle)),
+                Expanded(child: _metric('Relative angle', _degrees(_relativeAngle))),
                 const SizedBox(width: 8),
-                _metric('GPS cross-track', '${_distanceFromRoute.toStringAsFixed(1)} m'),
+                Expanded(child: _metric('GPS cross-track', '${_distanceFromRoute.toStringAsFixed(1)} m')),
               ],
             ),
             const SizedBox(height: 12),
