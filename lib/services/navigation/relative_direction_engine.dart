@@ -86,10 +86,10 @@ class RelativeDirectionEngine {
     final delta = _wrap180(angle - center);
     final candidateDelta = _wrap180(angle - candidateCenter);
 
-    // The sector center difference determines the direction of transition,
-    // including wraparound between the back-right and forward sectors.
+    // Decide transition direction using the signed circular distance
+    // between sector centers (never ordinary numeric comparison).
     final sectorStep = _wrap180(candidateCenter - center);
-    final crossedBoundary = sectorStep >= 0
+    final crossedBoundary = sectorStep > 0
         ? delta > 22.5 + hysteresisDegrees
         : delta < -22.5 - hysteresisDegrees;
 
