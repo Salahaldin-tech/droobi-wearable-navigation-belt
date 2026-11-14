@@ -689,8 +689,9 @@ class NavigationService {
       destination,
     );
 
-    // Count only distinct GPS fixes. Compass callbacks can recalculate
-    // navigation many times per second and are not independent arrival proof.
+    // Count only distinct GPS fixes. Arrival requires endpoint proximity
+    // AND route completion. A user who has passed the endpoint must not be
+    // rerouted back toward it or continue receiving a stale forward cue.
     if (_lastArrivalFixTimestamp != fix.timestamp) {
       _lastArrivalFixTimestamp = fix.timestamp;
       final endpoint = route.polyline.isNotEmpty
