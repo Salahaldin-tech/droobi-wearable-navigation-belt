@@ -40,9 +40,11 @@ class RelativeDirectionEngine {
       return _confirmed!;
     }
 
-    // Keep the current sector while the angle remains within its expanded
-    // boundaries. This is angular hysteresis, not only a time delay.
-    if (!_hasClearedCurrentBoundary(angle, _confirmed!)) {
+    // Apply hysteresis only when the raw sector is adjacent. For a
+    // multi-sector jump, require the longer dwell below rather than
+    // accidentally preventing a valid fast phone turn.
+    final adjacent = _sectorDistance(_confirmed!, raw) == 1;
+    if (adjacent && !_hasClearedCurrentBoundary(angle, _confirmed!)) {
       _candidate = null;
       _candidateSince = null;
       return _confirmed!;
