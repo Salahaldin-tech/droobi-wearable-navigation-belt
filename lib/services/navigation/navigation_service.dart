@@ -10,6 +10,8 @@ import '../location/location_service.dart';
 import '../routing/routing_service.dart';
 import 'compass_service.dart';
 import 'direction_calculator.dart';
+import 'heading_estimator.dart';
+import 'relative_direction_engine.dart';
 import 'route_progress_service.dart';
 
 enum NavigationState {
@@ -196,9 +198,9 @@ class NavigationService {
   // COMPASS SMOOTHING
   // ================================================================
 
-  final List<double> _headingSamples = [];
-
-  double? _lastPublishedHeading;
+  final HeadingEstimator _headingEstimator = HeadingEstimator();
+  final RelativeDirectionEngine _relativeDirectionEngine =
+      RelativeDirectionEngine();
 
   // ================================================================
   // DIRECTION STABILITY
@@ -344,11 +346,11 @@ class NavigationService {
       _resetCompassSmoothing();
 
       final smoothedInitialHeading =
-          _addCompassSample(
-                initialHeading,
-                forcePublish: true,
-              ) ??
-              initialHeading;
+          _headingEstimator.update(
+            initialHeading,
+            timestamp: DateTime.now(),
+          ) ??
+          initialHeading;
 
       _latestHeading = smoothedInitialHeading;
 
@@ -625,8 +627,7 @@ class NavigationService {
       return;
     }
 
-    final smoothedHeading =
-        _addCompassSample(rawHeading);
+    final smoothedHeading = _headingEstimator.update(rawHeading);
 
     if (smoothedHeading == null) {
       return;
@@ -644,113 +645,8 @@ class NavigationService {
   // COMPASS SMOOTHING
   // ================================================================
 
-  double? _addCompassSample(
-    double heading, {
-    bool forcePublish = false,
-  }) {
-    final normalized =
-        _normalizeHeading(heading);
-
-    _headingSamples.add(normalized);
-
-    while (_headingSamples.length >
-        compassSampleCount) {
-      _headingSamples.removeAt(0);
-    }
-
-    final smoothed =
-        _circularMean(_headingSamples);
-
-    if (forcePublish ||
-        _lastPublishedHeading == null) {
-      _lastPublishedHeading = smoothed;
-
-      return smoothed;
-    }
-
-    final change = _angularDifference(
-      smoothed,
-      _lastPublishedHeading!,
-    );
-
-    // Ignore small compass fluctuations.
-    if (change < minimumHeadingChangeDegrees) {
-      return _lastPublishedHeading;
-    }
-
-    _lastPublishedHeading = smoothed;
-
-    return smoothed;
-  }
-
-  double _circularMean(
-    List<double> values,
-  ) {
-    if (values.isEmpty) {
-      return 0;
-    }
-
-    double sinSum = 0;
-    double cosSum = 0;
-
-    for (final value in values) {
-      final radians =
-          value * math.pi / 180.0;
-
-      sinSum += math.sin(radians);
-      cosSum += math.cos(radians);
-    }
-
-    var result =
-        math.atan2(
-              sinSum,
-              cosSum,
-            ) *
-            180.0 /
-            math.pi;
-
-    if (result < 0) {
-      result += 360;
-    }
-
-    return result;
-  }
-
-  double _angularDifference(
-    double first,
-    double second,
-  ) {
-    var difference =
-        (first - second) % 360;
-
-    if (difference > 180) {
-      difference -= 360;
-    }
-
-    if (difference < -180) {
-      difference += 360;
-    }
-
-    return difference.abs();
-  }
-
-  double _normalizeHeading(
-    double heading,
-  ) {
-    var normalized = heading % 360;
-
-    if (normalized < 0) {
-      normalized += 360;
-    }
-
-    return normalized;
-  }
-
   void _resetCompassSmoothing() {
-    _headingSamples.clear();
-
-    _lastPublishedHeading = null;
-
+    _headingEstimator.reset();
     _latestHeading = null;
   }
 
@@ -881,8 +777,10 @@ class NavigationService {
     // STABILIZED DIRECTION
     // ------------------------------------------------------------
 
-    final direction =
-        _stabilizeDirection(rawDirection);
+    final direction = _relativeDirectionEngine.update(
+      relativeAngle,
+      routeTurnContext: target.isNearTurn,
+    );
 
     // ------------------------------------------------------------
     // PUBLISH
@@ -909,45 +807,7 @@ class NavigationService {
   // DIRECTION STABILITY
   // ================================================================
 
-  NavigationDirection _stabilizeDirection(
-    NavigationDirection candidate,
-  ) {
-    final now = DateTime.now();
-    if (_confirmedDirection == null) {
-      _confirmedDirection = candidate;
-      _candidateDirection = null;
-      _candidateDirectionCount = 0;
-      _candidateDirectionSince = null;
-      return candidate;
-    }
 
-    if (candidate == _confirmedDirection) {
-      _candidateDirection = null;
-      _candidateDirectionCount = 0;
-      _candidateDirectionSince = null;
-      return _confirmedDirection!;
-    }
-
-    if (_candidateDirection != candidate) {
-      _candidateDirection = candidate;
-      _candidateDirectionCount = 1;
-      _candidateDirectionSince = now;
-      return _confirmedDirection!;
-    }
-
-    // Compass streams can emit ~30 samples/second. A time window avoids
-    // confirming a new direction from three adjacent samples in milliseconds.
-    _candidateDirectionCount++;
-    final since = _candidateDirectionSince;
-    if (since != null &&
-        now.difference(since) >= const Duration(milliseconds: 900)) {
-      _confirmedDirection = candidate;
-      _candidateDirection = null;
-      _candidateDirectionCount = 0;
-      _candidateDirectionSince = null;
-    }
-    return _confirmedDirection!;
-  }
 
   // ================================================================
   // STOP
@@ -977,10 +837,7 @@ class NavigationService {
     _offRouteSamples = 0;
     _lastCampusRerouteAt = null;
 
-    _confirmedDirection = null;
-    _candidateDirection = null;
-    _candidateDirectionCount = 0;
-    _candidateDirectionSince = null;
+    _relativeDirectionEngine.reset();
     _arrivalFixCount = 0;
     _lastArrivalFixTimestamp = null;
     _routeProgressService.reset();
