@@ -1,0 +1,10 @@
+DROOBI DEV LOG
+==============
+
+Day 001: The belt learned to vibrate.
+Day 002: The phone learned to point somewhere.
+Day 003: We asked the compass to be less dramatic.
+Day 004: The route said "turn right". The developer said "are you sure?"
+Day 005: Still navigating. Still improving.
+
+Unofficial fun log — not a real release history.
