@@ -202,15 +202,7 @@ class NavigationService {
   bool _isDisposed = false;
 
   // ================================================================
-  // COMPASS SMOOTHING
-  // ================================================================
-
-  final HeadingEstimator _headingEstimator = HeadingEstimator();
-  final RelativeDirectionEngine _relativeDirectionEngine =
-      RelativeDirectionEngine();
-
-  // ================================================================
-  // DIRECTION STABILITY
+  // ARRIVAL TRACKING
   // ================================================================
 
   DateTime? _lastArrivalFixTimestamp;
