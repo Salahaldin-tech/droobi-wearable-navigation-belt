@@ -81,20 +81,21 @@ class RelativeDirectionEngine {
     NavigationDirection current,
   ) {
     final center = _sectorCenter(current);
+    final candidate = _sector(angle);
+    final candidateCenter = _sectorCenter(candidate);
     final delta = _wrap180(angle - center);
-    final rawCenter = _sectorCenter(_sector(angle));
-    final candidateDelta = _wrap180(angle - rawCenter);
-    // A candidate is accepted only after crossing the shared boundary
-    // by the configured margin in the candidate's direction.
-    final crossedPositive = delta > 22.5 + hysteresisDegrees;
-    final crossedNegative = delta < -22.5 - hysteresisDegrees;
-    return (rawCenter > center && crossedPositive) ||
-        (rawCenter < center && crossedNegative) ||
-        (center > 135 && rawCenter < -135 && crossedPositive) ||
-        (center < -135 && rawCenter > 135 && crossedNegative) ||
+    final candidateDelta = _wrap180(angle - candidateCenter);
+
+    // The sector center difference determines the direction of transition,
+    // including wraparound between the back-right and forward sectors.
+    final sectorStep = _wrap180(candidateCenter - center);
+    final crossedBoundary = sectorStep >= 0
+        ? delta > 22.5 + hysteresisDegrees
+        : delta < -22.5 - hysteresisDegrees;
+
+    return crossedBoundary ||
         candidateDelta.abs() > 22.5 + hysteresisDegrees;
   }
-
   NavigationDirection _sector(double angle) {
     final index = (((angle + 180 + 22.5) / 45).floor()) % 8;
     const values = <NavigationDirection>[
