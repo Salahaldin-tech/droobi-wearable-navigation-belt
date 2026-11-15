@@ -655,6 +655,27 @@ class NavigationService {
         accuracy < 0 ||
         accuracy > 45 ||
         !sample.rawHeadingDegrees.isFinite) {
+      // Ask the estimator to hold its last trusted heading for its configured
+      // grace period. Do not let an old heading drive cues indefinitely.
+      final heldHeading = _headingEstimator.update(
+        sample.rawHeadingDegrees.isFinite ? sample.rawHeadingDegrees : double.nan,
+        accuracyDegrees: double.infinity,
+        timestamp: sample.timestamp,
+      );
+
+      if (heldHeading == null) {
+        _latestHeading = null;
+        _publish(NavigationSnapshot(
+          state: NavigationState.recovering,
+          currentPosition: _lastAcceptedFix?.position,
+          accuracyMeters: _lastAcceptedFix?.accuracyMeters,
+          route: _route,
+          errorMessage: 'Compass accuracy is unavailable. Hold the phone steady.',
+        ));
+      } else {
+        _latestHeading = heldHeading;
+        _updateNavigation(_lastAcceptedFix!, heldHeading);
+      }
       return;
     }
 
