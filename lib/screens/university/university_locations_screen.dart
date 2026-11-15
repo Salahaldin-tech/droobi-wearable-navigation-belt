@@ -769,14 +769,14 @@ class _UniversityLocationsScreenState
       return;
     }
 
-    // Match the Home destination flow exactly:
-    // pass one LatLon destination to LiveNavigationScreen, leaving
-    // campusNavigation false so NavigationService uses routingServiceProvider.
-    // No Overpass lookup and no separate campus OSRM client are involved.
+    // University destinations must activate the campus-only navigation
+    // pipeline: campus OSRM client, accuracy-aware compass samples, and
+    // platform-aware true-north correction. Home navigation remains unchanged.
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => LiveNavigationScreen(
           destination: destination,
+          campusNavigation: true,
         ),
       ),
     );
