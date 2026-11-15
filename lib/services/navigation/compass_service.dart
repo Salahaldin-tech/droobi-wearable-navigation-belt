@@ -107,6 +107,8 @@ class CompassService {
     Duration timeout = const Duration(seconds: 5),
     double minimumResultantVector = 0.80,
     double maximumAccuracyDegrees = 45,
+    bool allowUnknownAccuracyFallback = false,
+    double unknownAccuracyMinimumResultantVector = 0.90,
   }) async {
     if (sampleCount < 3) {
       throw ArgumentError.value(
@@ -118,6 +120,9 @@ class CompassService {
 
     final startedAt = DateTime.now();
     final samples = <CompassSample>[];
+    // Android reports no accuracy until the sensor's first accuracy callback;
+    // some devices never send one. Keep those readings for a strict fallback.
+    final unknownAccuracySamples = <CompassSample>[];
     final completed = Completer<void>();
     StreamSubscription<CompassSample>? subscription;
     final timeoutTimer = Timer(timeout, () {
@@ -133,6 +138,10 @@ class CompassService {
       subscription = sampleStream.listen(
         (sample) {
           final accuracy = sample.accuracyDegrees;
+          if (accuracy == null && sample.rawHeadingDegrees.isFinite) {
+            unknownAccuracySamples.add(sample);
+            return;
+          }
           if (accuracy == null ||
               !accuracy.isFinite ||
               accuracy < 0 ||
@@ -166,6 +175,22 @@ class CompassService {
 
       await completed.future;
     } on TimeoutException {
+      if (allowUnknownAccuracyFallback &&
+          samples.length + unknownAccuracySamples.length >= sampleCount) {
+        final pool = <CompassSample>[...samples, ...unknownAccuracySamples];
+        final fallback = _circularSummary(pool);
+        if (fallback != null &&
+            fallback.$2 >= unknownAccuracyMinimumResultantVector) {
+          return CompassSample(
+            rawHeadingDegrees: fallback.$1,
+            // Unknown: the consumer must treat this as degraded.
+            accuracyDegrees: null,
+            timestamp: pool
+                .map((sample) => sample.timestamp)
+                .reduce((a, b) => a.isAfter(b) ? a : b),
+          );
+        }
+      }
       throw const CompassFailure(
         'Could not collect enough accurate compass readings. Check the phone '
         'compass and keep the phone steady before starting campus navigation.',
@@ -311,6 +336,22 @@ class CompassService {
     var mean = math.atan2(sinSum, cosSum) * 180.0 / math.pi;
     if (mean < 0) mean += 360.0;
     return _normalize(mean);
+  }
+
+  /// (circular mean, mean resultant length) or null when empty.
+  static (double, double)? _circularSummary(List<CompassSample> samples) {
+    if (samples.isEmpty) return null;
+    var sinSum = 0.0;
+    var cosSum = 0.0;
+    for (final sample in samples) {
+      sinSum += math.sin(sample.rawHeadingDegrees * math.pi / 180.0);
+      cosSum += math.cos(sample.rawHeadingDegrees * math.pi / 180.0);
+    }
+    final resultant =
+        math.sqrt(sinSum * sinSum + cosSum * cosSum) / samples.length;
+    var mean = math.atan2(sinSum, cosSum) * 180.0 / math.pi;
+    if (mean < 0) mean += 360.0;
+    return (_normalize(mean), resultant);
   }
 
   double _applyDeclination(double magneticHeading) {

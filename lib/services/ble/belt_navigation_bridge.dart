@@ -22,6 +22,18 @@ class BeltNavigationBridge {
   bool _started = false;
   bool _disposed = false;
 
+  /// Writes are chained so commands reach the belt in snapshot order even
+  /// though each BLE write is asynchronous.
+  Future<void> _sendChain = Future<void>.value();
+
+  BeltCommand? _lastRequested;
+  DateTime? _lastStopAt;
+
+  /// STOP bypasses the connection service's dedup by design. Recovery states
+  /// can publish many consecutive snapshots, so identical STOPs are collapsed
+  /// here; one is still re-sent periodically as a safety refresh.
+  static const Duration _stopRefreshInterval = Duration(seconds: 2);
+
   void start() {
     debugPrint('[BLE BRIDGE] Started');
 
@@ -48,7 +60,7 @@ class BeltNavigationBridge {
     // Destination reached: pulse all four belt motors together.
     // This is a one-shot firmware pattern, not a navigation direction.
     if (snapshot.state == NavigationState.arrived) {
-      await _beltConnectionService.sendCommand(BeltCommand.arrived);
+      await _enqueue(BeltCommand.arrived);
       return;
     }
 
@@ -59,12 +71,33 @@ class BeltNavigationBridge {
     if (direction == null ||
         snapshot.state == NavigationState.gpsUnavailable ||
         snapshot.state == NavigationState.routeUnavailable) {
-      await _beltConnectionService.sendCommand(BeltCommand.stop);
+      await _enqueue(BeltCommand.stop);
       return;
     }
 
-    final command = _beltCommandFromDirection(direction);
-    await _beltConnectionService.sendCommand(command);
+    await _enqueue(_beltCommandFromDirection(direction));
+  }
+
+  Future<void> _enqueue(BeltCommand command, {bool force = false}) {
+    if (!force && command == BeltCommand.stop && _lastRequested == BeltCommand.stop) {
+      final last = _lastStopAt;
+      if (last != null && DateTime.now().difference(last) < _stopRefreshInterval) {
+        return _sendChain;
+      }
+    }
+    _lastRequested = command;
+    if (command == BeltCommand.stop) _lastStopAt = DateTime.now();
+
+    final next = _sendChain.then((_) async {
+      if (_disposed) return;
+      try {
+        await _beltConnectionService.sendCommand(command);
+      } catch (error) {
+        debugPrint('[BLE BRIDGE] Failed to send ${command.wireValue}: $error');
+      }
+    });
+    _sendChain = next;
+    return next;
   }
 
   Future<void> _sendCurrentNavigationCommand() async {
@@ -82,7 +115,7 @@ class BeltNavigationBridge {
         ? BeltCommand.stop
         : _beltCommandFromDirection(direction);
 
-    await _beltConnectionService.sendCommand(command);
+    await _enqueue(command, force: true);
   }
 
   BeltCommand _beltCommandFromDirection(

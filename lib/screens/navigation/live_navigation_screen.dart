@@ -502,6 +502,14 @@ class _LiveNavigationScreenState
                           : AppColors.brown.shade700,
                     ),
                   ),
+                  const SizedBox(height: 3),
+                  Text(
+                    _engineDebugLine(),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppColors.brown.shade700,
+                    ),
+                  ),
                 ],
               ],
             ),
@@ -518,6 +526,24 @@ class _LiveNavigationScreenState
         ],
       ),
     );
+  }
+
+  /// Field-test diagnostics for the V5 engine (debug builds only).
+  String _engineDebugLine() {
+    final s = _snapshot;
+    final parts = <String>[
+      if (s.remainingMeters != null)
+        'left ${s.remainingMeters!.round()} m',
+      if (s.distanceToNextTurnMeters != null && s.nextTurnAngleDegrees != null)
+        'turn ${s.nextTurnAngleDegrees! > 0 ? 'R' : 'L'}'
+            '${s.nextTurnAngleDegrees!.abs().round()}° in '
+            '${s.distanceToNextTurnMeters!.round()} m',
+      if (s.headingSource != null) 'hdg ${s.headingSource!.name}',
+      if (s.courseOffsetDegrees != null)
+        'cal ${s.courseOffsetDegrees!.toStringAsFixed(0)}°',
+      if (s.isOffRoute) 'OFF ROUTE',
+    ];
+    return parts.isEmpty ? 'engine: waiting' : parts.join(' · ');
   }
 
   Widget _buildNavigationContent({

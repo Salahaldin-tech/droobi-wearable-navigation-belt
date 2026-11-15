@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import '../../core/geo/geo_math.dart';
 import '../../models/lat_lon.dart';
 import '../../models/location_fix.dart';
 import '../../models/navigation_direction.dart';
@@ -9,9 +10,10 @@ import '../location/gps_filter_service.dart';
 import '../location/location_service.dart';
 import '../routing/routing_service.dart';
 import 'compass_service.dart';
-import 'heading_north_corrector.dart';
+import 'course_offset_estimator.dart';
 import 'direction_calculator.dart';
 import 'heading_estimator.dart';
+import 'heading_north_corrector.dart';
 import 'relative_direction_engine.dart';
 import 'route_progress_service.dart';
 
@@ -24,6 +26,18 @@ enum NavigationState {
   recovering,
   arrived,
   stopped,
+}
+
+/// Where the heading used for the current cue came from.
+enum HeadingSource {
+  /// Phone compass with sensor-reported accuracy.
+  compass,
+
+  /// Phone compass whose sensor reports no accuracy; down-weighted.
+  compassDegraded,
+
+  /// GPS course over ground (compass unavailable, user walking).
+  gpsCourse,
 }
 
 class NavigationSnapshot {
@@ -39,6 +53,12 @@ class NavigationSnapshot {
     this.relativeAngle,
     this.direction,
     this.errorMessage,
+    this.headingSource,
+    this.remainingMeters,
+    this.distanceToNextTurnMeters,
+    this.nextTurnAngleDegrees,
+    this.isOffRoute = false,
+    this.courseOffsetDegrees,
   });
 
   final NavigationState state;
@@ -62,9 +82,35 @@ class NavigationSnapshot {
 
   final String? errorMessage;
 
+  final HeadingSource? headingSource;
+
+  /// Distance left along the route.
+  final double? remainingMeters;
+
+  final double? distanceToNextTurnMeters;
+
+  /// Signed angle of the next turn: positive = right.
+  final double? nextTurnAngleDegrees;
+
+  /// True while the user is beyond the off-route threshold.
+  final bool isOffRoute;
+
+  /// Learned compass-to-walking-direction correction, when calibrated.
+  final double? courseOffsetDegrees;
+
   String? get command => direction?.command;
 }
 
+/// The Droobi navigation engine.
+///
+/// Pipeline per GPS fix: filter → map-match → (calibrate compass from GPS
+/// course) → arrival → off-route / reroute → guidance.
+/// Pipeline per compass sample: true-north correction → course offset →
+/// smoothing → guidance against the last matched route target.
+///
+/// The session never stops itself except on confirmed arrival. GPS loss,
+/// compass loss and routing failures pause or degrade guidance and recover
+/// automatically.
 class NavigationService {
   NavigationService({
     required LocationService locationService,
@@ -75,140 +121,132 @@ class NavigationService {
     GpsFilterService? campusGpsFilterService,
     RouteProgressService? routeProgressService,
     DirectionCalculator? directionCalculator,
-
-    // --------------------------------------------------------------
-    // ROUTE FOLLOWING
-    // --------------------------------------------------------------
-    //
-    // null means RouteProgressService decides the look-ahead
-    // adaptively according to the route and upcoming turns.
-    //
+    HeadingNorthCorrector? headingNorthCorrector,
+    DateTime Function()? clock,
     this.lookAheadMeters,
-
     this.arrivalDistanceMeters = 8.0,
-
-    // --------------------------------------------------------------
-    // COMPASS SMOOTHING
-    // --------------------------------------------------------------
-
     this.compassSampleCount = 5,
-
     this.minimumHeadingChangeDegrees = 8.0,
-
-    // --------------------------------------------------------------
-    // DIRECTION STABILITY
-    // --------------------------------------------------------------
-
     this.directionConfirmationSamples = 3,
+    this.initialFixTimeout = const Duration(seconds: 30),
+    this.initialFixRetryDelay = const Duration(seconds: 1),
   })  : _locationService = locationService,
         _routingService = routingService,
         _campusRoutingService = campusRoutingService,
         _compassService = compassService,
-        _gpsFilterService =
-            gpsFilterService ?? GpsFilterService(),
-        _campusGpsFilterService =
-            campusGpsFilterService ?? GpsFilterService(),
-        _routeProgressService =
-            routeProgressService ?? RouteProgressService(),
-        _directionCalculator =
-            directionCalculator ?? DirectionCalculator();
+        _gpsFilterService = gpsFilterService ?? GpsFilterService(),
+        _campusGpsFilterService = campusGpsFilterService ?? GpsFilterService(),
+        _routeProgressService = routeProgressService ?? RouteProgressService(),
+        _directionCalculator = directionCalculator ?? DirectionCalculator(),
+        _headingNorthCorrector =
+            headingNorthCorrector ?? HeadingNorthCorrector(),
+        _clock = clock ?? DateTime.now;
 
   final LocationService _locationService;
-
   final RoutingService _routingService;
-
   final RoutingService? _campusRoutingService;
-
-  RoutingService? _activeRoutingService;
-
-  bool _isCampusNavigation = false;
-  bool _isRerouting = false;
-  int _offRouteSamples = 0;
-  DateTime? _lastCampusRerouteAt;
-
-  static const double _campusOffRouteMinimumMeters = 12.0;
-  static const int _campusOffRouteSamplesRequired = 2;
-  static const Duration _campusRerouteCooldown = Duration(seconds: 5);
-
   final CompassService _compassService;
-
-  final HeadingNorthCorrector _headingNorthCorrector = HeadingNorthCorrector();
-
   final GpsFilterService _gpsFilterService;
-
   final GpsFilterService _campusGpsFilterService;
-
-  GpsFilterService? _activeGpsFilterService;
-
   final RouteProgressService _routeProgressService;
-
   final DirectionCalculator _directionCalculator;
+  final HeadingNorthCorrector _headingNorthCorrector;
+  final DateTime Function() _clock;
 
   // ================================================================
   // SETTINGS
   // ================================================================
 
-  /// Optional fallback look-ahead.
-  ///
-  /// When null, RouteProgressService calculates the adaptive
-  /// look-ahead automatically.
+  /// Optional fixed look-ahead; null lets RouteProgressService adapt it.
   final double? lookAheadMeters;
 
   final double arrivalDistanceMeters;
 
   final int compassSampleCount;
 
+  /// Retained for API compatibility; smoothing is time-constant based.
   final double minimumHeadingChangeDegrees;
 
+  /// Retained for API compatibility; confirmation is time based.
   final int directionConfirmationSamples;
+
+  final Duration initialFixTimeout;
+  final Duration initialFixRetryDelay;
+
+  // Off-route policy per mode.
+  static const double _campusOffRouteMinimumMeters = 12.0;
+  static const double _standardOffRouteMinimumMeters = 20.0;
+  static const int _campusOffRouteSamplesRequired = 2;
+  static const int _standardOffRouteSamplesRequired = 3;
+  static const Duration _campusRerouteCooldown = Duration(seconds: 5);
+  static const Duration _standardRerouteCooldown = Duration(seconds: 10);
+
+  /// Compass silent for longer than this → GPS course may stand in.
+  static const Duration _compassStaleAfter = Duration(seconds: 3);
+
+  /// Compass samples with unknown accuracy are smoothed like Android's
+  /// MEDIUM accuracy: many devices simply never report accuracy for the
+  /// rotation-vector sensor. They are never used for course calibration.
+  static const double _unknownAccuracyDegrees = 30.0;
+
+  static const double _maximumCompassAccuracyDegrees = 45.0;
+
+  /// Compass-driven republishing is limited unless the cue changes.
+  static const Duration _compassPublishInterval = Duration(milliseconds: 200);
 
   // ================================================================
   // STREAMS
   // ================================================================
 
   StreamSubscription<LocationFix>? _locationSubscription;
+  StreamSubscription<CompassSample>? _compassSubscription;
 
-  StreamSubscription<double>? _compassSubscription;
-  StreamSubscription<CompassSample>? _campusCompassSubscription;
-
-  final StreamController<NavigationSnapshot>
-      _snapshotController =
+  final StreamController<NavigationSnapshot> _snapshotController =
       StreamController<NavigationSnapshot>.broadcast();
 
   // ================================================================
-  // HEADING AND DIRECTION ENGINES
+  // ENGINES
   // ================================================================
 
   final HeadingEstimator _headingEstimator = HeadingEstimator();
   final RelativeDirectionEngine _relativeDirectionEngine =
       RelativeDirectionEngine();
+  final CourseOffsetEstimator _courseOffset = CourseOffsetEstimator();
 
   // ================================================================
   // STATE
   // ================================================================
 
   NavigationSnapshot _snapshot =
-      const NavigationSnapshot(
-    state: NavigationState.idle,
-  );
+      const NavigationSnapshot(state: NavigationState.idle);
 
-  RouteResult? _route;
-
-  LatLon? _destination;
-
-  LocationFix? _lastAcceptedFix;
-
-  double? _latestHeading;
+  /// Incremented by every start/stop; async work from an older session is
+  /// discarded when it resumes.
+  int _session = 0;
 
   bool _isStarting = false;
-
   bool _isNavigating = false;
-
   bool _isDisposed = false;
+  bool _isCampusNavigation = false;
 
-  // ================================================================
-  // ARRIVAL TRACKING
-  // ================================================================
+  RoutingService? _activeRoutingService;
+  GpsFilterService? _activeGpsFilterService;
+
+  RouteResult? _route;
+  LatLon? _destination;
+  LocationFix? _lastAcceptedFix;
+  RouteTarget? _lastTarget;
+
+  double? _latestHeading;
+  HeadingSource? _headingSource;
+  DateTime? _lastCompassHeadingAt;
+  DateTime? _lastCompassPublishAt;
+  final List<_TimedHeading> _recentCompass = <_TimedHeading>[];
+  final List<double> _recentCourses = <double>[];
+
+  bool _isRerouting = false;
+  int _offRouteSamples = 0;
+  DateTime? _lastRerouteAt;
 
   DateTime? _lastArrivalFixTimestamp;
   int _arrivalFixCount = 0;
@@ -217,8 +255,7 @@ class NavigationService {
   // PUBLIC
   // ================================================================
 
-  Stream<NavigationSnapshot> get snapshots =>
-      _snapshotController.stream;
+  Stream<NavigationSnapshot> get snapshots => _snapshotController.stream;
 
   NavigationSnapshot get snapshot => _snapshot;
 
@@ -234,379 +271,365 @@ class NavigationService {
     bool campusNavigation = false,
   }) async {
     if (_isDisposed) {
-      throw StateError(
-        'NavigationService has been disposed.',
-      );
+      throw StateError('NavigationService has been disposed.');
     }
-
-    if (_isStarting || _isNavigating) {
-      return;
-    }
-
+    // A new start supersedes any running or still-starting session; the
+    // older start notices the session change at its next await and exits.
+    final session = ++_session;
     _isStarting = true;
-
-    await stop();
-
-    _isCampusNavigation = campusNavigation;
-    _activeGpsFilterService =
-        campusNavigation ? _campusGpsFilterService : _gpsFilterService;
-    _activeRoutingService = campusNavigation
-        ? _campusRoutingService
-        : _routingService;
-    if (_activeRoutingService == null) {
-      throw const NavigationFailure(
-        'Campus routing service is unavailable.',
-      );
-    }
-    _destination = destination;
-
-    _publish(
-      const NavigationSnapshot(
-        state: NavigationState.starting,
-      ),
-    );
-
     try {
-      // ------------------------------------------------------------
-      // 1. INITIAL GPS
-      // ------------------------------------------------------------
-      //
-      // Keeps trying until the GPS quality filter accepts a fix
-      // (or the timeout is reached).
+      await _teardown();
+      _checkSession(session);
 
-      final filteredFix =
-          await _waitForGoodInitialFix();
+      _isCampusNavigation = campusNavigation;
+      _activeGpsFilterService =
+          campusNavigation ? _campusGpsFilterService : _gpsFilterService;
+      _activeRoutingService =
+          campusNavigation ? _campusRoutingService : _routingService;
+      _destination = destination;
 
-      _lastAcceptedFix = filteredFix;
+      _publish(const NavigationSnapshot(state: NavigationState.starting));
 
-      // ------------------------------------------------------------
-      // 2. ROUTE
-      // ------------------------------------------------------------
-
-      // If a campus destination has multiple OSM entrance candidates,
-      // compute a pedestrian route to each and choose the shortest reachable
-      // route. OSRM performs the network snap; no straight-line route is made.
-      final candidates = destinationCandidates
-              ?.where((point) =>
-                  point.latitude != 0 && point.longitude != 0)
-              .toList() ??
-          const <LatLon>[];
-      var selectedDestination = destination;
-      RouteResult? bestRoute;
-      Object? lastRouteError;
-
-      if (campusNavigation && candidates.isNotEmpty) {
-        for (final candidate in candidates) {
-          try {
-            final candidateRoute =
-                await _activeRoutingService!.computeRoute(
-              origin: filteredFix.position,
-              destination: candidate,
-            );
-            if (candidateRoute.polyline.isEmpty) continue;
-            if (bestRoute == null ||
-                candidateRoute.distanceMeters < bestRoute.distanceMeters) {
-              bestRoute = candidateRoute;
-              selectedDestination = candidate;
-            }
-          } catch (error) {
-            lastRouteError = error;
-          }
-        }
-      } else {
-        bestRoute = await _activeRoutingService!.computeRoute(
-          origin: filteredFix.position,
-          destination: destination,
-        );
+      if (_activeRoutingService == null) {
+        throw const NavigationFailure('Campus routing service is unavailable.');
       }
 
-      if (bestRoute == null || bestRoute.polyline.isEmpty) {
-        if (lastRouteError != null) throw lastRouteError;
-        throw const NavigationFailure(
-          'No reachable OSM pedestrian route was found for this destination.',
-        );
-      }
+      // 1. Initial GPS fix accepted by the quality filter.
+      final fix = await _waitForGoodInitialFix(session);
+      _lastAcceptedFix = fix;
 
-      // Keep the selected entrance as the target for arrival detection and
-      // any later off-route recalculation.
-      _destination = selectedDestination;
-      final route = bestRoute;
+      // 2. Route (best of the candidate entrances for campus navigation).
+      final route = await _computeInitialRoute(
+        session: session,
+        origin: fix.position,
+        destination: destination,
+        candidates: destinationCandidates,
+        campusNavigation: campusNavigation,
+      );
+      _checkSession(session);
       _route = route;
 
-      // ------------------------------------------------------------
-      // 3. INITIAL COMPASS
-      // ------------------------------------------------------------
-
-      double initialHeading;
-      double? initialAccuracyDegrees;
-      DateTime initialHeadingTimestamp = DateTime.now();
-
-      if (campusNavigation) {
-        // Campus startup must use readings with known sensor accuracy, just
-        // like the live campus compass stream. Unknown accuracy is rejected.
-        final initialSample = await _compassService.getStableCompassSample(
+      // 3. Initial heading. A compass that cannot settle is not fatal: the
+      //    session starts and waits for a compass or GPS-course heading.
+      String? headingWarning;
+      try {
+        final sample = await _compassService.getStableCompassSample(
           sampleCount: compassSampleCount,
+          allowUnknownAccuracyFallback: true,
         );
-        initialAccuracyDegrees = initialSample.accuracyDegrees;
-        initialHeadingTimestamp = initialSample.timestamp;
-        final correction =
-            _headingNorthCorrector.correctionDegrees(filteredFix.position);
-        initialHeading = HeadingNorthCorrector.apply(
-          initialSample.rawHeadingDegrees,
-          correction,
-        );
-      } else {
-        // Preserve the existing Home / standard navigation path.
-        initialHeading = await _compassService.getStableHeading();
+        _checkSession(session);
+        _acceptCompassSample(sample, fix.position);
+      } on NavigationFailure {
+        rethrow;
+      } catch (error) {
+        headingWarning = error.toString();
       }
+      _checkSession(session);
 
-      _resetCompassSmoothing();
-
-      final smoothedInitialHeading =
-          _headingEstimator.update(
-            initialHeading,
-            accuracyDegrees: initialAccuracyDegrees,
-            timestamp: initialHeadingTimestamp,
-          ) ??
-          initialHeading;
-
-      _latestHeading = smoothedInitialHeading;
-
-      // ------------------------------------------------------------
-      // 4. START LIVE NAVIGATION
-      // ------------------------------------------------------------
-
+      // 4. Live streams.
       _isNavigating = true;
+      _startCompassStream(session);
+      _startLocationStream(session);
 
-      _publish(
-        NavigationSnapshot(
-          state: NavigationState.navigating,
-          currentPosition: filteredFix.position,
-          accuracyMeters: filteredFix.accuracyMeters,
-          route: route,
-          heading: smoothedInitialHeading,
-        ),
-      );
-
-      if (campusNavigation) {
-        _startCampusCompassStream();
+      // 5. First guidance.
+      _lastTarget = _matchRoute(fix);
+      if (_latestHeading == null) {
+        _publishWaitingForHeading(fix, headingWarning);
       } else {
-        _startCompassStream();
+        _publishGuidance(force: true);
       }
-
-      _startLocationStream();
-
-      // ------------------------------------------------------------
-      // 5. FIRST CALCULATION
-      // ------------------------------------------------------------
-
-      _updateNavigation(
-        filteredFix,
-        smoothedInitialHeading,
-      );
-    } catch (e) {
+    } on _SessionCancelled {
+      // stop() or a newer start() took over; nothing to report.
+    } catch (error) {
       _isNavigating = false;
-
-      _publish(
-        NavigationSnapshot(
-          state: NavigationState.routeUnavailable,
-          errorMessage: e.toString(),
-        ),
-      );
-
+      _publish(NavigationSnapshot(
+        state: NavigationState.routeUnavailable,
+        errorMessage: error.toString(),
+      ));
       rethrow;
     } finally {
-      _isStarting = false;
+      if (session == _session) _isStarting = false;
     }
   }
 
-  // ================================================================
-  // INITIAL GPS RETRY
-  // ================================================================
+  /// True while a start() is still acquiring GPS, route and heading.
+  bool get isStarting => _isStarting;
 
-  Future<LocationFix> _waitForGoodInitialFix({
-    Duration timeout = const Duration(seconds: 30),
-    Duration retryDelay = const Duration(seconds: 1),
-  }) async {
-    final deadline = DateTime.now().add(timeout);
+  void _checkSession(int session) {
+    if (session != _session || _isDisposed) throw const _SessionCancelled();
+  }
 
-    while (DateTime.now().isBefore(deadline)) {
-      // stop() was called while we were waiting.
-      if (_destination == null) {
-        throw const NavigationFailure(
-          'Navigation was cancelled.',
-        );
-      }
-
+  Future<LocationFix> _waitForGoodInitialFix(int session) async {
+    final deadline = _clock().add(initialFixTimeout);
+    Object? lastError;
+    while (_clock().isBefore(deadline)) {
+      _checkSession(session);
       try {
-        final rawFix =
-            await _locationService.getCurrentLocationFix();
-
-        final filtered =
-            _activeGpsFilterService!.process(rawFix);
-
-        if (filtered != null) {
-          return filtered;
-        }
-      } catch (_) {
-        // GPS read failed, keep trying until the timeout.
+        final rawFix = await _locationService.getCurrentLocationFix();
+        _checkSession(session);
+        final filtered = _activeGpsFilterService!.process(rawFix);
+        if (filtered != null) return filtered;
+      } on _SessionCancelled {
+        rethrow;
+      } catch (error) {
+        lastError = error;
       }
-
-      await Future.delayed(retryDelay);
+      await Future<void>.delayed(initialFixRetryDelay);
     }
-
+    _checkSession(session);
+    if (lastError is LocationFailure &&
+        lastError.type != LocationErrorType.unavailable) {
+      throw NavigationFailure(lastError.message);
+    }
     throw const NavigationFailure(
-      'Could not get a good GPS fix. '
-      'Move to an open area and try again.',
+      'Could not get a good GPS fix. Move to an open area and try again.',
     );
   }
 
+  Future<RouteResult> _computeInitialRoute({
+    required int session,
+    required LatLon origin,
+    required LatLon destination,
+    required List<LatLon>? candidates,
+    required bool campusNavigation,
+  }) async {
+    final router = _activeRoutingService!;
+    final validCandidates = candidates
+            ?.where((p) => p.latitude != 0 && p.longitude != 0)
+            .toList() ??
+        const <LatLon>[];
+
+    if (!campusNavigation || validCandidates.isEmpty) {
+      final route =
+          await router.computeRoute(origin: origin, destination: destination);
+      _checkSession(session);
+      if (route.polyline.isEmpty) {
+        throw const NavigationFailure('The routing service returned no path.');
+      }
+      return route;
+    }
+
+    // Route to every mapped entrance and keep the shortest. Requests are
+    // sequential to respect the public OSRM server's fair-use policy.
+    final results = <_CandidateRoute>[];
+    for (final candidate in validCandidates) {
+      try {
+        final route =
+            await router.computeRoute(origin: origin, destination: candidate);
+        results.add(_CandidateRoute(candidate, route, null));
+      } catch (error) {
+        results.add(_CandidateRoute(candidate, null, error));
+      }
+      _checkSession(session);
+    }
+
+    _CandidateRoute? best;
+    Object? lastError;
+    for (final result in results) {
+      final route = result.route;
+      if (route == null || route.polyline.isEmpty) {
+        lastError = result.error ?? lastError;
+        continue;
+      }
+      if (best == null || route.distanceMeters < best.route!.distanceMeters) {
+        best = result;
+      }
+    }
+    if (best == null) {
+      if (lastError != null) throw lastError;
+      throw const NavigationFailure(
+        'No reachable OSM pedestrian route was found for this destination.',
+      );
+    }
+    // The chosen entrance is the arrival and reroute target.
+    _destination = best.destination;
+    return best.route!;
+  }
+
   // ================================================================
-  // GPS STREAM
+  // GPS
   // ================================================================
 
-  void _startLocationStream() {
+  void _startLocationStream(int session) {
     _locationSubscription?.cancel();
-
-    _locationSubscription =
-        _locationService.locationFixStream.listen(
-      _handleLocationFix,
+    _locationSubscription = _locationService.locationFixStream.listen(
+      (fix) => _handleLocationFix(fix, session),
       onError: (Object error) {
-        if (!_isNavigating) {
-          return;
-        }
-
-        _publish(
-          NavigationSnapshot(
-            state: NavigationState.gpsUnavailable,
-            currentPosition: _lastAcceptedFix?.position,
-            accuracyMeters:
-                _lastAcceptedFix?.accuracyMeters,
-            route: _route,
-            heading: _latestHeading,
-            errorMessage: error.toString(),
-          ),
-        );
+        if (!_isNavigating || session != _session) return;
+        _publish(NavigationSnapshot(
+          state: NavigationState.gpsUnavailable,
+          currentPosition: _lastAcceptedFix?.position,
+          accuracyMeters: _lastAcceptedFix?.accuracyMeters,
+          route: _route,
+          heading: _latestHeading,
+          headingSource: _headingSource,
+          errorMessage: error.toString(),
+        ));
       },
     );
   }
 
-  Future<void> _handleLocationFix(
-    LocationFix rawFix,
-  ) async {
-    if (!_isNavigating || _route == null) {
+  Future<void> _handleLocationFix(LocationFix rawFix, int session) async {
+    if (!_isNavigating || session != _session || _route == null) return;
+
+    final fix = _activeGpsFilterService!.process(rawFix);
+    if (fix == null) return; // Rejected: keep the last accepted state.
+    _lastAcceptedFix = fix;
+
+    var target = _matchRoute(fix);
+    _lastTarget = target;
+
+    _calibrateFromCourse(fix, target);
+    _maybeUseCourseAsHeading(fix);
+
+    if (_evaluateArrival(fix, target)) return;
+
+    if (_shouldReroute(fix, target)) {
+      final rerouted = await _reroute(fix, session);
+      if (!_isNavigating || session != _session) return;
+      if (!rerouted) return; // Recovery snapshot already published.
+      target = _matchRoute(fix);
+      _lastTarget = target;
+    }
+
+    if (_latestHeading == null) {
+      _publishWaitingForHeading(fix, null);
       return;
     }
+    _publishGuidance(force: true);
+  }
 
-    final filteredFix =
-        _activeGpsFilterService!.process(rawFix);
-
-    if (filteredFix == null) {
-      // Ignore rejected GPS samples without stopping navigation.
-      return;
-    }
-
-    _lastAcceptedFix = filteredFix;
-
-    if (_isCampusNavigation) {
-      final routeReady = await _maybeRerouteCampus(filteredFix);
-      if (!routeReady) return;
-    }
-
-    final heading = _latestHeading;
-
-    if (heading == null) {
-      _publish(
-        NavigationSnapshot(
-          state: NavigationState.recovering,
-          currentPosition: filteredFix.position,
-          accuracyMeters: filteredFix.accuracyMeters,
-          route: _route,
-          errorMessage: 'Waiting for compass heading.',
-        ),
+  RouteTarget _matchRoute(LocationFix fix) =>
+      _routeProgressService.getNextTarget(
+        currentPosition: fix.position,
+        route: _route!,
+        lookAheadMeters: lookAheadMeters,
+        accuracyMeters: fix.accuracyMeters,
       );
 
-      return;
+  // ================================================================
+  // ARRIVAL
+  // ================================================================
+
+  /// Arrival needs three distinct fixes that are both close to the endpoint
+  /// and nearly at the end of the route. Returns true once arrived.
+  bool _evaluateArrival(LocationFix fix, RouteTarget target) {
+    final route = _route!;
+    final destination = _destination!;
+    if (_lastArrivalFixTimestamp != fix.timestamp) {
+      _lastArrivalFixTimestamp = fix.timestamp;
+      final endpoint = route.polyline.last;
+      final distanceToEndpoint = GeoMath.distance(fix.position, endpoint);
+      final distanceToDestination = GeoMath.distance(fix.position, destination);
+      final arrivalRadius = math.max(
+        arrivalDistanceMeters,
+        math.min(12.0, fix.accuracyMeters * 0.75),
+      );
+      final remaining = target.remainingMeters;
+      final near = distanceToDestination <= arrivalRadius ||
+          distanceToEndpoint <= arrivalRadius;
+      final nearlyComplete =
+          remaining <= math.max(10.0, fix.accuracyMeters * 0.75);
+      final passedEndpoint = remaining <= 2.0 && distanceToEndpoint > arrivalRadius;
+
+      if (passedEndpoint) {
+        _arrivalFixCount = 0;
+      } else if (near && nearlyComplete) {
+        _arrivalFixCount++;
+      } else {
+        _arrivalFixCount = 0;
+      }
     }
 
-    _updateNavigation(
-      filteredFix,
-      heading,
-    );
+    if (_arrivalFixCount < 3) return false;
+
+    _isNavigating = false;
+    _publish(NavigationSnapshot(
+      state: NavigationState.arrived,
+      currentPosition: fix.position,
+      accuracyMeters: fix.accuracyMeters,
+      route: route,
+      targetPoint: destination,
+      distanceFromRouteMeters: target.distanceFromRouteMeters,
+      heading: _latestHeading,
+      headingSource: _headingSource,
+      remainingMeters: 0,
+    ));
+    // The session is complete; release the sensors.
+    _locationSubscription?.cancel();
+    _locationSubscription = null;
+    _compassSubscription?.cancel();
+    _compassSubscription = null;
+    return true;
   }
 
   // ================================================================
-  // CAMPUS OFF-ROUTE RECOVERY
+  // OFF-ROUTE AND REROUTING (both modes)
   // ================================================================
 
-  Future<bool> _maybeRerouteCampus(LocationFix fix) async {
-    final route = _route;
-    final destination = _destination;
-    final router = _activeRoutingService;
-    if (!_isNavigating || route == null || destination == null ||
-        router == null || _isRerouting) {
-      return true;
-    }
+  double _offRouteThreshold(LocationFix fix) => math.max(
+        _isCampusNavigation
+            ? _campusOffRouteMinimumMeters
+            : _standardOffRouteMinimumMeters,
+        fix.accuracyMeters * 1.5,
+      );
 
-    final progress = _routeProgressService.getNextTarget(
-      currentPosition: fix.position,
-      route: route,
-      lookAheadMeters: 0,
-    );
-    final offRouteThreshold = math.max(
-      _campusOffRouteMinimumMeters,
-      fix.accuracyMeters * 1.5,
-    );
+  bool _shouldReroute(LocationFix fix, RouteTarget target) {
+    if (_isRerouting) return false;
 
-    // Do not interpret walking beyond the route endpoint as an off-route
-    // departure that should be recalculated backwards to the same destination.
-    final endpoint = route.polyline.isNotEmpty
-        ? route.polyline.last
-        : destination;
+    // Walking past the endpoint is not a reason to route backwards.
     final distanceToEndpoint =
-        _routeProgressService.distanceBetween(fix.position, endpoint);
-    final remainingRoute = _routeProgressService.remainingRouteMeters;
-    final passedEndpoint = remainingRoute <= 2.0 &&
-        distanceToEndpoint > math.max(12.0, fix.accuracyMeters * 1.5);
-    if (passedEndpoint) {
+        GeoMath.distance(fix.position, _route!.polyline.last);
+    if (target.remainingMeters <= 2.0 &&
+        distanceToEndpoint > math.max(12.0, fix.accuracyMeters * 1.5)) {
       _offRouteSamples = 0;
-      return true;
+      return false;
     }
 
-    if (progress.distanceFromRouteMeters > offRouteThreshold) {
-      _offRouteSamples++;
-    } else {
+    if (target.distanceFromRouteMeters <= _offRouteThreshold(fix)) {
       _offRouteSamples = 0;
-      return true;
+      return false;
     }
+    _offRouteSamples++;
 
-    if (_offRouteSamples < _campusOffRouteSamplesRequired) return true;
-    final now = DateTime.now();
-    if (_lastCampusRerouteAt != null &&
-        now.difference(_lastCampusRerouteAt!) < _campusRerouteCooldown) {
-      return true;
+    final required = _isCampusNavigation
+        ? _campusOffRouteSamplesRequired
+        : _standardOffRouteSamplesRequired;
+    if (_offRouteSamples < required) return false;
+
+    final cooldown =
+        _isCampusNavigation ? _campusRerouteCooldown : _standardRerouteCooldown;
+    final now = _clock();
+    if (_lastRerouteAt != null && now.difference(_lastRerouteAt!) < cooldown) {
+      return false;
     }
+    return true;
+  }
+
+  /// Returns true when a replacement route is active.
+  Future<bool> _reroute(LocationFix fix, int session) async {
+    final router = _activeRoutingService;
+    final destination = _destination;
+    if (router == null || destination == null) return false;
 
     _isRerouting = true;
-    _lastCampusRerouteAt = now;
+    _lastRerouteAt = _clock();
     try {
-      // The campus OSRM foot profile snaps this fresh GPS fix to the
-      // imported OSM pedestrian graph and recalculates the route.
-      final replacement = await router.computeRoute(
-        origin: fix.position,
-        destination: destination,
-      );
-      if (!_isNavigating || replacement.polyline.isEmpty) return false;
+      final replacement =
+          await router.computeRoute(origin: fix.position, destination: destination);
+      if (!_isNavigating || session != _session) return false;
+      if (replacement.polyline.isEmpty) {
+        throw const NavigationFailure('The routing service returned no path.');
+      }
       _route = replacement;
       _offRouteSamples = 0;
-      // A replacement route starts a new arrival evaluation window.
       _arrivalFixCount = 0;
       _lastArrivalFixTimestamp = null;
       return true;
     } catch (error) {
-      // A failed reroute must not terminate the navigation session.
-      // Pause guidance for this fix, keep the last accepted route, and
-      // retry recovery when another trustworthy GPS fix arrives.
+      if (!_isNavigating || session != _session) return false;
+      // A failed reroute never ends the session. Guidance continues toward
+      // the old route on later fixes; the next attempt follows the cooldown.
       _offRouteSamples = 0;
       _publish(NavigationSnapshot(
         state: NavigationState.recovering,
@@ -614,378 +637,284 @@ class NavigationService {
         accuracyMeters: fix.accuracyMeters,
         route: _route,
         heading: _latestHeading,
-        errorMessage: 'Campus route recovery is temporarily unavailable: $error',
+        headingSource: _headingSource,
+        isOffRoute: true,
+        errorMessage: 'Route recovery is temporarily unavailable: $error',
       ));
       return false;
     } finally {
-      _isRerouting = false;
+      if (session == _session) _isRerouting = false;
     }
   }
 
   // ================================================================
-  // COMPASS STREAM
+  // COMPASS
   // ================================================================
 
-  void _startCampusCompassStream() {
-    _campusCompassSubscription?.cancel();
-    _campusCompassSubscription = _compassService.sampleStream.listen(
-      _handleCampusCompassSample,
-      onError: (Object error) {
-        if (!_isNavigating) return;
-        // A compass stream error must not interrupt the active route. Retain
-        // the last trusted heading; location updates continue navigation.
-        final retainedHeading = _latestHeading;
-        if (retainedHeading != null && _lastAcceptedFix != null) {
-          _updateNavigation(_lastAcceptedFix!, retainedHeading);
-        }
-      },
-    );
-  }
-
-  void _handleCampusCompassSample(CompassSample sample) {
-    if (!_isNavigating || _lastAcceptedFix == null || _route == null) return;
-
-    final accuracy = sample.accuracyDegrees;
-    // Unknown/unreliable sensor accuracy must never be treated as a trusted
-    // heading. HeadingEstimator intentionally treats null as full confidence.
-    if (accuracy == null ||
-        !accuracy.isFinite ||
-        accuracy < 0 ||
-        accuracy > 45 ||
-        !sample.rawHeadingDegrees.isFinite) {
-      // Keep navigation running with the last trusted heading. A temporary or
-      // prolonged loss of compass accuracy must not change the navigation
-      // state or clear the heading. Fresh GPS fixes continue route progress
-      // and direction calculations using this retained heading.
-      final retainedHeading = _latestHeading;
-      if (retainedHeading != null) {
-        _updateNavigation(_lastAcceptedFix!, retainedHeading);
-      }
-      return;
-    }
-
-    try {
-      // Recalculate declination at the latest accepted campus GPS position.
-      // Android receives magnetic azimuth; iOS already supplies true heading.
-      final correction =
-          _headingNorthCorrector.correctionDegrees(_lastAcceptedFix!.position);
-      final trueHeading = HeadingNorthCorrector.apply(
-        sample.rawHeadingDegrees,
-        correction,
-      );
-      final smoothedHeading = _headingEstimator.update(
-        trueHeading,
-        accuracyDegrees: accuracy,
-        timestamp: sample.timestamp,
-      );
-      if (smoothedHeading == null) return;
-
-      _latestHeading = smoothedHeading;
-      _updateNavigation(_lastAcceptedFix!, smoothedHeading);
-    } on CompassNorthCorrectionFailure {
-      // If the magnetic model cannot provide a correction, keep the last
-      // trusted heading and continue following the active route.
-      final retainedHeading = _latestHeading;
-      if (retainedHeading != null) {
-        _updateNavigation(_lastAcceptedFix!, retainedHeading);
-      }
-    }
-  }
-
-  void _startCompassStream() {
+  void _startCompassStream(int session) {
     _compassSubscription?.cancel();
-
-    _compassSubscription =
-        _compassService.headingStream.listen(
-      _handleCompassHeading,
-      onError: (Object error) {
-        if (!_isNavigating) {
-          return;
+    _compassSubscription = _compassService.sampleStream.listen(
+      (sample) {
+        if (!_isNavigating || session != _session) return;
+        final position = _lastAcceptedFix?.position;
+        if (position == null) return;
+        if (_acceptCompassSample(sample, position)) {
+          _publishGuidance(force: false);
         }
-
-        _publish(
-          NavigationSnapshot(
-            state: NavigationState.recovering,
-            currentPosition: _lastAcceptedFix?.position,
-            accuracyMeters:
-                _lastAcceptedFix?.accuracyMeters,
-            route: _route,
-            heading: _latestHeading,
-            errorMessage: 'Compass error: $error',
-          ),
-        );
       },
+      // A compass error never interrupts the route: the last heading is held
+      // briefly and GPS course takes over while the user walks.
+      onError: (Object _) {},
     );
   }
 
-  void _handleCompassHeading(
-    double rawHeading,
-  ) {
-    if (!_isNavigating ||
-        _lastAcceptedFix == null ||
-        _route == null) {
-      return;
+  /// Applies true-north and course corrections, then smoothing.
+  /// Returns true when the heading was updated.
+  bool _acceptCompassSample(CompassSample sample, LatLon position) {
+    final raw = sample.rawHeadingDegrees;
+    if (!raw.isFinite) return false;
+
+    final reported = sample.accuracyDegrees;
+    final bool degraded;
+    final double accuracy;
+    if (reported == null) {
+      // Android reports no accuracy until the sensor's first accuracy
+      // callback; some devices never send one. Down-weight, don't freeze.
+      degraded = true;
+      accuracy = _unknownAccuracyDegrees;
+    } else if (!reported.isFinite ||
+        reported < 0 ||
+        reported > _maximumCompassAccuracyDegrees) {
+      return false;
+    } else {
+      degraded = false;
+      accuracy = reported;
     }
 
-    final smoothedHeading = _headingEstimator.update(rawHeading);
-
-    if (smoothedHeading == null) {
-      return;
+    final double trueHeading;
+    try {
+      trueHeading = HeadingNorthCorrector.apply(
+        raw,
+        _headingNorthCorrector.correctionDegrees(position),
+      );
+    } on CompassNorthCorrectionFailure {
+      return false;
     }
 
-    _latestHeading = smoothedHeading;
+    final now = _clock();
+    _recentCompass.add(_TimedHeading(now, trueHeading, !degraded && accuracy <= 30));
+    _recentCompass.removeWhere(
+      (h) => now.difference(h.at) > const Duration(seconds: 2),
+    );
 
-    _updateNavigation(
-      _lastAcceptedFix!,
-      smoothedHeading,
+    final offset = _courseOffset.offsetDegrees ?? 0.0;
+    final smoothed = _headingEstimator.update(
+      GeoMath.normalize360(trueHeading + offset),
+      accuracyDegrees: accuracy,
+      timestamp: sample.timestamp,
+    );
+    if (smoothed == null) return false;
+
+    _latestHeading = smoothed;
+    _lastCompassHeadingAt = now;
+    _headingSource = degraded ? HeadingSource.compassDegraded : HeadingSource.compass;
+    return true;
+  }
+
+  /// Learns the compass-to-walking-direction offset while the user walks
+  /// straight along the route with a trustworthy GPS course.
+  void _calibrateFromCourse(LocationFix fix, RouteTarget target) {
+    final course = fix.courseDegrees;
+    final speed = fix.speedMetersPerSecond;
+    if (course == null || speed == null || speed < 0.8) {
+      _recentCourses.clear();
+      return;
+    }
+    _recentCourses.add(course);
+    if (_recentCourses.length > 3) _recentCourses.removeAt(0);
+
+    if (fix.accuracyMeters > 12) return;
+    final courseAccuracy = fix.courseAccuracyDegrees;
+    if (courseAccuracy != null && courseAccuracy > 15) return;
+    if (_recentCourses.length < 3) return;
+    if (GeoMath.resultantLength(_recentCourses) < math.cos(15 * math.pi / 180)) {
+      return; // Still turning.
+    }
+    if (target.isNearTurn) return;
+    if (target.distanceFromRouteMeters > _offRouteThreshold(fix)) return;
+
+    final accurate = _recentCompass.where((h) => h.accurate).toList();
+    if (accurate.length < 3) return;
+    final values = accurate.map((h) => h.heading).toList();
+    if (GeoMath.resultantLength(values) < math.cos(10 * math.pi / 180)) {
+      return; // Phone is moving relative to the body.
+    }
+    final compassMean = GeoMath.circularMean(values);
+    if (compassMean == null) return;
+
+    _courseOffset.addSample(
+      courseTrueDegrees: course,
+      phoneTrueHeadingDegrees: compassMean,
     );
   }
 
-  // ================================================================
-  // COMPASS SMOOTHING
-  // ================================================================
-
-  void _resetCompassSmoothing() {
-    _headingEstimator.reset();
-    _latestHeading = null;
+  /// With no recent compass heading, a walking user's GPS course is the
+  /// best available direction.
+  void _maybeUseCourseAsHeading(LocationFix fix) {
+    final last = _lastCompassHeadingAt;
+    final compassStale =
+        last == null || _clock().difference(last) > _compassStaleAfter;
+    if (!compassStale) return;
+    final course = fix.courseDegrees;
+    final speed = fix.speedMetersPerSecond;
+    if (course == null || speed == null || speed < 0.7) return;
+    _latestHeading = GeoMath.normalize360(course);
+    _headingSource = HeadingSource.gpsCourse;
   }
 
   // ================================================================
-  // NAVIGATION CALCULATION
+  // GUIDANCE
   // ================================================================
 
-  void _updateNavigation(
-    LocationFix fix,
-    double heading,
-  ) {
+  void _publishGuidance({required bool force}) {
+    final fix = _lastAcceptedFix;
+    final target = _lastTarget;
+    final heading = _latestHeading;
     final route = _route;
-    final destination = _destination;
-
-    if (route == null || destination == null) {
+    if (!_isNavigating || fix == null || target == null || heading == null ||
+        route == null) {
       return;
     }
 
-    // ------------------------------------------------------------
-    // GET ADAPTIVE ROUTE TARGET
-    // ------------------------------------------------------------
-
-    final target =
-        _routeProgressService.getNextTarget(
-      currentPosition: fix.position,
-      route: route,
-
-      // null tells RouteProgressService to choose
-      // the appropriate look-ahead automatically.
-      lookAheadMeters: lookAheadMeters,
-    );
-
-    // ------------------------------------------------------------
-    // ARRIVAL
-    // ------------------------------------------------------------
-
-    final distanceToDestination =
-        _routeProgressService.distanceBetween(
-      fix.position,
-      destination,
-    );
-
-    // Count only distinct GPS fixes. Arrival requires endpoint proximity
-    // AND route completion. A user who has passed the endpoint must not be
-    // rerouted back toward it or continue receiving a stale forward cue.
-    if (_lastArrivalFixTimestamp != fix.timestamp) {
-      _lastArrivalFixTimestamp = fix.timestamp;
-      final endpoint = route.polyline.isNotEmpty
-          ? route.polyline.last
-          : destination;
-      final distanceToEndpoint = _routeProgressService.distanceBetween(
-        fix.position,
-        endpoint,
-      );
-      final arrivalRadius = math.max(
-        arrivalDistanceMeters,
-        math.min(12.0, fix.accuracyMeters * 0.75),
-      );
-      final remainingRoute = _routeProgressService.remainingRouteMeters;
-      final nearDestination = distanceToDestination <= arrivalRadius ||
-          distanceToEndpoint <= arrivalRadius;
-      final routeNearlyComplete = remainingRoute <=
-          math.max(10.0, fix.accuracyMeters * 0.75);
-      final passedEndpoint = remainingRoute <= 2.0 &&
-          distanceToEndpoint > arrivalRadius;
-
-      if (passedEndpoint) {
-        _arrivalFixCount = 0;
-      } else if (nearDestination && routeNearlyComplete) {
-        _arrivalFixCount++;
-      } else {
-        _arrivalFixCount = 0;
-      }
-    }
-
-    if (_arrivalFixCount >= 3) {
-      _publish(
-        NavigationSnapshot(
-          state: NavigationState.arrived,
-          currentPosition: fix.position,
-          accuracyMeters: fix.accuracyMeters,
-          route: route,
-          targetPoint: destination,
-          distanceFromRouteMeters: target.distanceFromRouteMeters,
-          heading: heading,
-        ),
-      );
-      _isNavigating = false;
-      return;
-    }
-
-    // ------------------------------------------------------------
-    // ROUTE BEARING
-    // ------------------------------------------------------------
-    //
-    // IMPORTANT:
-    //
-    // We intentionally use the direction of the route segment,
-    // rather than calculating GPS -> target point.
-    //
-    // This prevents a small left/right GPS offset from producing
-    // a false instruction to cross the road.
-    //
-    // The route itself determines the direction of travel.
-    // ------------------------------------------------------------
-
-    final bearing =
-        target.routeBearing ??
+    // Normally follow the route direction (immune to lateral GPS noise).
+    // Once clearly off the route, aim at the route target to rejoin it.
+    final offRoute = target.distanceFromRouteMeters > _offRouteThreshold(fix);
+    final bearing = offRoute
+        ? GeoMath.bearing(fix.position, target.point)
+        : (target.guidanceBearing ??
             _directionCalculator.calculateBearing(
               from: fix.position,
               to: target.point,
-            );
+            ));
 
-    // ------------------------------------------------------------
-    // RELATIVE ANGLE
-    // ------------------------------------------------------------
-
-    final relativeAngle =
-        _directionCalculator.normalizeAngle(
-      bearing - heading,
-    );
-
-    // ------------------------------------------------------------
-    // RAW DIRECTION
-    // ------------------------------------------------------------
-
-    final rawDirection =
-        _directionCalculator.directionFromAngle(
-      relativeAngle,
-    );
-
-    // ------------------------------------------------------------
-    // STABILIZED DIRECTION
-    // ------------------------------------------------------------
-
+    final relativeAngle = _directionCalculator.normalizeAngle(bearing - heading);
+    final previousDirection = _snapshot.direction;
     final direction = _relativeDirectionEngine.update(
       relativeAngle,
+      timestamp: _clock(),
       routeTurnContext: target.isNearTurn,
     );
 
-    // ------------------------------------------------------------
-    // PUBLISH
-    // ------------------------------------------------------------
+    final now = _clock();
+    if (!force &&
+        direction == previousDirection &&
+        _snapshot.state == NavigationState.navigating &&
+        _lastCompassPublishAt != null &&
+        now.difference(_lastCompassPublishAt!) < _compassPublishInterval) {
+      return;
+    }
+    _lastCompassPublishAt = now;
 
-    _publish(
-      NavigationSnapshot(
-        state: NavigationState.navigating,
-        currentPosition: fix.position,
-        accuracyMeters: fix.accuracyMeters,
-        route: route,
-        targetPoint: target.point,
-        distanceFromRouteMeters:
-            target.distanceFromRouteMeters,
-        targetBearing: bearing,
-        heading: heading,
-        relativeAngle: relativeAngle,
-        direction: direction,
-      ),
-    );
+    _publish(NavigationSnapshot(
+      state: NavigationState.navigating,
+      currentPosition: fix.position,
+      accuracyMeters: fix.accuracyMeters,
+      route: route,
+      targetPoint: target.point,
+      distanceFromRouteMeters: target.distanceFromRouteMeters,
+      targetBearing: bearing,
+      heading: heading,
+      relativeAngle: relativeAngle,
+      direction: direction,
+      headingSource: _headingSource,
+      remainingMeters: target.remainingMeters,
+      distanceToNextTurnMeters: target.distanceToNextTurnMeters,
+      nextTurnAngleDegrees: target.nextTurnAngleDegrees,
+      isOffRoute: offRoute,
+      courseOffsetDegrees: _courseOffset.offsetDegrees,
+    ));
+  }
+
+  void _publishWaitingForHeading(LocationFix fix, String? reason) {
+    _publish(NavigationSnapshot(
+      state: NavigationState.recovering,
+      currentPosition: fix.position,
+      accuracyMeters: fix.accuracyMeters,
+      route: _route,
+      remainingMeters: _lastTarget?.remainingMeters,
+      errorMessage: reason == null
+          ? 'Waiting for compass heading. Hold the phone flat or start walking.'
+          : 'Waiting for compass heading ($reason). '
+              'Hold the phone flat or start walking.',
+    ));
   }
 
   // ================================================================
-  // DIRECTION STABILITY
-  // ================================================================
-
-
-
-  // ================================================================
-  // STOP
+  // STOP / DISPOSE
   // ================================================================
 
   Future<void> stop() async {
+    _session++;
+    _isStarting = false;
+    await _teardown();
+    if (!_isDisposed) {
+      _publish(const NavigationSnapshot(state: NavigationState.stopped));
+    }
+  }
+
+  Future<void> _teardown() async {
     _isNavigating = false;
 
-    await _locationSubscription?.cancel();
+    final location = _locationSubscription;
+    final compass = _compassSubscription;
     _locationSubscription = null;
-
-    await _compassSubscription?.cancel();
     _compassSubscription = null;
-    await _campusCompassSubscription?.cancel();
-    _campusCompassSubscription = null;
+    await location?.cancel();
+    await compass?.cancel();
 
     _gpsFilterService.reset();
     _campusGpsFilterService.reset();
     _activeGpsFilterService = null;
-
-    _lastAcceptedFix = null;
-    _latestHeading = null;
+    _activeRoutingService = null;
+    _isCampusNavigation = false;
 
     _route = null;
     _destination = null;
-    _activeRoutingService = null;
-    _isCampusNavigation = false;
+    _lastAcceptedFix = null;
+    _lastTarget = null;
+
+    _latestHeading = null;
+    _headingSource = null;
+    _lastCompassHeadingAt = null;
+    _lastCompassPublishAt = null;
+    _recentCompass.clear();
+    _recentCourses.clear();
+    _headingEstimator.reset();
+    _courseOffset.reset();
+
     _isRerouting = false;
     _offRouteSamples = 0;
-    _lastCampusRerouteAt = null;
+    _lastRerouteAt = null;
 
     _relativeDirectionEngine.reset();
     _arrivalFixCount = 0;
     _lastArrivalFixTimestamp = null;
     _routeProgressService.reset();
-
-    _resetCompassSmoothing();
-
-    if (!_isDisposed) {
-      _publish(
-        const NavigationSnapshot(
-          state: NavigationState.stopped,
-        ),
-      );
-    }
   }
 
-  // ================================================================
-  // PUBLISH
-  // ================================================================
-
-  void _publish(
-    NavigationSnapshot snapshot,
-  ) {
+  void _publish(NavigationSnapshot snapshot) {
     _snapshot = snapshot;
-
     if (!_snapshotController.isClosed) {
       _snapshotController.add(snapshot);
     }
   }
 
-  // ================================================================
-  // DISPOSE
-  // ================================================================
-
   Future<void> dispose() async {
+    if (_isDisposed) return;
+    _session++;
+    _isStarting = false;
     _isDisposed = true;
-
-    _isNavigating = false;
-
-    await _locationSubscription?.cancel();
-    await _compassSubscription?.cancel();
-
+    await _teardown();
     if (!_snapshotController.isClosed) {
       await _snapshotController.close();
     }
@@ -999,4 +928,22 @@ class NavigationFailure implements Exception {
 
   @override
   String toString() => message;
+}
+
+class _SessionCancelled implements Exception {
+  const _SessionCancelled();
+}
+
+class _CandidateRoute {
+  const _CandidateRoute(this.destination, this.route, this.error);
+  final LatLon destination;
+  final RouteResult? route;
+  final Object? error;
+}
+
+class _TimedHeading {
+  const _TimedHeading(this.at, this.heading, this.accurate);
+  final DateTime at;
+  final double heading;
+  final bool accurate;
 }
