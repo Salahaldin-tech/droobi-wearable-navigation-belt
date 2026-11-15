@@ -23,3 +23,21 @@ abstract class RoutingService {
     required LatLon destination,
   });
 }
+
+/// Placeholder used when a routing endpoint has not been configured.
+/// Every request fails with [message] instead of falling back elsewhere.
+class UnconfiguredRoutingService implements RoutingService {
+  const UnconfiguredRoutingService(this.message);
+
+  final String message;
+
+  @override
+  Future<RouteResult> computeRoute({
+    required LatLon origin,
+    required LatLon destination,
+  }) {
+    return Future<RouteResult>.error(
+      RoutingFailure(RoutingErrorType.apiError, message),
+    );
+  }
+}

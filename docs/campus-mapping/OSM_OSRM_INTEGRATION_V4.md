@@ -1,4 +1,4 @@
-# Droobi Campus Navigation — Live OSM + Public OSRM
+# Droobi Campus Navigation — OSM + Campus OSRM (foot profile)
 
 ## Runtime source of campus destinations
 
@@ -28,23 +28,35 @@ The mapped destination keys currently include:
 
 Additional college entrances should be mapped in OSM with a consistent `destination_key` (and an `entrance=main` or other suitable `entrance` value) to make them selectable.
 
-## Campus route calculation
+## Campus route calculation (corrected in V5)
 
-Campus navigation uses the public OSRM pedestrian endpoint:
+**Earlier versions of this document were wrong.** They stated that campus navigation used the OSRM `foot` profile on `https://router.project-osrm.org`. That server is OSRM's demo instance and is built with the **car** profile only. OSRM ignores the profile name in the URL: `/foot/`, `/driving/` and even `/xyz/` return byte-identical car routes, with every step reporting `"mode": "driving"`. A V5 audit (2026-11-15) found:
 
-`https://router.project-osrm.org`
+- The tested campus routes used only roads (`unclassified`, `service`, `residential`). None of the 14 campus footways was used.
+- The Faculty of IT entrance could not be routed: the nearest car road is 53 m away, while footways pass within 4 m.
 
-The app uses the OSRM `foot` profile and a 20 m endpoint snap radius. No local OSRM server, Docker Desktop, or FOSSGIS endpoint is part of this implementation.
+Campus routing now works as follows:
 
-The general navigation provider remains separate and unchanged. Campus navigation receives its own `OsrmRoutingService` instance configured with the same public endpoint.
+- It uses a dedicated OSRM server built from `docs/campus-mapping/osm/aaup-campus.osm` with OSRM's `foot.lua` profile (`scripts/build_campus_osrm.ps1`, `docker-compose.campus-osrm.yml`, port 5001).
+- The app gets the server URL at build time: `--dart-define=CAMPUS_OSRM_URL=http://<server>:5001`. If it is missing, campus navigation fails with a clear message; it never falls back to another server.
+- Every response must contain steps with `mode: walking`, otherwise it is rejected. A car-profile server can therefore never silently guide a pedestrian along roads.
+- The 20 m endpoint snap radius is enforced in the app as well as sent as `radiuses`. The snap distances (`waypoints[].distance`) are kept on the route and shown in debug builds; the route ends that far from the requested entrance.
 
-## Public service freshness and limitations
+General (Home) navigation still uses the public demo server. Those routes are car routes.
 
-Overpass reads current OSM database data. OSRM maintains its own imported routing graph, which may not update at the same time as OSM edits. A newly added OSM path can therefore appear in Overpass destination data before it becomes routable through the public OSRM demo service.
+### Verifying a route
 
-A response with `code: Ok` proves that OSRM returned a route, but it does not by itself prove that the route follows the latest campus edits. Inspect route geometry during field testing. The public demo service's availability, request limits, import freshness, and performance are outside this app's control.
+1. Request a route through the API:
+   `curl "http://<server>:5001/route/v1/foot/<lon>,<lat>;<lon>,<lat>?overview=full&geometries=geojson&steps=true"`
+2. Check the response:
+   - every `steps[].mode` is `walking`;
+   - the speed (`distance / duration`) is about 4–5 km/h;
+   - `waypoints[].distance` is small.
+3. To check visually, paste `routes[0].geometry` into geojson.io and compare it with openstreetmap.org (Map Data layer): the line should run along `highway=footway` paths.
 
-The app must not silently switch to a different routing provider or invent a straight-line route when OSRM cannot find a pedestrian route.
+### Data freshness
+
+The campus server routes on the bundled OSM snapshot, not live OSM. After editing campus paths in OSM, re-export the snapshot and run `scripts/build_campus_osrm.ps1` again.
 
 ## Navigation continuity
 

@@ -442,7 +442,8 @@ class _LiveNavigationScreenState
 
     final state =
         _stateText(_snapshot.state);
-    final routingMethod = widget.campusNavigation ? 'OSM + Public OSRM' : 'OSRM';
+    final routingMethod =
+        widget.campusNavigation ? 'OSM + campus OSRM (foot)' : 'OSRM';
 
     return Container(
       width: double.infinity,
@@ -541,6 +542,8 @@ class _LiveNavigationScreenState
       if (s.headingSource != null) 'hdg ${s.headingSource!.name}',
       if (s.courseOffsetDegrees != null)
         'cal ${s.courseOffsetDegrees!.toStringAsFixed(0)}°',
+      if (s.route?.destinationSnapMeters != null)
+        'end snap ${s.route!.destinationSnapMeters!.toStringAsFixed(1)} m',
       if (s.isOffRoute) 'OFF ROUTE',
     ];
     return parts.isEmpty ? 'engine: waiting' : parts.join(' · ');

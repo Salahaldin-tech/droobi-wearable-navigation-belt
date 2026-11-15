@@ -46,3 +46,6 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Campus OSRM build output (regenerate with scripts/build_campus_osrm.ps1)
+docs/campus-mapping/osm/*.osrm*

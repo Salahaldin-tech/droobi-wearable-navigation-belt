@@ -7,19 +7,34 @@ import '../services/navigation/navigation_service.dart';
 
 import '../services/navigation/route_progress_service.dart';
 import '../services/routing/osrm_routing_service.dart';
+import '../services/routing/routing_service.dart';
 import 'location_notifier.dart';
 import 'routing_notifier.dart';
 
 final navigationServiceProvider =
     Provider<NavigationService>((ref) {
-  // Campus routing has its own client instance and configuration.
-  // It uses the same public OSRM endpoint as general routing without
-  // modifying the general routing provider or its lifecycle.
-  final campusRoutingService = OsrmRoutingService(
-    baseUrl: 'https://router.project-osrm.org',
-    maxSnapRadiusMeters: 20,
-  );
-  ref.onDispose(campusRoutingService.dispose);
+  // Campus routing needs an OSRM server built with the foot profile (see
+  // docs/campus-mapping/OSM_OSRM_INTEGRATION_V4.md). Its URL is supplied at
+  // build time:
+  //   flutter run --dart-define=CAMPUS_OSRM_URL=http://<PC-LAN-IP>:5001
+  // Responses that are not walking routes are rejected, so a car-profile
+  // server can never silently guide a pedestrian along roads.
+  const campusOsrmUrl = String.fromEnvironment('CAMPUS_OSRM_URL');
+  final RoutingService campusRoutingService;
+  if (campusOsrmUrl.isEmpty) {
+    campusRoutingService = const UnconfiguredRoutingService(
+      'Campus routing server is not configured. Build the app with '
+      '--dart-define=CAMPUS_OSRM_URL=http://<server>:5001.',
+    );
+  } else {
+    final osrm = OsrmRoutingService(
+      baseUrl: campusOsrmUrl,
+      maxSnapRadiusMeters: 20,
+      requireWalkingMode: true,
+    );
+    ref.onDispose(osrm.dispose);
+    campusRoutingService = osrm;
+  }
 
   final service = NavigationService(
     locationService:

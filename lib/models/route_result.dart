@@ -12,6 +12,8 @@ class RouteResult {
     required this.polyline,
     required this.distanceMeters,
     required this.durationSeconds,
+    this.originSnapMeters,
+    this.destinationSnapMeters,
   });
 
   /// Ordered list of points from origin to destination.
@@ -19,4 +21,11 @@ class RouteResult {
 
   final double distanceMeters;
   final double durationSeconds;
+
+  /// How far the router moved the origin onto its network, when reported.
+  final double? originSnapMeters;
+
+  /// How far the router moved the destination onto its network, when
+  /// reported. The route ends this far from the requested destination.
+  final double? destinationSnapMeters;
 }

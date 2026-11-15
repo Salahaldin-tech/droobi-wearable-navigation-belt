@@ -14,6 +14,7 @@ class OsrmRoutingService implements RoutingService {
   OsrmRoutingService({
     String baseUrl = 'https://router.project-osrm.org',
     this.maxSnapRadiusMeters,
+    this.requireWalkingMode = false,
     http.Client? httpClient,
   })  : _baseUrl = baseUrl.endsWith('/')
             ? baseUrl.substring(0, baseUrl.length - 1)
@@ -35,6 +36,14 @@ class OsrmRoutingService implements RoutingService {
   /// this to prevent OSRM from attaching a destination to a distant path.
   final double? maxSnapRadiusMeters;
 
+  /// When true, every route step must report `mode: walking`.
+  ///
+  /// OSRM servers silently ignore the profile name in the URL and route with
+  /// whatever profile their data was built with. The public demo server is
+  /// built with the car profile, so a `/foot/` request still returns a car
+  /// route. Checking the step mode is the only reliable signal.
+  final bool requireWalkingMode;
+
   @override
   Future<RouteResult> computeRoute({
     required LatLon origin,
@@ -48,6 +57,7 @@ class OsrmRoutingService implements RoutingService {
     final queryParameters = <String, String>{
       'overview': 'full',
       'geometries': 'geojson',
+      if (requireWalkingMode) 'steps': 'true',
     };
     if (maxSnapRadiusMeters != null) {
       final radius = maxSnapRadiusMeters!.toStringAsFixed(1);
@@ -74,6 +84,29 @@ class OsrmRoutingService implements RoutingService {
     }
 
     if (response.statusCode != 200) {
+      // OSRM explains routing errors (e.g. NoSegment) in a JSON body.
+      String? code;
+      try {
+        final errorBody = jsonDecode(response.body);
+        if (errorBody is Map<String, dynamic>) {
+          code = errorBody['code']?.toString();
+        }
+      } on FormatException {
+        code = null;
+      }
+      if (code == 'NoSegment') {
+        throw const RoutingFailure(
+          RoutingErrorType.noRouteFound,
+          'No walkable path was found within the snap radius of the start '
+          'or destination (OSRM code: NoSegment).',
+        );
+      }
+      if (code != null && code.isNotEmpty) {
+        throw RoutingFailure(
+          RoutingErrorType.noRouteFound,
+          'No walking route found (OSRM code: $code).',
+        );
+      }
       throw RoutingFailure(
         RoutingErrorType.apiError,
         'Routing failed (status ${response.statusCode}).',
@@ -107,6 +140,54 @@ class OsrmRoutingService implements RoutingService {
     }
 
     final route = routes.first as Map<String, dynamic>;
+
+    if (requireWalkingMode) {
+      final modes = <String>{
+        for (final leg in (route['legs'] as List<dynamic>? ?? const []))
+          for (final step
+              in ((leg as Map<String, dynamic>)['steps'] as List<dynamic>? ??
+                  const []))
+            ((step as Map<String, dynamic>)['mode'] ?? '').toString(),
+      };
+      if (modes.isEmpty || modes.any((mode) => mode != 'walking')) {
+        throw RoutingFailure(
+          RoutingErrorType.apiError,
+          'The routing server did not return a pedestrian route '
+          '(travel mode: ${modes.isEmpty ? 'unknown' : modes.join(', ')}). '
+          'Campus navigation needs an OSRM server built with the foot '
+          'profile.',
+        );
+      }
+    }
+
+    // Snap distances: how far OSRM moved each endpoint onto its network.
+    final waypoints = body['waypoints'] as List<dynamic>? ?? const [];
+    double? snapAt(int index) {
+      if (index >= waypoints.length) return null;
+      final value = (waypoints[index] as Map<String, dynamic>)['distance'];
+      return value is num ? value.toDouble() : null;
+    }
+
+    final originSnap = snapAt(0);
+    final destinationSnap = snapAt(waypoints.length - 1);
+    final limit = maxSnapRadiusMeters;
+    if (limit != null) {
+      // Servers are not required to honour `radiuses`; enforce it here too.
+      if (originSnap != null && originSnap > limit + 0.5) {
+        throw RoutingFailure(
+          RoutingErrorType.noRouteFound,
+          'Your position is ${originSnap.toStringAsFixed(1)} m from the '
+          'nearest walkable path (limit ${limit.toStringAsFixed(0)} m).',
+        );
+      }
+      if (destinationSnap != null && destinationSnap > limit + 0.5) {
+        throw RoutingFailure(
+          RoutingErrorType.noRouteFound,
+          'The destination is ${destinationSnap.toStringAsFixed(1)} m from '
+          'the nearest walkable path (limit ${limit.toStringAsFixed(0)} m).',
+        );
+      }
+    }
     final geometry = route['geometry'] as Map<String, dynamic>;
     final rawCoordinates = geometry['coordinates'] as List<dynamic>;
 
@@ -122,6 +203,8 @@ class OsrmRoutingService implements RoutingService {
       polyline: polyline,
       distanceMeters: (route['distance'] as num).toDouble(),
       durationSeconds: (route['duration'] as num).toDouble(),
+      originSnapMeters: originSnap,
+      destinationSnapMeters: destinationSnap,
     );
   }
 

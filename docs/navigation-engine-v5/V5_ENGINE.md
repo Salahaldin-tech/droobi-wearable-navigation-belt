@@ -42,6 +42,6 @@ Debug builds show these on the Live Navigation card.
 
 ## Known limitations / field-test checklist
 
-- `router.project-osrm.org` is the OSRM *demo* server. As far as is publicly documented, it serves only the car profile and ignores `/foot/` in the URL. Campus routes may therefore follow driveways rather than footpaths. Check the route geometry in the field. If it is car-routed, choose a foot-profile endpoint; switching provider is a product decision and V5 does not make it.
+- **Resolved (confirmed by audit):** `router.project-osrm.org` served car routes for `/foot/` requests. Campus routing now uses a dedicated foot-profile OSRM server (`CAMPUS_OSRM_URL`) and rejects any non-walking response; see `docs/campus-mapping/OSM_OSRM_INTEGRATION_V4.md`.
 - The ±35° bound on compass calibration cannot correct a phone carried sideways in a pocket. Guidance assumes the phone is held or chest-mounted, facing forward.
 - Tune the thresholds (look-ahead, turn switch 3 m, cross-track dead band 4 m, off-route distances) on real campus walks.
