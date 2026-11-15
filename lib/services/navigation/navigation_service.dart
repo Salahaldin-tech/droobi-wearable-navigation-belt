@@ -632,14 +632,12 @@ class NavigationService {
       _handleCampusCompassSample,
       onError: (Object error) {
         if (!_isNavigating) return;
-        _publish(NavigationSnapshot(
-          state: NavigationState.recovering,
-          currentPosition: _lastAcceptedFix?.position,
-          accuracyMeters: _lastAcceptedFix?.accuracyMeters,
-          route: _route,
-          heading: _latestHeading,
-          errorMessage: 'Compass error: $error',
-        ));
+        // A compass stream error must not interrupt the active route. Retain
+        // the last trusted heading; location updates continue navigation.
+        final retainedHeading = _latestHeading;
+        if (retainedHeading != null && _lastAcceptedFix != null) {
+          _updateNavigation(_lastAcceptedFix!, retainedHeading);
+        }
       },
     );
   }
@@ -684,15 +682,13 @@ class NavigationService {
 
       _latestHeading = smoothedHeading;
       _updateNavigation(_lastAcceptedFix!, smoothedHeading);
-    } on CompassNorthCorrectionFailure catch (error) {
-      _publish(NavigationSnapshot(
-        state: NavigationState.recovering,
-        currentPosition: _lastAcceptedFix?.position,
-        accuracyMeters: _lastAcceptedFix?.accuracyMeters,
-        route: _route,
-        heading: _latestHeading,
-        errorMessage: 'Compass north correction unavailable: $error',
-      ));
+    } on CompassNorthCorrectionFailure {
+      // If the magnetic model cannot provide a correction, keep the last
+      // trusted heading and continue following the active route.
+      final retainedHeading = _latestHeading;
+      if (retainedHeading != null) {
+        _updateNavigation(_lastAcceptedFix!, retainedHeading);
+      }
     }
   }
 
