@@ -28,11 +28,33 @@ class HeadingNorthCorrector {
       _declinationAt;
   final DateTime Function() _clock;
 
+  double? _cachedLatitude;
+  double? _cachedLongitude;
+  int? _cachedUtcDateKey;
+  double? _cachedCorrection;
+
   /// East-positive correction in degrees to add to the raw heading.
   double correctionDegrees(LatLon at) {
     if (_platform == TargetPlatform.iOS) return 0;
 
     final when = _clock().toUtc();
+
+    // Validate the model window before evaluating it.
+    if (when.isBefore(MagneticDeclination.validFrom) ||
+        !when.isBefore(MagneticDeclination.validUntil)) {
+      throw const CompassNorthCorrectionFailure(
+        'The magnetic model is outside its validity period.',
+      );
+    }
+
+    final dateKey = when.year * 10000 + when.month * 100 + when.day;
+    if (_cachedLatitude == at.latitude &&
+        _cachedLongitude == at.longitude &&
+        _cachedUtcDateKey == dateKey &&
+        _cachedCorrection != null) {
+      return _cachedCorrection!;
+    }
+
     final correction = _declinationAt(
       at.latitude,
       at.longitude,
@@ -45,15 +67,10 @@ class HeadingNorthCorrector {
       );
     }
 
-    // WMM2025 is valid from 2025-01-01 through 2029-12-31.
-    // Refuse extrapolation rather than silently use an expired model.
-    if (when.isBefore(MagneticDeclination.validFrom) ||
-        !when.isBefore(MagneticDeclination.validUntil)) {
-      throw const CompassNorthCorrectionFailure(
-        'The magnetic model is outside its validity period.',
-      );
-    }
-
+    _cachedLatitude = at.latitude;
+    _cachedLongitude = at.longitude;
+    _cachedUtcDateKey = dateKey;
+    _cachedCorrection = correction;
     return correction;
   }
 
