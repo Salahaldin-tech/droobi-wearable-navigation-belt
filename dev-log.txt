@@ -1,5 +1,5 @@
-DROOBI DEV LOG
-==============
+DROOBI DEVELOPMENT LOG
+=======================
 
 Day 001: The belt learned to vibrate.
 Day 002: The phone learned to point somewhere.
@@ -7,4 +7,15 @@ Day 003: We asked the compass to be less dramatic.
 Day 004: The route said "turn right". The developer said "are you sure?"
 Day 005: Still navigating. Still improving.
 
-Unofficial fun log — not a real release history.
+2026-11-15 — Navigation review
+------------------------------
+- Reviewed the navigation startup and runtime failure paths.
+- Focused on GPS availability, compass handling, rerouting, and arrival state.
+- Identified areas where the UI can show a waiting/recovery state even while
+  the navigation service may still hold an active session.
+- Next: validate these cases with controlled on-device walking tests.
+
+No app code was changed as part of this documentation update. The review notes
+are not a claim that the identified fixes have been implemented or tested.
+
+Unofficial project log — not a release history.
