@@ -1,10 +1,20 @@
-DROOBI — RANDOM NOTES
-=====================
+DROOBI — ENGINEERING NOTES
+==========================
 
-- Keep moving forward.
-- Trust the route, but verify the heading.
-- If the belt vibrates, it probably has something to say.
-- Coffee improves debugging accuracy by approximately 0.0001%.
-- TODO: Make the first direction count.
+Current focus
+-------------
+- Keep campus navigation behavior isolated from the Home navigation flow.
+- Treat GPS quality and route availability as separate diagnostics.
+- Do not let a temporary compass reading issue silently end an active session.
+- Make arrival detection explicit and based on repeated location evidence.
+- Keep user-facing guidance understandable when location data becomes unreliable.
 
-This file is just a small project-side note. It is not used by the app.
+Review reminders
+----------------
+- Distinguish "session active" from "guidance temporarily unavailable".
+- Record why startup fails instead of reporting every failure as a routing issue.
+- Verify that rerouting failures do not accidentally terminate navigation.
+- Check subscription cleanup when a navigation screen or service is disposed.
+
+These are engineering notes and review points, not claims that the items above
+have all been implemented or tested.
