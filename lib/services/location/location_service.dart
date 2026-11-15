@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 
 import '../../models/lat_lon.dart';
@@ -24,6 +25,36 @@ class LocationFailure implements Exception {
 
   @override
   String toString() => message;
+}
+
+/// Location settings for live pedestrian guidance.
+///
+/// Time-based ~1 Hz updates with no distance filter: a distance filter stops
+/// fixes while the user stands still, which starves arrival confirmation and
+/// leaves the engine reasoning from a stale position. The navigation-layer
+/// GPS filter handles jitter instead.
+LocationSettings navigationLocationSettings() {
+  switch (defaultTargetPlatform) {
+    case TargetPlatform.android:
+      return AndroidSettings(
+        accuracy: LocationAccuracy.best,
+        distanceFilter: 0,
+        intervalDuration: const Duration(seconds: 1),
+      );
+    case TargetPlatform.iOS:
+    case TargetPlatform.macOS:
+      return AppleSettings(
+        accuracy: LocationAccuracy.bestForNavigation,
+        activityType: ActivityType.fitness,
+        distanceFilter: 0,
+        pauseLocationUpdatesAutomatically: false,
+      );
+    default:
+      return const LocationSettings(
+        accuracy: LocationAccuracy.best,
+        distanceFilter: 0,
+      );
+  }
 }
 
 class LocationService {
@@ -76,10 +107,7 @@ class LocationService {
         await _ensureLocationAvailable();
 
         positionSubscription = Geolocator.getPositionStream(
-          locationSettings: const LocationSettings(
-            accuracy: LocationAccuracy.high,
-            distanceFilter: 3,
-          ),
+          locationSettings: navigationLocationSettings(),
         ).listen(
           (position) {
             if (controller.isClosed) {
@@ -191,6 +219,19 @@ class LocationService {
       ),
       accuracyMeters: position.accuracy,
       timestamp: position.timestamp,
+      // Platforms report -1 / 0 when speed or course is unknown.
+      speedMetersPerSecond:
+          position.speed.isFinite && position.speed >= 0 ? position.speed : null,
+      courseDegrees: position.heading.isFinite &&
+              position.heading >= 0 &&
+              position.speed.isFinite &&
+              position.speed > 0
+          ? position.heading % 360
+          : null,
+      courseAccuracyDegrees: position.headingAccuracy.isFinite &&
+              position.headingAccuracy > 0
+          ? position.headingAccuracy
+          : null,
     );
   }
 }
