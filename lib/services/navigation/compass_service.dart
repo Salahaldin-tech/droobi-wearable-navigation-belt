@@ -96,6 +96,126 @@ class CompassService {
     }
   }
 
+  /// Collects stable readings while preserving and validating sensor accuracy.
+  ///
+  /// The returned accuracy is the worst (largest) uncertainty among accepted
+  /// samples, so the startup estimate never claims better accuracy than the
+  /// readings that contributed to it.
+  Future<CompassSample> getStableCompassSample({
+    int sampleCount = 8,
+    Duration minimumSamplingWindow = const Duration(milliseconds: 400),
+    Duration timeout = const Duration(seconds: 5),
+    double minimumResultantVector = 0.80,
+    double maximumAccuracyDegrees = 45,
+  }) async {
+    if (sampleCount < 3) {
+      throw ArgumentError.value(
+        sampleCount,
+        'sampleCount',
+        'At least three compass samples are required.',
+      );
+    }
+
+    final startedAt = DateTime.now();
+    final samples = <CompassSample>[];
+    final completed = Completer<void>();
+    StreamSubscription<CompassSample>? subscription;
+    final timeoutTimer = Timer(timeout, () {
+      if (!completed.isCompleted) {
+        completed.completeError(TimeoutException(
+          'Compass sampling timed out.',
+          timeout,
+        ));
+      }
+    });
+
+    try {
+      subscription = sampleStream.listen(
+        (sample) {
+          final accuracy = sample.accuracyDegrees;
+          if (accuracy == null ||
+              !accuracy.isFinite ||
+              accuracy < 0 ||
+              accuracy > maximumAccuracyDegrees ||
+              !sample.rawHeadingDegrees.isFinite) {
+            return;
+          }
+
+          samples.add(sample);
+          final windowElapsed =
+              DateTime.now().difference(startedAt) >= minimumSamplingWindow;
+          if (samples.length >= sampleCount &&
+              windowElapsed &&
+              !completed.isCompleted) {
+            completed.complete();
+          }
+        },
+        onError: (Object error, StackTrace stackTrace) {
+          if (!completed.isCompleted) {
+            completed.completeError(error, stackTrace);
+          }
+        },
+        onDone: () {
+          if (!completed.isCompleted) {
+            completed.completeError(
+              StateError('Compass stream ended before sampling completed.'),
+            );
+          }
+        },
+      );
+
+      await completed.future;
+    } on TimeoutException {
+      throw const CompassFailure(
+        'Could not collect enough accurate compass readings. Check the phone '
+        'compass and keep the phone steady before starting campus navigation.',
+      );
+    } on StateError {
+      throw const CompassFailure(
+        'Compass sensor is not available on this device.',
+      );
+    } finally {
+      timeoutTimer.cancel();
+      await subscription?.cancel();
+    }
+
+    final sinSum = samples.fold<double>(
+      0,
+      (sum, sample) =>
+          sum + math.sin(sample.rawHeadingDegrees * math.pi / 180.0),
+    );
+    final cosSum = samples.fold<double>(
+      0,
+      (sum, sample) =>
+          sum + math.cos(sample.rawHeadingDegrees * math.pi / 180.0),
+    );
+    final resultantVector =
+        math.sqrt(sinSum * sinSum + cosSum * cosSum) / samples.length;
+
+    if (!resultantVector.isFinite ||
+        resultantVector < minimumResultantVector) {
+      throw const CompassFailure(
+        'The phone compass is unstable. Hold the phone steady and try again.',
+      );
+    }
+
+    var mean = math.atan2(sinSum, cosSum) * 180.0 / math.pi;
+    if (mean < 0) mean += 360.0;
+
+    final worstAccuracy = samples
+        .map((sample) => sample.accuracyDegrees!)
+        .reduce(math.max);
+    final latestTimestamp = samples
+        .map((sample) => sample.timestamp)
+        .reduce((a, b) => a.isAfter(b) ? a : b);
+
+    return CompassSample(
+      rawHeadingDegrees: _normalize(mean),
+      accuracyDegrees: worstAccuracy,
+      timestamp: latestTimestamp,
+    );
+  }
+
   /// Collects multiple readings before navigation publishes its first cue.
   ///
   /// Circular averaging handles the 359°/0° boundary correctly. The minimum
