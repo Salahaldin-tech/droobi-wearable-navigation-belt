@@ -204,7 +204,7 @@ class CompassService {
 
     final worstAccuracy = samples
         .map((sample) => sample.accuracyDegrees!)
-        .reduce(math.max);
+        .reduce((a, b) => a > b ? a : b);
     final latestTimestamp = samples
         .map((sample) => sample.timestamp)
         .reduce((a, b) => a.isAfter(b) ? a : b);
