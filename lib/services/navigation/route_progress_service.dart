@@ -1,15 +1,40 @@
-
 import 'dart:math' as math;
 
+import '../../core/geo/geo_math.dart';
 import '../../models/lat_lon.dart';
 import '../../models/route_result.dart';
 
+/// Map-matches the user's position onto the active route and derives the
+/// guidance bearing.
+///
+/// Design:
+/// * Route geometry (local metric coordinates, cumulative distance, turns) is
+///   computed once per route, not on every GPS fix.
+/// * Matching searches a distance window around the previous progress, so a
+///   parallel or looping part of the route cannot capture the user. If the
+///   window match is poor, a forward search lets progress catch up after a GPS
+///   outage instead of causing a false off-route event.
+/// * Turns are detected over a distance window, so a curve drawn as many small
+///   vertices (typical OSRM output) is still recognised as one turn.
+/// * The guidance bearing follows the route direction (not GPS → target), so
+///   lateral GPS noise cannot invent a "cross the road" cue. It switches to the
+///   outgoing direction only when the user is within a few meters of a turn,
+///   and applies a capped, dead-banded correction when the user has clearly
+///   drifted off the path line.
 class RouteProgressService {
   RouteProgressService({
     this.defaultLookAheadMeters = 7.5,
     this.minimumLookAheadMeters = 3.5,
     this.maximumLookAheadMeters = 9.0,
     this.turnDetectionAngleDegrees = 35.0,
+    this.turnWindowMeters = 6.0,
+    this.turnSwitchDistanceMeters = 3.0,
+    this.nearTurnDistanceMeters = 10.0,
+    this.matchWindowBehindMeters = 10.0,
+    this.matchWindowAheadMeters = 50.0,
+    this.crossTrackDeadbandMeters = 4.0,
+    this.crossTrackConvergenceMeters = 8.0,
+    this.maximumCrossTrackCorrectionDegrees = 25.0,
   });
 
   /// Normal look-ahead on reasonably straight sections.
@@ -21,31 +46,47 @@ class RouteProgressService {
   /// Maximum look-ahead on long straight sections.
   final double maximumLookAheadMeters;
 
-  /// A route heading change larger than this is treated
-  /// as a meaningful turn.
+  /// A route heading change larger than this is treated as a meaningful turn.
   final double turnDetectionAngleDegrees;
 
-  RouteResult? _activeRoute;
-  int _lastSegmentIndex = 0;
-  double _lastProgressMeters = 0;
+  /// Distance before/after a vertex used to measure its turn angle.
+  final double turnWindowMeters;
 
-  double get totalRouteMeters {
-    final route = _activeRoute;
-    if (route == null || route.polyline.length < 2) return 0;
-    var total = 0.0;
-    for (var i = 1; i < route.polyline.length; i++) {
-      total += distanceBetween(route.polyline[i - 1], route.polyline[i]);
-    }
-    return total;
-  }
+  /// Within this distance of a turn the cue points along the outgoing leg.
+  final double turnSwitchDistanceMeters;
+
+  /// A turn closer than this marks the target as "near turn".
+  final double nearTurnDistanceMeters;
+
+  final double matchWindowBehindMeters;
+  final double matchWindowAheadMeters;
+
+  /// Lateral offset tolerated before steering back toward the path.
+  final double crossTrackDeadbandMeters;
+
+  /// Distance along the path over which the user is steered back.
+  final double crossTrackConvergenceMeters;
+
+  final double maximumCrossTrackCorrectionDegrees;
+
+  RouteResult? _activeRoute;
+  _RouteGeometry? _geometry;
+  double _progressMeters = 0;
+  bool _matched = false;
+
+  double get totalRouteMeters => _geometry?.totalMeters ?? 0;
 
   double get remainingRouteMeters =>
-      math.max(0.0, totalRouteMeters - _lastProgressMeters).toDouble();
+      math.max(0.0, totalRouteMeters - _progressMeters).toDouble();
+
+  /// Distance travelled along the active route.
+  double get progressMeters => _progressMeters;
 
   void reset() {
     _activeRoute = null;
-    _lastSegmentIndex = 0;
-    _lastProgressMeters = 0;
+    _geometry = null;
+    _progressMeters = 0;
+    _matched = false;
   }
 
   // ================================================================
@@ -57,340 +98,180 @@ class RouteProgressService {
     required RouteResult route,
     double? lookAheadMeters,
   }) {
-    final target = getNextTarget(
+    return getNextTarget(
       currentPosition: currentPosition,
       route: route,
       lookAheadMeters: lookAheadMeters,
-    );
-
-    return target.point;
+    ).point;
   }
 
   // ================================================================
   // MAIN TARGET CALCULATION
   // ================================================================
 
+  /// Matches [currentPosition] to [route] and returns guidance data.
+  ///
+  /// [accuracyMeters] widens the cross-track dead band for poor fixes.
   RouteTarget getNextTarget({
     required LatLon currentPosition,
     required RouteResult route,
     double? lookAheadMeters,
+    double? accuracyMeters,
   }) {
     if (route.polyline.isEmpty) {
-      throw const RouteProgressFailure(
-        'Route polyline is empty.',
-      );
+      throw const RouteProgressFailure('Route polyline is empty.');
     }
 
     if (route.polyline.length == 1) {
+      final only = route.polyline.first;
       return RouteTarget(
-        point: route.polyline.first,
+        point: only,
         index: 0,
         distanceAheadMeters: 0,
-        distanceFromRouteMeters: distanceBetween(
-          currentPosition,
-          route.polyline.first,
-        ),
+        distanceFromRouteMeters: distanceBetween(currentPosition, only),
         routeBearing: null,
         isNearTurn: false,
+        projectedPoint: only,
+        progressMeters: 0,
+        remainingMeters: 0,
       );
     }
 
     if (!identical(_activeRoute, route)) {
       _activeRoute = route;
-      _lastSegmentIndex = 0;
-      _lastProgressMeters = 0;
-    }
-
-    final nearest = _findNearestPointOnRoute(
-      currentPosition: currentPosition,
-      polyline: route.polyline,
-      startIndex: math.max(0, _lastSegmentIndex - 1).toInt(),
-      endIndex: math.min(
-        route.polyline.length - 2,
-        _lastSegmentIndex + 8,
-      ).toInt(),
-    );
-
-    // Keep progress locally monotonic. A one-segment retreat is tolerated
-    // for GPS jitter; a distant earlier segment cannot steal route matching.
-    if (nearest.segmentIndex >= _lastSegmentIndex - 1) {
-      _lastSegmentIndex = math.max(_lastSegmentIndex, nearest.segmentIndex).toInt();
-    }
-
-    var progressAtProjection = 0.0;
-    for (var i = 0; i < nearest.segmentIndex; i++) {
-      progressAtProjection += distanceBetween(
-        route.polyline[i],
-        route.polyline[i + 1],
+      _geometry = _RouteGeometry.build(
+        route.polyline,
+        turnWindowMeters: turnWindowMeters,
+        turnAngleDegrees: turnDetectionAngleDegrees,
       );
+      _progressMeters = 0;
+      _matched = false;
     }
-    progressAtProjection += distanceBetween(
-      route.polyline[nearest.segmentIndex],
-      nearest.projectedPoint,
+    final g = _geometry!;
+
+    final match = _match(g, currentPosition);
+    _progressMeters = match.along;
+    _matched = true;
+
+    final nextTurn = g.nextTurnAfter(match.along - 0.01);
+    final distanceToTurn = nextTurn == null ? null : nextTurn.along - match.along;
+
+    final lookAhead = lookAheadMeters ?? _adaptiveLookAhead(distanceToTurn);
+    final targetAlong = math.min(g.totalMeters, match.along + lookAhead);
+    final targetPoint = g.pointAt(targetAlong);
+
+    final routeBearing = _pathBearing(g, match.along, lookAhead);
+
+    // Guidance bearing: path direction, turned slightly back toward the path
+    // when the user has clearly drifted off it.
+    final deadband = math.max(
+      crossTrackDeadbandMeters,
+      math.min(10.0, (accuracyMeters ?? 0) * 0.7),
     );
-    _lastProgressMeters = math.max(_lastProgressMeters, progressAtProjection).toDouble();
-
-    final adaptiveLookAhead =
-        lookAheadMeters ??
-        _calculateAdaptiveLookAhead(
-          route: route,
-          nearestSegmentIndex:
-              nearest.segmentIndex,
-          projectedPoint:
-              nearest.projectedPoint,
-        );
-
-    final progressBeforeLookAhead = _lastProgressMeters;
-    var remainingLookAhead = adaptiveLookAhead;
-
-    var segmentIndex = nearest.segmentIndex;
-
-    var segmentStart =
-        nearest.projectedPoint;
-
-    while (
-        segmentIndex <
-            route.polyline.length - 1) {
-      final segmentEnd =
-          route.polyline[segmentIndex + 1];
-
-      final segmentDistance =
-          distanceBetween(
-        segmentStart,
-        segmentEnd,
-      );
-
-      if (segmentDistance <= 0.01) {
-        segmentIndex++;
-        segmentStart =
-            route.polyline[segmentIndex];
-        continue;
-      }
-
-      if (remainingLookAhead <=
-          segmentDistance) {
-        final factor =
-            remainingLookAhead /
-                segmentDistance;
-
-        final target =
-            _interpolatePoint(
-          segmentStart,
-          segmentEnd,
-          factor,
-        );
-
-        // Use the segment that contains the projected user location
-        // as route bearing. The target may lie beyond a corner, but the cue
-        // must not rotate early merely because the look-ahead crosses it.
-        final routeBearing = calculateBearing(
-          from: route.polyline[nearest.segmentIndex],
-          to: route.polyline[nearest.segmentIndex + 1],
-        );
-
-        return RouteTarget(
-          point: target,
-          index: segmentIndex + 1,
-          distanceAheadMeters:
-              math.max(0.0, _lastProgressMeters - progressBeforeLookAhead) +
-                  adaptiveLookAhead,
-          distanceFromRouteMeters:
-              nearest.distanceFromRouteMeters,
-          routeBearing: routeBearing,
-          isNearTurn:
-              _isTurnNear(
-            route: route,
-            segmentIndex:
-                segmentIndex,
-          ),
-        );
-      }
-
-      remainingLookAhead -=
-          segmentDistance;
-
-      segmentIndex++;
-
-      segmentStart =
-          route.polyline[segmentIndex];
-    }
-
-    final lastIndex =
-        route.polyline.length - 1;
-
-    double? finalBearing;
-
-    if (lastIndex > 0) {
-      finalBearing =
-          calculateBearing(
-        from: route.polyline[lastIndex - 1],
-        to: route.polyline[lastIndex],
-      );
-    }
-
-    return RouteTarget(
-      point: route.polyline[lastIndex],
-      index: lastIndex,
-      distanceAheadMeters:
-          adaptiveLookAhead -
-              remainingLookAhead,
-      distanceFromRouteMeters:
-          nearest.distanceFromRouteMeters,
-      routeBearing: finalBearing,
-      isNearTurn: false,
-    );
-  }
-
-  // ================================================================
-  // ADAPTIVE LOOK-AHEAD
-  // ================================================================
-
-  double _calculateAdaptiveLookAhead({
-    required RouteResult route,
-    required int nearestSegmentIndex,
-    required LatLon projectedPoint,
-  }) {
-    final turnDistance =
-        _distanceToNextMeaningfulTurn(
-      route: route,
-      startSegmentIndex:
-          nearestSegmentIndex,
-      projectedPoint:
-          projectedPoint,
-    );
-
-    if (turnDistance == null) {
-      return defaultLookAheadMeters
-          .clamp(
-            minimumLookAheadMeters,
-            maximumLookAheadMeters,
+    final excess = match.crossTrack.abs() - deadband;
+    var guidanceBearing = routeBearing;
+    if (excess > 0) {
+      final correction = math
+          .min(
+            maximumCrossTrackCorrectionDegrees,
+            math.atan2(excess, crossTrackConvergenceMeters) * 180 / math.pi,
           )
           .toDouble();
+      // Right of the path → steer left, and vice versa.
+      guidanceBearing = GeoMath.normalize360(
+        routeBearing - correction * match.crossTrack.sign,
+      );
     }
 
-    // Very close to a turn.
-    if (turnDistance <= 7.0) {
-      return minimumLookAheadMeters;
+    final previousTurn = g.previousTurnAtOrBefore(match.along);
+    final justPassedTurn = previousTurn != null &&
+        match.along - previousTurn.along <= turnSwitchDistanceMeters;
+    final isNearTurn = (distanceToTurn != null &&
+            distanceToTurn <= nearTurnDistanceMeters) ||
+        justPassedTurn;
+
+    return RouteTarget(
+      point: targetPoint,
+      index: math.min(g.segmentIndexAt(targetAlong) + 1, g.points.length - 1),
+      distanceAheadMeters: targetAlong - match.along,
+      distanceFromRouteMeters: match.distance,
+      routeBearing: routeBearing,
+      guidanceBearing: guidanceBearing,
+      isNearTurn: isNearTurn,
+      projectedPoint: g.pointAt(match.along),
+      segmentIndex: match.segment,
+      crossTrackMeters: match.crossTrack,
+      progressMeters: match.along,
+      remainingMeters: math.max(0.0, g.totalMeters - match.along),
+      distanceToNextTurnMeters: distanceToTurn,
+      nextTurnAngleDegrees: nextTurn?.signedAngle,
+    );
+  }
+
+  /// Bearing of travel along the route at [along], looking up to [lookAhead]
+  /// meters ahead but never past the next turn, except when the turn is
+  /// within [turnSwitchDistanceMeters] (then the outgoing leg is used).
+  double _pathBearing(_RouteGeometry g, double along, double lookAhead) {
+    final nextTurn = g.nextTurnAfter(along - 0.01);
+    var from = along;
+    var to = math.min(g.totalMeters, along + math.max(lookAhead, 2.0));
+    if (nextTurn != null) {
+      final toTurn = nextTurn.along - along;
+      if (toTurn <= turnSwitchDistanceMeters) {
+        // Point down the outgoing leg.
+        from = nextTurn.along;
+        final after = g.nextTurnAfter(nextTurn.along + 0.01);
+        final limit = after?.along ?? g.totalMeters;
+        to = math.min(limit, nextTurn.along + math.max(lookAhead, 2.0));
+      } else {
+        to = math.min(to, nextTurn.along);
+      }
+    }
+    if (to - from < 0.5) {
+      // At the very end of the route: use the final segment direction.
+      return g.segmentBearing(g.segmentIndexAt(math.max(0.0, g.totalMeters - 0.01)));
+    }
+    return g.bearingBetween(from, to);
+  }
+
+  _Match _match(_RouteGeometry g, LatLon position) {
+    final (px, py) = g.frame.toLocal(position);
+
+    if (!_matched) {
+      // First fix on this route: global search, preferring the start on ties.
+      return g.project(px, py, 0, g.totalMeters);
     }
 
-    // Turn is approaching.
-    if (turnDistance <= 15.0) {
-      return 4.5;
-    }
+    final windowed = g.project(
+      px,
+      py,
+      _progressMeters - matchWindowBehindMeters,
+      _progressMeters + matchWindowAheadMeters,
+    );
+    if (windowed.distance <= 12.0) return windowed;
 
-    // Turn exists but is still far enough away.
-    if (turnDistance <= 25.0) {
-      return 6.5;
-    }
+    // Poor windowed match: allow catching up further ahead (e.g. after a GPS
+    // gap), but never jump backwards beyond the window.
+    final forward = g.project(
+      px,
+      py,
+      _progressMeters - matchWindowBehindMeters,
+      g.totalMeters,
+    );
+    if (forward.distance < windowed.distance * 0.5) return forward;
+    return windowed;
+  }
 
+  double _adaptiveLookAhead(double? turnDistance) {
+    if (turnDistance == null) {
+      return defaultLookAheadMeters
+          .clamp(minimumLookAheadMeters, maximumLookAheadMeters)
+          .toDouble();
+    }
+    if (turnDistance <= 7.0) return minimumLookAheadMeters;
+    if (turnDistance <= 15.0) return 4.5;
+    if (turnDistance <= 25.0) return 6.5;
     return maximumLookAheadMeters;
-  }
-
-  // ================================================================
-  // NEXT TURN
-  // ================================================================
-
-  double? _distanceToNextMeaningfulTurn({
-    required RouteResult route,
-    required int startSegmentIndex,
-    required LatLon projectedPoint,
-  }) {
-    final polyline = route.polyline;
-
-    if (polyline.length < 3) {
-      return null;
-    }
-
-    var accumulatedDistance = 0.0;
-
-    // Distance from the current projected point
-    // to the end of the current segment.
-    if (startSegmentIndex <
-        polyline.length - 1) {
-      accumulatedDistance +=
-          distanceBetween(
-        projectedPoint,
-        polyline[startSegmentIndex + 1],
-      );
-    }
-
-    for (
-      var i = startSegmentIndex + 1;
-      i < polyline.length - 1;
-      i++
-    ) {
-      if (i + 1 >= polyline.length) {
-        break;
-      }
-
-      final incomingBearing =
-          calculateBearing(
-        from: polyline[i - 1],
-        to: polyline[i],
-      );
-
-      final outgoingBearing =
-          calculateBearing(
-        from: polyline[i],
-        to: polyline[i + 1],
-      );
-
-      final turnAngle =
-          _angularDifference(
-        incomingBearing,
-        outgoingBearing,
-      );
-
-      if (turnAngle >=
-          turnDetectionAngleDegrees) {
-        return accumulatedDistance;
-      }
-
-      accumulatedDistance +=
-          distanceBetween(
-        polyline[i],
-        polyline[i + 1],
-      );
-    }
-
-    return null;
-  }
-
-  bool _isTurnNear({
-    required RouteResult route,
-    required int segmentIndex,
-  }) {
-    if (route.polyline.length < 3) {
-      return false;
-    }
-
-    if (segmentIndex <= 0 ||
-        segmentIndex >=
-            route.polyline.length - 1) {
-      return false;
-    }
-
-    final incomingBearing =
-        calculateBearing(
-      from:
-          route.polyline[segmentIndex - 1],
-      to:
-          route.polyline[segmentIndex],
-    );
-
-    final outgoingBearing =
-        calculateBearing(
-      from:
-          route.polyline[segmentIndex],
-      to:
-          route.polyline[segmentIndex + 1],
-    );
-
-    return _angularDifference(
-          incomingBearing,
-          outgoingBearing,
-        ) >=
-        turnDetectionAngleDegrees;
   }
 
   // ================================================================
@@ -402,326 +283,27 @@ class RouteProgressService {
     required List<LatLon> polyline,
   }) {
     if (polyline.isEmpty) {
-      throw const RouteProgressFailure(
-        'Route polyline is empty.',
-      );
+      throw const RouteProgressFailure('Route polyline is empty.');
     }
-
-    final nearest =
-        _findNearestPointOnRoute(
-      currentPosition: currentPosition,
-      polyline: polyline,
+    if (polyline.length == 1) return 0;
+    final g = _RouteGeometry.build(
+      polyline,
+      turnWindowMeters: turnWindowMeters,
+      turnAngleDegrees: turnDetectionAngleDegrees,
     );
-
-    return nearest.segmentIndex;
+    final (px, py) = g.frame.toLocal(currentPosition);
+    return g.project(px, py, 0, g.totalMeters).segment;
   }
 
   // ================================================================
-  // DISTANCE
+  // GEODESY
   // ================================================================
 
-  double distanceBetween(
-    LatLon first,
-    LatLon second,
-  ) {
-    const earthRadiusMeters =
-        6371000.0;
+  double distanceBetween(LatLon first, LatLon second) =>
+      GeoMath.distance(first, second);
 
-    final latitude1 =
-        _degreesToRadians(
-      first.latitude,
-    );
-
-    final latitude2 =
-        _degreesToRadians(
-      second.latitude,
-    );
-
-    final deltaLatitude =
-        _degreesToRadians(
-      second.latitude -
-          first.latitude,
-    );
-
-    final deltaLongitude =
-        _degreesToRadians(
-      second.longitude -
-          first.longitude,
-    );
-
-    final a =
-        math.sin(
-                  deltaLatitude / 2,
-                ) *
-                math.sin(
-                  deltaLatitude / 2,
-                ) +
-            math.cos(latitude1) *
-                math.cos(latitude2) *
-                math.sin(
-                  deltaLongitude / 2,
-                ) *
-                math.sin(
-                  deltaLongitude / 2,
-                );
-
-    final c =
-        2 *
-        math.atan2(
-          math.sqrt(a),
-          math.sqrt(1 - a),
-        );
-
-    return earthRadiusMeters * c;
-  }
-
-  // ================================================================
-  // BEARING
-  // ================================================================
-
-  double calculateBearing({
-    required LatLon from,
-    required LatLon to,
-  }) {
-    final latitude1 =
-        _degreesToRadians(
-      from.latitude,
-    );
-
-    final latitude2 =
-        _degreesToRadians(
-      to.latitude,
-    );
-
-    final deltaLongitude =
-        _degreesToRadians(
-      to.longitude -
-          from.longitude,
-    );
-
-    final y =
-        math.sin(deltaLongitude) *
-            math.cos(latitude2);
-
-    final x =
-        math.cos(latitude1) *
-                math.sin(latitude2) -
-            math.sin(latitude1) *
-                math.cos(latitude2) *
-                math.cos(deltaLongitude);
-
-    final bearing =
-        math.atan2(y, x);
-
-    return _normalizeBearing(
-      _radiansToDegrees(bearing),
-    );
-  }
-
-  // ================================================================
-  // NEAREST POINT
-  // ================================================================
-
-  _NearestRoutePoint _findNearestPointOnRoute({
-    required LatLon currentPosition,
-    required List<LatLon> polyline,
-    int startIndex = 0,
-    int? endIndex,
-  }) {
-    var nearestDistance =
-        double.infinity;
-
-    var nearestSegmentIndex = 0;
-
-    LatLon? nearestPoint;
-
-    final firstIndex = startIndex.clamp(0, polyline.length - 2).toInt();
-    final finalIndex = (endIndex ?? polyline.length - 2)
-        .clamp(firstIndex, polyline.length - 2).toInt();
-
-    for (
-      var i = firstIndex;
-      i <= finalIndex;
-      i++
-    ) {
-      final start =
-          polyline[i];
-
-      final end =
-          polyline[i + 1];
-
-      final projected =
-          _projectPointOntoSegment(
-        currentPosition,
-        start,
-        end,
-      );
-
-      final distance =
-          distanceBetween(
-        currentPosition,
-        projected,
-      );
-
-      if (distance <
-          nearestDistance) {
-        nearestDistance =
-            distance;
-
-        nearestSegmentIndex =
-            i;
-
-        nearestPoint =
-            projected;
-      }
-    }
-
-    return _NearestRoutePoint(
-      segmentIndex:
-          nearestSegmentIndex,
-      projectedPoint:
-          nearestPoint!,
-      distanceFromRouteMeters:
-          nearestDistance,
-    );
-  }
-
-  // ================================================================
-  // PROJECT GPS ONTO ROUTE SEGMENT
-  // ================================================================
-
-  LatLon _projectPointOntoSegment(
-    LatLon point,
-    LatLon start,
-    LatLon end,
-  ) {
-    final latitudeScale =
-        111320.0;
-
-    final longitudeScale =
-        111320.0 *
-            math.cos(
-              _degreesToRadians(
-                point.latitude,
-              ),
-            );
-
-    final px =
-        (point.longitude -
-                start.longitude) *
-            longitudeScale;
-
-    final py =
-        (point.latitude -
-                start.latitude) *
-            latitudeScale;
-
-    final sx =
-        (end.longitude -
-                start.longitude) *
-            longitudeScale;
-
-    final sy =
-        (end.latitude -
-                start.latitude) *
-            latitudeScale;
-
-    final segmentLengthSquared =
-        sx * sx + sy * sy;
-
-    if (segmentLengthSquared == 0) {
-      return start;
-    }
-
-    var t =
-        (px * sx + py * sy) /
-            segmentLengthSquared;
-
-    t = t.clamp(
-      0.0,
-      1.0,
-    );
-
-    return _interpolatePoint(
-      start,
-      end,
-      t,
-    );
-  }
-
-  // ================================================================
-  // INTERPOLATION
-  // ================================================================
-
-  LatLon _interpolatePoint(
-    LatLon start,
-    LatLon end,
-    double factor,
-  ) {
-    return LatLon(
-      latitude:
-          start.latitude +
-              (end.latitude -
-                      start.latitude) *
-                  factor,
-      longitude:
-          start.longitude +
-              (end.longitude -
-                      start.longitude) *
-                  factor,
-    );
-  }
-
-  // ================================================================
-  // ANGLES
-  // ================================================================
-
-  double _angularDifference(
-    double first,
-    double second,
-  ) {
-    var difference =
-        (first - second) % 360;
-
-    if (difference > 180) {
-      difference -= 360;
-    }
-
-    if (difference < -180) {
-      difference += 360;
-    }
-
-    return difference.abs();
-  }
-
-  double _normalizeBearing(
-    double bearing,
-  ) {
-    var normalized =
-        bearing % 360;
-
-    if (normalized < 0) {
-      normalized += 360;
-    }
-
-    return normalized;
-  }
-
-  double _degreesToRadians(
-    double degrees,
-  ) {
-    return degrees *
-        math.pi /
-        180.0;
-  }
-
-  double _radiansToDegrees(
-    double radians,
-  ) {
-    return radians *
-        180.0 /
-        math.pi;
-  }
+  double calculateBearing({required LatLon from, required LatLon to}) =>
+      GeoMath.bearing(from, to);
 }
 
 // ================================================================
@@ -736,43 +318,247 @@ class RouteTarget {
     required this.distanceFromRouteMeters,
     required this.routeBearing,
     required this.isNearTurn,
-  });
+    double? guidanceBearing,
+    this.projectedPoint,
+    this.segmentIndex = 0,
+    this.crossTrackMeters = 0,
+    this.progressMeters = 0,
+    this.remainingMeters = 0,
+    this.distanceToNextTurnMeters,
+    this.nextTurnAngleDegrees,
+  }) : guidanceBearing = guidanceBearing ?? routeBearing;
 
+  /// Look-ahead point on the route.
   final LatLon point;
 
-  /// Polyline segment/end index around the target.
+  /// Polyline vertex index at or after the target.
   final int index;
 
-  /// Actual distance travelled ahead along the route.
+  /// Distance along the route from the matched position to [point].
   final double distanceAheadMeters;
 
-  /// Distance between GPS position and route.
+  /// Distance between the GPS position and the route.
   final double distanceFromRouteMeters;
 
-  /// Direction of travel along the route.
+  /// Direction of travel along the route at the matched position.
   ///
-  /// This is deliberately different from the bearing
-  /// from the user's GPS position to the target.
+  /// Deliberately different from the bearing from the user's GPS position to
+  /// the target, so lateral noise cannot produce a crossing cue.
   final double? routeBearing;
 
-  /// Whether the target is close to a meaningful route turn.
+  /// [routeBearing] with a bounded correction back toward the path line when
+  /// the user has clearly drifted off it. Use this for the belt cue.
+  final double? guidanceBearing;
+
+  /// Whether a meaningful route turn is close (ahead or just passed).
   final bool isNearTurn;
+
+  /// The user's position snapped onto the route.
+  final LatLon? projectedPoint;
+
+  final int segmentIndex;
+
+  /// Signed lateral offset from the route: positive = right of the path.
+  final double crossTrackMeters;
+
+  final double progressMeters;
+  final double remainingMeters;
+
+  /// Distance along the route to the next meaningful turn, if any.
+  final double? distanceToNextTurnMeters;
+
+  /// Signed angle of the next turn: positive = right turn.
+  final double? nextTurnAngleDegrees;
 }
 
 // ================================================================
-// INTERNAL NEAREST POINT
+// ROUTE GEOMETRY
 // ================================================================
 
-class _NearestRoutePoint {
-  const _NearestRoutePoint({
-    required this.segmentIndex,
-    required this.projectedPoint,
-    required this.distanceFromRouteMeters,
-  });
+class _Turn {
+  const _Turn(this.vertex, this.along, this.signedAngle);
+  final int vertex;
+  final double along;
+  final double signedAngle;
+}
 
-  final int segmentIndex;
-  final LatLon projectedPoint;
-  final double distanceFromRouteMeters;
+class _Match {
+  const _Match(this.segment, this.along, this.distance, this.crossTrack);
+  final int segment;
+  final double along;
+  final double distance;
+  final double crossTrack;
+}
+
+class _RouteGeometry {
+  _RouteGeometry._(this.frame, this.points, this.xs, this.ys, this.cumulative,
+      this.turns);
+
+  final LocalFrame frame;
+  final List<LatLon> points;
+  final List<double> xs;
+  final List<double> ys;
+  final List<double> cumulative;
+  final List<_Turn> turns;
+
+  double get totalMeters => cumulative.last;
+
+  static _RouteGeometry build(
+    List<LatLon> polyline, {
+    required double turnWindowMeters,
+    required double turnAngleDegrees,
+  }) {
+    final frame = LocalFrame(polyline.first);
+    final xs = <double>[];
+    final ys = <double>[];
+    for (final p in polyline) {
+      final (x, y) = frame.toLocal(p);
+      xs.add(x);
+      ys.add(y);
+    }
+    final cumulative = <double>[0];
+    for (var i = 1; i < polyline.length; i++) {
+      final dx = xs[i] - xs[i - 1];
+      final dy = ys[i] - ys[i - 1];
+      cumulative.add(cumulative.last + math.sqrt(dx * dx + dy * dy));
+    }
+    final geometry = _RouteGeometry._(
+        frame, List.unmodifiable(polyline), xs, ys, cumulative, <_Turn>[]);
+    geometry._detectTurns(turnWindowMeters, turnAngleDegrees);
+    return geometry;
+  }
+
+  void _detectTurns(double window, double threshold) {
+    final candidates = <_Turn>[];
+    for (var i = 1; i < points.length - 1; i++) {
+      final at = cumulative[i];
+      if (at <= 0.01 || at >= totalMeters - 0.01) continue;
+      final before = math.max(0.0, at - window);
+      final after = math.min(totalMeters, at + window);
+      if (at - before < 0.5 || after - at < 0.5) continue;
+      final incoming = bearingBetween(before, at);
+      final outgoing = bearingBetween(at, after);
+      final angle = GeoMath.wrap180(outgoing - incoming);
+      if (angle.abs() >= threshold) candidates.add(_Turn(i, at, angle));
+    }
+    // Collapse vertices of one physical turn (within one window) into the
+    // vertex with the sharpest angle.
+    for (final c in candidates) {
+      if (turns.isNotEmpty &&
+          c.along - turns.last.along <= window &&
+          c.signedAngle.sign == turns.last.signedAngle.sign) {
+        if (c.signedAngle.abs() > turns.last.signedAngle.abs()) {
+          turns[turns.length - 1] = c;
+        }
+      } else {
+        turns.add(c);
+      }
+    }
+  }
+
+  _Turn? nextTurnAfter(double along) {
+    for (final t in turns) {
+      if (t.along > along) return t;
+    }
+    return null;
+  }
+
+  _Turn? previousTurnAtOrBefore(double along) {
+    _Turn? result;
+    for (final t in turns) {
+      if (t.along <= along) {
+        result = t;
+      } else {
+        break;
+      }
+    }
+    return result;
+  }
+
+  int segmentIndexAt(double along) {
+    if (along <= 0) return 0;
+    var lo = 0;
+    var hi = cumulative.length - 1;
+    while (lo < hi - 1) {
+      final mid = (lo + hi) >> 1;
+      if (cumulative[mid] <= along) {
+        lo = mid;
+      } else {
+        hi = mid;
+      }
+    }
+    return math.min(lo, points.length - 2);
+  }
+
+  (double, double) _xyAt(double along) {
+    final a = along.clamp(0.0, totalMeters).toDouble();
+    final i = segmentIndexAt(a);
+    final len = cumulative[i + 1] - cumulative[i];
+    final t = len <= 0 ? 0.0 : (a - cumulative[i]) / len;
+    return (xs[i] + (xs[i + 1] - xs[i]) * t, ys[i] + (ys[i + 1] - ys[i]) * t);
+  }
+
+  LatLon pointAt(double along) {
+    final a = along.clamp(0.0, totalMeters).toDouble();
+    final i = segmentIndexAt(a);
+    final len = cumulative[i + 1] - cumulative[i];
+    final t = len <= 0 ? 0.0 : (a - cumulative[i]) / len;
+    return GeoMath.interpolate(points[i], points[i + 1], t);
+  }
+
+  double bearingBetween(double fromAlong, double toAlong) {
+    final (x1, y1) = _xyAt(fromAlong);
+    final (x2, y2) = _xyAt(toAlong);
+    return GeoMath.normalize360(math.atan2(x2 - x1, y2 - y1) * 180 / math.pi);
+  }
+
+  double segmentBearing(int i) => GeoMath.normalize360(
+      math.atan2(xs[i + 1] - xs[i], ys[i + 1] - ys[i]) * 180 / math.pi);
+
+  /// Projects (px, py) onto the route between [fromAlong] and [toAlong].
+  _Match project(double px, double py, double fromAlong, double toAlong) {
+    final first = segmentIndexAt(math.max(0.0, fromAlong));
+    final last = segmentIndexAt(math.min(totalMeters, toAlong));
+    var best = const _Match(0, 0, double.infinity, 0);
+    for (var i = first; i <= last; i++) {
+      final sx = xs[i + 1] - xs[i];
+      final sy = ys[i + 1] - ys[i];
+      final len2 = sx * sx + sy * sy;
+      final rx = px - xs[i];
+      final ry = py - ys[i];
+      final len = math.sqrt(len2);
+      var t = len2 <= 0 ? 0.0 : (rx * sx + ry * sy) / len2;
+      // Clip to the search window, not merely to the segment: a long
+      // segment that only partly lies in the window (e.g. the return leg of
+      // a hairpin) must not capture the user outside that part.
+      var tMin = 0.0;
+      var tMax = 1.0;
+      if (len > 0) {
+        tMin = math.max(0.0, (fromAlong - cumulative[i]) / len);
+        tMax = math.min(1.0, (toAlong - cumulative[i]) / len);
+        if (tMax < tMin) continue;
+      }
+      t = t.clamp(tMin, tMax).toDouble();
+      final qx = xs[i] + sx * t;
+      final qy = ys[i] + sy * t;
+      final dx = px - qx;
+      final dy = py - qy;
+      final distance = math.sqrt(dx * dx + dy * dy);
+      // Strictly-less keeps the earliest segment on ties (vertex shared by
+      // two segments).
+      if (distance < best.distance - 1e-9) {
+        // Cross product sign: positive when the point is right of travel.
+        final cross = len2 <= 0 ? 0.0 : (sy * rx - sx * ry) / len;
+        best = _Match(
+          i,
+          cumulative[i] + len * t,
+          distance,
+          cross.sign * distance,
+        );
+      }
+    }
+    return best;
+  }
 }
 
 // ================================================================
@@ -787,4 +573,3 @@ class RouteProgressFailure implements Exception {
   @override
   String toString() => message;
 }
-

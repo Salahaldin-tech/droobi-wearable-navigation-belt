@@ -135,7 +135,7 @@ class _NavigationSimulatorScreenState
       route: _route,
       lookAheadMeters: null,
     );
-    final bearing = target.routeBearing ??
+    final bearing = target.guidanceBearing ??
         _directionCalculator.calculateBearing(
           from: simulatedGps,
           to: target.point,
