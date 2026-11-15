@@ -739,18 +739,27 @@ class _UniversityLocationsScreenState
   // Fixed destination coordinates for the first University navigation pilot.
   // These are destination points only; the route is calculated dynamically
   // from the user's current GPS position by the same OSRM flow as Home.
+  // Keys must match the card display names exactly.
   static const Map<String, LatLon> _fixedDestinations = {
-    'Faculty of Arts and Education': LatLon(
-      latitude: 32.40795937,
-      longitude: 35.34453554,
-    ),
     'Faculty of Engineering': LatLon(
-      latitude: 32.40795937,
-      longitude: 35.34453554,
+      latitude: 32.4082993911763,
+      longitude: 35.345630598143295,
+    ),
+    'Faculty of Arts and Education': LatLon(
+      latitude: 32.40800579792771,
+      longitude: 35.3446055638246,
     ),
     'Faculty of Information Technology': LatLon(
-      latitude: 32.40679231,
-      longitude: 35.34339778,
+      latitude: 32.40675340855915,
+      longitude: 35.34339310908723,
+    ),
+    'Gate 3': LatLon(
+      latitude: 32.40734220259285,
+      longitude: 35.341330768462434,
+    ),
+    'Cafeteria': LatLon(
+      latitude: 32.40700627577471,
+      longitude: 35.34214214101637,
     ),
   };
 
