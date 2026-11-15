@@ -337,21 +337,36 @@ class NavigationService {
       // 3. INITIAL COMPASS
       // ------------------------------------------------------------
 
-      final initialRawHeading =
-          await _compassService.getStableHeading();
-      final initialHeading = campusNavigation
-          ? HeadingNorthCorrector.apply(
-              initialRawHeading,
-              _headingNorthCorrector.correctionDegrees(filteredFix.position),
-            )
-          : initialRawHeading;
+      double initialHeading;
+      double? initialAccuracyDegrees;
+      DateTime initialHeadingTimestamp = DateTime.now();
+
+      if (campusNavigation) {
+        // Campus startup must use readings with known sensor accuracy, just
+        // like the live campus compass stream. Unknown accuracy is rejected.
+        final initialSample = await _compassService.getStableCompassSample(
+          sampleCount: compassSampleCount,
+        );
+        initialAccuracyDegrees = initialSample.accuracyDegrees;
+        initialHeadingTimestamp = initialSample.timestamp;
+        final correction =
+            _headingNorthCorrector.correctionDegrees(filteredFix.position);
+        initialHeading = HeadingNorthCorrector.apply(
+          initialSample.rawHeadingDegrees,
+          correction,
+        );
+      } else {
+        // Preserve the existing Home / standard navigation path.
+        initialHeading = await _compassService.getStableHeading();
+      }
 
       _resetCompassSmoothing();
 
       final smoothedInitialHeading =
           _headingEstimator.update(
             initialHeading,
-            timestamp: DateTime.now(),
+            accuracyDegrees: initialAccuracyDegrees,
+            timestamp: initialHeadingTimestamp,
           ) ??
           initialHeading;
 
@@ -374,10 +389,10 @@ class NavigationService {
       );
 
       if (campusNavigation) {
-      _startCampusCompassStream();
-    } else {
-      _startCompassStream();
-    }
+        _startCampusCompassStream();
+      } else {
+        _startCompassStream();
+      }
 
       _startLocationStream();
 
@@ -631,25 +646,46 @@ class NavigationService {
 
   void _handleCampusCompassSample(CompassSample sample) {
     if (!_isNavigating || _lastAcceptedFix == null || _route == null) return;
+
     final accuracy = sample.accuracyDegrees;
-    // Android maps unreliable/unknown sensor states to null; iOS reports
-    // headingAccuracy in degrees. Do not feed unknown readings to the filter.
-    if (accuracy == null || !accuracy.isFinite || accuracy < 0 || accuracy > 45) {
+    // Unknown/unreliable sensor accuracy must never be treated as a trusted
+    // heading. HeadingEstimator intentionally treats null as full confidence.
+    if (accuracy == null ||
+        !accuracy.isFinite ||
+        accuracy < 0 ||
+        accuracy > 45 ||
+        !sample.rawHeadingDegrees.isFinite) {
       return;
     }
-    final correction = _headingNorthCorrector.correctionDegrees(_lastAcceptedFix!.position);
-    final trueHeading = HeadingNorthCorrector.apply(
-      sample.rawHeadingDegrees,
-      correction,
-    );
-    final smoothedHeading = _headingEstimator.update(
-      trueHeading,
-      accuracyDegrees: accuracy,
-      timestamp: sample.timestamp,
-    );
-    if (smoothedHeading == null) return;
-    _latestHeading = smoothedHeading;
-    _updateNavigation(_lastAcceptedFix!, smoothedHeading);
+
+    try {
+      // Recalculate declination at the latest accepted campus GPS position.
+      // Android receives magnetic azimuth; iOS already supplies true heading.
+      final correction =
+          _headingNorthCorrector.correctionDegrees(_lastAcceptedFix!.position);
+      final trueHeading = HeadingNorthCorrector.apply(
+        sample.rawHeadingDegrees,
+        correction,
+      );
+      final smoothedHeading = _headingEstimator.update(
+        trueHeading,
+        accuracyDegrees: accuracy,
+        timestamp: sample.timestamp,
+      );
+      if (smoothedHeading == null) return;
+
+      _latestHeading = smoothedHeading;
+      _updateNavigation(_lastAcceptedFix!, smoothedHeading);
+    } on CompassNorthCorrectionFailure catch (error) {
+      _publish(NavigationSnapshot(
+        state: NavigationState.recovering,
+        currentPosition: _lastAcceptedFix?.position,
+        accuracyMeters: _lastAcceptedFix?.accuracyMeters,
+        route: _route,
+        heading: _latestHeading,
+        errorMessage: 'Compass north correction unavailable: $error',
+      ));
+    }
   }
 
   void _startCompassStream() {
