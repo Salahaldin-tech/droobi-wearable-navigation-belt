@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../models/lat_lon.dart';
+import '../../models/campus_destination.dart';
 import '../../screens/navigation/live_navigation_screen.dart';
 import '../../widgets/droobi_bottom_nav.dart';
 import '../../widgets/app_card.dart';
@@ -736,32 +736,9 @@ class _UniversityLocationsScreenState
   // FIND LOCATION
   // ===========================================================================
 
-  // Fixed destination coordinates for the first University navigation pilot.
-  // These are destination points only; the route is calculated dynamically
-  // from the user's current GPS position by the same OSRM flow as Home.
-  // Keys must match the card display names exactly.
-  static const Map<String, LatLon> _fixedDestinations = {
-    'Faculty of Engineering': LatLon(
-      latitude: 32.4082993911763,
-      longitude: 35.345630598143295,
-    ),
-    'Faculty of Arts and Education': LatLon(
-      latitude: 32.40800579792771,
-      longitude: 35.3446055638246,
-    ),
-    'Faculty of Information Technology': LatLon(
-      latitude: 32.40675340855915,
-      longitude: 35.34339310908723,
-    ),
-    'Gate 3': LatLon(
-      latitude: 32.40734220259285,
-      longitude: 35.341330768462434,
-    ),
-    'Cafeteria': LatLon(
-      latitude: 32.40700627577471,
-      longitude: 35.34214214101637,
-    ),
-  };
+  // Fixed destination coordinates live in lib/models/campus_destination.dart.
+  // They are destination points only; the route is calculated dynamically
+  // from the user's current GPS position by the campus OSRM flow.
 
   // ===========================================================================
   // LOCATION SELECT
@@ -771,7 +748,7 @@ class _UniversityLocationsScreenState
     BuildContext context,
     _UniversityItem item,
   ) {
-    final destination = _fixedDestinations[item.name];
+    final destination = campusDestinationByName(item.name)?.position;
 
     if (destination == null) {
       _showUnavailableMessage(context, item);
