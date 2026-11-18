@@ -125,17 +125,29 @@ class _UniversityLocationsScreenState
   }
 
   // ===========================================================================
-  // UNIVERSITY LOCATION LABELS — fixed pilot destinations use surveyed coordinates.
+  // UNIVERSITY LOCATION LABELS — coordinates live in campus_destination.dart,
+  // keyed by these exact names (fixed entrance points from the JOSM map).
   // ===========================================================================
 
   static const List<_UniversityItem> _colleges = [
     _UniversityItem(
-      name: 'Faculty of Allied Medical Sciences',
-      nameAr: 'كلية العلوم الطبية المساعدة',
+      name: 'Allied Medical Sciences – AMS-A',
+      nameAr: 'كلية العلوم الطبية المساعدة – المبنى A',
       aliases: [
         'Faculty of Allied Medical Sciences',
         'Allied Medical Sciences',
         'AMS',
+        'AMS-A',
+      ],
+    ),
+    _UniversityItem(
+      name: 'Allied Medical Sciences – AMS-B',
+      nameAr: 'كلية العلوم الطبية المساعدة – المبنى B',
+      aliases: [
+        'Faculty of Allied Medical Sciences',
+        'Allied Medical Sciences',
+        'AMS',
+        'AMS-B',
       ],
     ),
     _UniversityItem(
@@ -160,12 +172,20 @@ class _UniversityLocationsScreenState
       ],
     ),
     _UniversityItem(
-      name: 'Faculty of Dentistry',
-      nameAr: 'كلية طب الأسنان',
+      name: 'Dentistry – DEN-A',
+      nameAr: 'كلية طب الأسنان – المبنى A',
       aliases: [
         'Faculty of Dentistry',
         'Dentistry',
         'DEN-A',
+      ],
+    ),
+    _UniversityItem(
+      name: 'Dentistry – DEN-B',
+      nameAr: 'كلية طب الأسنان – المبنى B',
+      aliases: [
+        'Faculty of Dentistry',
+        'Dentistry',
         'DEN-B',
       ],
     ),
@@ -239,6 +259,8 @@ class _UniversityLocationsScreenState
       aliases: [
         'Faculty of Sports Sciences',
         'Sports Sciences',
+        'Sports Hall',
+        'SH',
       ],
     ),
   ];
@@ -304,8 +326,36 @@ class _UniversityLocationsScreenState
         'Administration',
         'Administrative Departments Building',
         'AD',
+      ],
+    ),
+    _UniversityItem(
+      name: 'Deanship of Admission and Registration',
+      nameAr: 'عمادة القبول والتسجيل',
+      aliases: [
+        'Deanship of Admission and Registration',
+        'Admission and Registration',
+        'Admission',
+        'Registration',
+        'DAR',
+      ],
+    ),
+    _UniversityItem(
+      name: 'Presidential Building',
+      nameAr: 'مبنى الرئاسة',
+      aliases: [
         'Presidential Building',
+        'Presidency',
         'PR',
+      ],
+    ),
+    _UniversityItem(
+      name: 'International Soccer Stadium',
+      nameAr: 'ملعب كرة القدم الدولي',
+      aliases: [
+        'International Soccer Stadium',
+        'Soccer Stadium',
+        'Stadium',
+        'ISS',
       ],
     ),
     _UniversityItem(
@@ -655,6 +705,12 @@ class _UniversityLocationsScreenState
         return Icons.local_cafe_outlined;
       case 'Administration':
         return Icons.apartment_outlined;
+      case 'Deanship of Admission and Registration':
+        return Icons.assignment_ind_outlined;
+      case 'Presidential Building':
+        return Icons.account_balance_outlined;
+      case 'International Soccer Stadium':
+        return Icons.sports_soccer_outlined;
       case 'Library':
         return Icons.menu_book_outlined;
       default:
@@ -666,8 +722,8 @@ class _UniversityLocationsScreenState
     required BuildContext context,
     required _UniversityItem item,
   }) {
-    // Destination availability is resolved from live OSM only after tap.
-    // Do not hide or disable the original University choices while offline.
+    // Availability is checked on tap against the fixed coordinates in
+    // campus_destination.dart; cards without one show an "unavailable" message.
     const isAvailable = true;
 
     return AppCard(
