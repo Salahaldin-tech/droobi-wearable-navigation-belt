@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Engineering loop — west/north footway drawing tool</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  html, body { margin: 0; height: 100%; font: 14px/1.4 system-ui, sans-serif; }
+  #map { position: absolute; inset: 0 360px 0 0; }
+  #panel { position: absolute; top: 0; right: 0; bottom: 0; width: 360px; overflow: auto;
+           padding: 12px 14px; box-sizing: border-box; background: #fafafa; border-left: 1px solid #ddd; }
+  h1 { font-size: 16px; margin: 0 0 8px; }
+  h2 { font-size: 14px; margin: 14px 0 6px; }
+  button { margin: 2px 4px 2px 0; padding: 5px 9px; }
+  .legend div { margin: 2px 0; }
+  .sw { display: inline-block; width: 22px; height: 4px; vertical-align: middle; margin-right: 6px; }
+  table { border-collapse: collapse; width: 100%; font-size: 12px; }
+  td, th { border-bottom: 1px solid #e3e3e3; padding: 2px 4px; text-align: left; }
+  .ok { color: #1a7f37; } .warn { color: #b35900; } .bad { color: #c62828; }
+  textarea { width: 100%; height: 110px; font: 11px monospace; }
+  .muted { color: #666; font-size: 12px; }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div id="panel">
+  <h1>Engineering loop — west/north footway</h1>
+  <div class="muted">Data: <code>aaup-campus.osm</code> used by Docker OSRM. Nothing here edits that file.</div>
+
+  <div id="filewarn" style="display:none;background:#fff3cd;border:1px solid #e0b400;padding:6px 8px;margin:8px 0;font-size:12px">
+    Opened as a local file. The <b>OpenStreetMap</b> layer may show "Access blocked" this way.
+    Close this tab and open the page with <b>open_footway_editor.bat</b> instead. Satellite and the Esri street layer work either way.</div>
+  <h2>Legend</h2>
+  <div class="legend">
+    <div><span class="sw" style="background:#e53935"></span>Loop way 1573510573 (current route section)</div>
+    <div><span class="sw" style="background:#ffd54f"></span>Other paths/roads</div>
+    <div><span class="sw" style="background:#00c853"></span>Claude's proposed west/north footway (reference only)</div>
+    <div><span class="sw" style="background:#2979ff"></span>Your drawing</div>
+    <div>● red = loop junction, ○ white = node you can connect to, ★ = Engineering destination</div>
+  </div>
+
+  <h2>Draw your own path (west/north side only)</h2>
+  <div class="muted"><b>Start</b> on the west service road where it approaches the loop, then follow the <b>north</b> outer edge. <b>End</b> on node <code>14368505141</code>, where the main-door footway starts. Leave the south side unchanged.</div>
+  <div class="muted">Use the <b>Satellite</b> layer (best at zoom 19–20), then click <b>Start drawing</b>. Click along the outer edge.
+    First and last points snap to an existing node within 3 m (shown in the table).
+    Middle points within 1.5 m of an existing path also snap, which is how you connect to a crossing road.
+    Drag points to adjust. Right-click a point to delete it.</div>
+  <div style="margin-top:6px">
+    <button id="start">Start drawing</button>
+    <button id="finish" disabled>Finish</button>
+    <button id="undo" disabled>Undo last</button>
+    <button id="clear">Clear</button>
+  </div>
+  <table id="pts"><thead><tr><th>#</th><th>lat, lon</th><th>seg</th><th>bend</th><th>connects to</th></tr></thead><tbody></tbody></table>
+  <div id="checks" style="margin-top:6px"></div>
+
+  <h2>Send it to Claude</h2>
+  <div class="muted">Click <b>Copy GeoJSON</b> (or Download) and paste it into the chat.</div>
+  <button id="copy" disabled>Copy GeoJSON</button>
+  <button id="download" disabled>Download</button>
+  <textarea id="out" readonly placeholder="Your drawing appears here as GeoJSON."></textarea>
+</div>
+
+<script>
+const DATA = {"type": "FeatureCollection", "features": [{"type": "Feature", "properties": {"name": "West/north footway", "kind": "proposed"}, "geometry": {"type": "LineString", "coordinates": [[35.34529060607452, 32.40823543021297], [35.3453238610726, 32.40829001376474], [35.345386143561335, 32.408321679655835], [35.34545784038915, 32.4083212134699], [35.34552, 32.4082903]]}}, {"type": "Feature", "properties": {"name": "West/north footway #0: NEW W0, inserted into service way 1092277953", "kind": "proposed-node"}, "geometry": {"type": "Point", "coordinates": [35.34529060607452, 32.40823543021297]}}, {"type": "Feature", "properties": {"name": "West/north footway #1: NEW", "kind": "proposed-node"}, "geometry": {"type": "Point", "coordinates": [35.3453238610726, 32.40829001376474]}}, {"type": "Feature", "properties": {"name": "West/north footway #2: NEW X1, inserted into link way 1573510576 (crossing)", "kind": "proposed-node"}, "geometry": {"type": "Point", "coordinates": [35.345386143561335, 32.408321679655835]}}, {"type": "Feature", "properties": {"name": "West/north footway #3: NEW", "kind": "proposed-node"}, "geometry": {"type": "Point", "coordinates": [35.34545784038915, 32.4083212134699]}}, {"type": "Feature", "properties": {"name": "West/north footway #4: EXISTING 14368505141 (door footway start)", "kind": "proposed-node"}, "geometry": {"type": "Point", "coordinates": [35.34552, 32.4082903]}}, {"type": "Feature", "properties": {"name": "way 1092228346: unclassified", "kind": "highway"}, "geometry": {"type": "LineString", "coordinates": [[35.3452991, 32.4079965], [35.3450388, 32.407315], [35.3449269, 32.4070898], [35.3448019, 32.4069197], [35.3446901, 32.4067787], [35.3445109, 32.4065527], [35.3441564, 32.4061101], [35.3439307, 32.4058865], [35.3436882, 32.405729], [35.3435532, 32.4056659], [35.3434457, 32.4056156], [35.3432237, 32.4055699], [35.343011, 32.4055447], [35.342664, 32.4055289], [35.3424737, 32.4055226], [35.3422896, 32.4055138], [35.3422267, 32.4055108], [35.3421356, 32.4055065], [35.3418966, 32.4054683], [35.3416181, 32.4053907], [35.3413778, 32.4052988], [35.3412238, 32.4052376]]}}, {"type": "Feature", "properties": {"name": "way 1092277950: service", "kind": "highway"}, "geometry": {"type": "LineString", "coordinates": [[35.345153, 32.4085551], [35.3452917, 32.4086046], [35.345387, 32.4086383], [35.3454943, 32.4086797], [35.3455757, 32.4087284], [35.3456307, 32.4087672], [35.3457014, 32.408838], [35.3458065, 32.4089531], [35.3459101, 32.4090613], [35.3459597, 32.4091004], [35.3460258, 32.4091386], [35.3461075, 32.4091801], [35.3461784, 32.4092503], [35.3462344, 32.409335], [35.3462501, 32.4094586]]}}, {"type": "Feature", "properties": {"name": "way 1092277953: service", "kind": "highway"}, "geometry": {"type": "LineString", "coordinates": [[35.3453311, 32.4082268], [35.3447779, 32.4083447], [35.3447363, 32.4083495], [35.3447062, 32.4083422], [35.3446805, 32.4083275], [35.3446597, 32.4082821], [35.3445555, 32.4080008], [35.3445329, 32.4079613], [35.3445286, 32.4079478]]}}, {"type": "Feature", "properties": {"name": "way 1327302708: None", "kind": "highway"}, "geometry": {"type": "LineString", "coordinates": [[35.3445954, 32.4088532], [35.3447463, 32.4089182], [35.3448018, 32.4088454], [35.3448511, 32.4088792], [35.3449805, 32.4087855], [35.3451099, 32.4087387], [35.3452609, 32.4087205], [35.3454796, 32.4087881], [35.345569, 32.4088297], [35.3455905, 32.4088193], [35.3457015, 32.4089702], [35.3457292, 32.4090951], [35.3457199, 32.4100393], [35.345646, 32.4101901], [35.345569, 32.4102552], [35.3455104, 32.4102136], [35.3454118, 32.4102994], [35.3452485, 32.4103202], [35.3451222, 32.410302], [35.3449743, 32.41025], [35.3448696, 32.4101771], [35.3448172, 32.4102188], [35.3447433, 32.4101433], [35.3446046, 32.4102552], [35.3445122, 32.4101381], [35.3444536, 32.4099873], [35.3444506, 32.4098754], [35.3444598, 32.4091081], [35.3445153, 32.4089728], [35.3445954, 32.4088532]]}}, {"type": "Feature", "properties": {"name": "way 1568965253: school", "kind": "building"}, "geometry": {"type": "LineString", "coordinates": [[35.3455631, 32.4079332], [35.3456381, 32.4082261], [35.3461716, 32.4081288], [35.3460966, 32.4078358], [35.3455631, 32.4079332]]}}, {"type": "Feature", "properties": {"name": "way 1568965254: school", "kind": "building"}, "geometry": {"type": "LineString", "coordinates": [[35.3454629, 32.4075536], [35.3455239, 32.4078066], [35.3460786, 32.4077112], [35.3460175, 32.4074582], [35.3454629, 32.4075536]]}}, {"type": "Feature", "properties": {"name": "way 1573510572: unclassified", "kind": "highway"}, "geometry": {"type": "LineString", "coordinates": [[35.3420773, 32.4076652], [35.3423699, 32.4079724], [35.3424192, 32.4080242], [35.3424544, 32.4080612], [35.3426352, 32.408251], [35.3427488, 32.4083586], [35.3427981, 32.4083985], [35.3428516, 32.4084418], [35.342947, 32.4084979], [35.3430648, 32.4085504], [35.3430973, 32.4085604], [35.3432181, 32.4085974], [35.3433889, 32.408636], [35.3434859, 32.408658], [35.3437045, 32.4086969], [35.343907, 32.4087168], [35.3440527, 32.4087177], [35.3442574, 32.4087015], [35.3444985, 32.4086779], [35.344941, 32.4086056], [35.345153, 32.4085551], [35.3452793, 32.4084995], [35.3453951, 32.4084428]]}}, {"type": "Feature", "properties": {"name": "way 1573510573: residential", "kind": "loop"}, "geometry": {"type": "LineString", "coordinates": [[35.345446, 32.4083034], [35.3453996, 32.4083012], [35.3453646, 32.4082848], [35.3453394, 32.408257], [35.3453311, 32.4082268], [35.3453302, 32.4082235], [35.3453375, 32.4081919], [35.3453381, 32.4081897], [35.3453615, 32.4081615], [35.3453965, 32.4081438], [35.345437, 32.4081397], [35.3454669, 32.4081483], [35.3454809, 32.4081523], [35.3455042, 32.4081729], [35.345513, 32.4081806], [35.3455261, 32.4082182], [35.3455172, 32.4082567], [35.3454883, 32.4082874], [35.345446, 32.4083034]]}}, {"type": "Feature", "properties": {"name": "way 1573510574: unclassified", "kind": "highway"}, "geometry": {"type": "LineString", "coordinates": [[35.3453375, 32.4081919], [35.3453109, 32.4080466], [35.3452991, 32.4079965]]}}, {"type": "Feature", "properties": {"name": "way 1573510575: unclassified", "kind": "highway"}, "geometry": {"type": "LineString", "coordinates": [[35.3452991, 32.4079965], [35.3453621, 32.4080415], [35.3454669, 32.4081483]]}}, {"type": "Feature", "properties": {"name": "way 1573510576: unclassified", "kind": "highway"}, "geometry": {"type": "LineString", "coordinates": [[35.3453951, 32.4084428], [35.3454023, 32.4084023], [35.3454059, 32.4083555], [35.3453646, 32.4082848]]}}, {"type": "Feature", "properties": {"name": "way 1573510577: unclassified", "kind": "highway"}, "geometry": {"type": "LineString", "coordinates": [[35.3455172, 32.4082567], [35.34552, 32.4082903], [35.345522, 32.4083147], [35.3455018, 32.4083761], [35.3454793, 32.4084097], [35.3454536, 32.4084313], [35.3453951, 32.4084428]]}}, {"type": "Feature", "properties": {"name": "way 1573527052: parking", "kind": "area"}, "geometry": {"type": "LineString", "coordinates": [[35.3457667, 32.4084729], [35.3462461, 32.4083739], [35.3462063, 32.408206], [35.3457228, 32.4083006], [35.3457667, 32.4084729]]}}, {"type": "Feature", "properties": {"name": "way 1573528467: service", "kind": "highway"}, "geometry": {"type": "LineString", "coordinates": [[35.3455042, 32.4081729], [35.3455296, 32.4081275], [35.3455347, 32.4080774], [35.3455325, 32.4080211], [35.34552, 32.4079486], [35.3454856, 32.4078078], [35.3454172, 32.4075325], [35.3453867, 32.4073896], [35.3453833, 32.4073736], [35.3453162, 32.4070112], [35.3453143, 32.4070009], [35.3452951, 32.4068997], [35.3452516, 32.4066587], [35.3452295, 32.4065184], [35.3452148, 32.4064693], [35.3451933, 32.4064187], [35.3451097, 32.4062961], [35.3449226, 32.4060565]]}}, {"type": "Feature", "properties": {"name": "way 1573528469: service", "kind": "highway"}, "geometry": {"type": "LineString", "coordinates": [[35.3454793, 32.4084097], [35.3455558, 32.4084217], [35.34565, 32.4084224], [35.3461659, 32.4083133]]}}, {"type": "Feature", "properties": {"name": "way 1577986804: footway road to engineering main door", "kind": "highway"}, "geometry": {"type": "LineString", "coordinates": [[35.34552, 32.4082903], [35.3456056, 32.4082808]]}}, {"type": "Feature", "properties": {"name": "node 14332475797 (way 1092228346)", "kind": "snap", "id": "14332475797"}, "geometry": {"type": "Point", "coordinates": [35.3452991, 32.4079965]}}, {"type": "Feature", "properties": {"name": "node 10003173845 (way 1573510572)", "kind": "snap", "id": "10003173845"}, "geometry": {"type": "Point", "coordinates": [35.3453951, 32.4084428]}}, {"type": "Feature", "properties": {"name": "node 10003173850 (way 1573510574)", "kind": "snap", "id": "10003173850"}, "geometry": {"type": "Point", "coordinates": [35.3453109, 32.4080466]}}, {"type": "Feature", "properties": {"name": "node 14332475797 (way 1573510574)", "kind": "snap", "id": "14332475797"}, "geometry": {"type": "Point", "coordinates": [35.3452991, 32.4079965]}}, {"type": "Feature", "properties": {"name": "node 14332475797 (way 1573510575)", "kind": "snap", "id": "14332475797"}, "geometry": {"type": "Point", "coordinates": [35.3452991, 32.4079965]}}, {"type": "Feature", "properties": {"name": "node 14332475799 (way 1573510575)", "kind": "snap", "id": "14332475799"}, "geometry": {"type": "Point", "coordinates": [35.3453621, 32.4080415]}}, {"type": "Feature", "properties": {"name": "node 10003173845 (way 1573510576)", "kind": "snap", "id": "10003173845"}, "geometry": {"type": "Point", "coordinates": [35.3453951, 32.4084428]}}, {"type": "Feature", "properties": {"name": "node 10003173847 (way 1573510576)", "kind": "snap", "id": "10003173847"}, "geometry": {"type": "Point", "coordinates": [35.3454023, 32.4084023]}}, {"type": "Feature", "properties": {"name": "node 10003173848 (way 1573510576)", "kind": "snap", "id": "10003173848"}, "geometry": {"type": "Point", "coordinates": [35.3454059, 32.4083555]}}, {"type": "Feature", "properties": {"name": "node 14368505141 (way 1573510577)", "kind": "snap", "id": "14368505141"}, "geometry": {"type": "Point", "coordinates": [35.34552, 32.4082903]}}, {"type": "Feature", "properties": {"name": "node 14332475801 (way 1573510577)", "kind": "snap", "id": "14332475801"}, "geometry": {"type": "Point", "coordinates": [35.345522, 32.4083147]}}, {"type": "Feature", "properties": {"name": "node 14332475803 (way 1573510577)", "kind": "snap", "id": "14332475803"}, "geometry": {"type": "Point", "coordinates": [35.3455018, 32.4083761]}}, {"type": "Feature", "properties": {"name": "node 14332475802 (way 1573510577)", "kind": "snap", "id": "14332475802"}, "geometry": {"type": "Point", "coordinates": [35.3454793, 32.4084097]}}, {"type": "Feature", "properties": {"name": "node 14332475800 (way 1573510577)", "kind": "snap", "id": "14332475800"}, "geometry": {"type": "Point", "coordinates": [35.3454536, 32.4084313]}}, {"type": "Feature", "properties": {"name": "node 10003173845 (way 1573510577)", "kind": "snap", "id": "10003173845"}, "geometry": {"type": "Point", "coordinates": [35.3453951, 32.4084428]}}, {"type": "Feature", "properties": {"name": "node 14332671927 (way 1573528467)", "kind": "snap", "id": "14332671927"}, "geometry": {"type": "Point", "coordinates": [35.3455296, 32.4081275]}}, {"type": "Feature", "properties": {"name": "node 14332671928 (way 1573528467)", "kind": "snap", "id": "14332671928"}, "geometry": {"type": "Point", "coordinates": [35.3455347, 32.4080774]}}, {"type": "Feature", "properties": {"name": "node 14332671929 (way 1573528467)", "kind": "snap", "id": "14332671929"}, "geometry": {"type": "Point", "coordinates": [35.3455325, 32.4080211]}}, {"type": "Feature", "properties": {"name": "node 14332475802 (way 1573528469)", "kind": "snap", "id": "14332475802"}, "geometry": {"type": "Point", "coordinates": [35.3454793, 32.4084097]}}, {"type": "Feature", "properties": {"name": "node 14332671946 (way 1573528469)", "kind": "snap", "id": "14332671946"}, "geometry": {"type": "Point", "coordinates": [35.3455558, 32.4084217]}}, {"type": "Feature", "properties": {"name": "node 14368505141 (way 1577986804)", "kind": "snap", "id": "14368505141"}, "geometry": {"type": "Point", "coordinates": [35.34552, 32.4082903]}}, {"type": "Feature", "properties": {"name": "node 14368505140 (way 1577986804)", "kind": "snap", "id": "14368505140"}, "geometry": {"type": "Point", "coordinates": [35.3456056, 32.4082808]}}, {"type": "Feature", "properties": {"name": "loop node 14332475796", "kind": "loopnode", "id": "14332475796"}, "geometry": {"type": "Point", "coordinates": [35.345446, 32.4083034]}}, {"type": "Feature", "properties": {"name": "loop node 14332475784", "kind": "loopnode", "id": "14332475784"}, "geometry": {"type": "Point", "coordinates": [35.3453996, 32.4083012]}}, {"type": "Feature", "properties": {"name": "loop node 14332475783 (junction)", "kind": "junction", "id": "14332475783"}, "geometry": {"type": "Point", "coordinates": [35.3453646, 32.4082848]}}, {"type": "Feature", "properties": {"name": "loop node 14332475785", "kind": "loopnode", "id": "14332475785"}, "geometry": {"type": "Point", "coordinates": [35.3453394, 32.408257]}}, {"type": "Feature", "properties": {"name": "loop node 10003633058 (junction)", "kind": "junction", "id": "10003633058"}, "geometry": {"type": "Point", "coordinates": [35.3453311, 32.4082268]}}, {"type": "Feature", "properties": {"name": "loop node 14332475786", "kind": "loopnode", "id": "14332475786"}, "geometry": {"type": "Point", "coordinates": [35.3453302, 32.4082235]}}, {"type": "Feature", "properties": {"name": "loop node 14332475782 (junction)", "kind": "junction", "id": "14332475782"}, "geometry": {"type": "Point", "coordinates": [35.3453375, 32.4081919]}}, {"type": "Feature", "properties": {"name": "loop node 14332475787", "kind": "loopnode", "id": "14332475787"}, "geometry": {"type": "Point", "coordinates": [35.3453381, 32.4081897]}}, {"type": "Feature", "properties": {"name": "loop node 14332475794", "kind": "loopnode", "id": "14332475794"}, "geometry": {"type": "Point", "coordinates": [35.3453615, 32.4081615]}}, {"type": "Feature", "properties": {"name": "loop node 14332475795", "kind": "loopnode", "id": "14332475795"}, "geometry": {"type": "Point", "coordinates": [35.3453965, 32.4081438]}}, {"type": "Feature", "properties": {"name": "loop node 14332475788", "kind": "loopnode", "id": "14332475788"}, "geometry": {"type": "Point", "coordinates": [35.345437, 32.4081397]}}, {"type": "Feature", "properties": {"name": "loop node 14332475798 (junction)", "kind": "junction", "id": "14332475798"}, "geometry": {"type": "Point", "coordinates": [35.3454669, 32.4081483]}}, {"type": "Feature", "properties": {"name": "loop node 14332475789", "kind": "loopnode", "id": "14332475789"}, "geometry": {"type": "Point", "coordinates": [35.3454809, 32.4081523]}}, {"type": "Feature", "properties": {"name": "loop node 14332671926 (junction)", "kind": "junction", "id": "14332671926"}, "geometry": {"type": "Point", "coordinates": [35.3455042, 32.4081729]}}, {"type": "Feature", "properties": {"name": "loop node 14332475790", "kind": "loopnode", "id": "14332475790"}, "geometry": {"type": "Point", "coordinates": [35.345513, 32.4081806]}}, {"type": "Feature", "properties": {"name": "loop node 14332475791", "kind": "loopnode", "id": "14332475791"}, "geometry": {"type": "Point", "coordinates": [35.3455261, 32.4082182]}}, {"type": "Feature", "properties": {"name": "loop node 14332475792 (junction)", "kind": "junction", "id": "14332475792"}, "geometry": {"type": "Point", "coordinates": [35.3455172, 32.4082567]}}, {"type": "Feature", "properties": {"name": "loop node 14332475793", "kind": "loopnode", "id": "14332475793"}, "geometry": {"type": "Point", "coordinates": [35.3454883, 32.4082874]}}, {"type": "Feature", "properties": {"name": "Engineering destination (app)", "kind": "dest"}, "geometry": {"type": "Point", "coordinates": [35.345596474631094, 32.40830854009759]}}]};
+const map = L.map('map', { maxZoom: 22 });
+// Esri has real imagery for this campus up to zoom 18 only; above that it
+// serves a "Map data not yet available" placeholder. maxNativeZoom makes
+// Leaflet enlarge the zoom-18 tiles instead of requesting placeholders.
+const sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+  { maxZoom: 22, maxNativeZoom: 18, attribution: 'Imagery &copy; Esri, Maxar, Earthstar Geographics' });
+// OSM tiles require a Referer, which browsers do not send from file:// pages.
+// Open the page through open_footway_editor.bat (http://127.0.0.1).
+const osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+  { maxZoom: 22, maxNativeZoom: 19, attribution: '&copy; OpenStreetMap contributors' });
+// Backup street layer that works from any page origin (real tiles to zoom 19).
+const streets = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+  { maxZoom: 22, maxNativeZoom: 19, attribution: 'Tiles &copy; Esri' });
+const HASH = Object.fromEntries(location.hash.slice(1).split('&').filter(Boolean).map(s => s.split('=')));
+const BASES = { 'Satellite (Esri)': sat, 'OpenStreetMap': osm, 'Streets (Esri, backup)': streets };
+({ osm, streets }[HASH.layer] || sat).addTo(map);
+L.control.layers(BASES).addTo(map);
+L.control.scale({ metric: true, imperial: false }).addTo(map);
+
+const style = {
+  loop: { color: '#e53935', weight: 5 }, highway: { color: '#ffd54f', weight: 4 },
+  building: { color: '#90caf9', weight: 2, dashArray: '4 3' }, area: { color: '#b0bec5', weight: 1, dashArray: '2 4' },
+};
+const snapNodes = [];
+const layers = { existing: L.layerGroup().addTo(map), proposed: L.layerGroup().addTo(map) };
+for (const f of DATA.features) {
+  const k = f.properties.kind, name = f.properties.name;
+  if (f.geometry.type === 'LineString') {
+    const ll = f.geometry.coordinates.map(c => [c[1], c[0]]);
+    if (k === 'proposed') {
+      const rec = name.startsWith('West');
+      L.polyline(ll, { color: rec ? '#00c853' : '#9e9e9e', weight: 5, dashArray: rec ? null : '6 6' })
+        .bindTooltip(name + (rec ? ' (recommended)' : ' (not recommended)')).addTo(layers.proposed);
+    } else {
+      L.polyline(ll, style[k] || style.highway).bindTooltip(name).addTo(layers.existing);
+    }
+  } else {
+    const [lon, lat] = f.geometry.coordinates;
+    if (k === 'junction' || k === 'loopnode' || k === 'snap') {
+      snapNodes.push({ id: f.properties.id, lat, lon, name });
+      L.circleMarker([lat, lon], k === 'junction'
+        ? { radius: 5, color: '#b71c1c', fillColor: '#e53935', fillOpacity: 1 }
+        : { radius: 3, color: '#333', fillColor: '#fff', fillOpacity: 1, weight: 1 })
+        .bindTooltip(name).addTo(layers.existing);
+    } else if (k === 'proposed-node') {
+      L.circleMarker([lat, lon], { radius: 3, color: '#1b5e20', fillColor: '#b9f6ca', fillOpacity: 1 })
+        .bindTooltip(name).addTo(layers.proposed);
+    } else if (k === 'dest') {
+      L.marker([lat, lon], { title: name }).bindTooltip('★ ' + name).addTo(layers.existing);
+    }
+  }
+}
+L.control.layers(null, { 'Existing network': layers.existing, 'Proposed footways': layers.proposed }).addTo(map);
+if (location.protocol === 'file:') document.getElementById('filewarn').style.display = 'block';
+map.setView([32.40822, 35.34543], HASH.z ? +HASH.z : 19);
+
+// ---------- geometry helpers ----------
+const R = 6371000, rad = Math.PI / 180;
+function dist(a, b) {
+  const dLat = (b.lat - a.lat) * rad, dLon = (b.lng - a.lng) * rad;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+}
+function bearing(a, b) {
+  const y = Math.sin((b.lng - a.lng) * rad) * Math.cos(b.lat * rad);
+  const x = Math.cos(a.lat * rad) * Math.sin(b.lat * rad) - Math.sin(a.lat * rad) * Math.cos(b.lat * rad) * Math.cos((b.lng - a.lng) * rad);
+  return Math.atan2(y, x) / rad;
+}
+const wrap = d => ((d + 540) % 360) - 180;
+function nearestNode(p, maxM) {
+  let best = null, bd = Infinity;
+  for (const n of snapNodes) { const d = dist(p, { lat: n.lat, lng: n.lon }); if (d < bd) { bd = d; best = n; } }
+  return bd <= maxM ? { node: best, d: bd } : null;
+}
+const existingLines = DATA.features.filter(f => f.geometry.type === 'LineString' && f.properties.kind !== 'proposed'
+  && f.properties.kind !== 'building' && f.properties.kind !== 'area');
+function toXY(p, o) { return [(p.lng - o.lng) * 111320 * Math.cos(o.lat * rad), (p.lat - o.lat) * 111320]; }
+function segInter(a, b, c, d) {
+  const o = a, [x1, y1] = toXY(a, o), [x2, y2] = toXY(b, o), [x3, y3] = toXY(c, o), [x4, y4] = toXY(d, o);
+  const den = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4); if (Math.abs(den) < 1e-12) return false;
+  const t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / den, u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / den;
+  return t > 0.02 && t < 0.98 && u > 0.02 && u < 0.98;
+}
+
+// ---------- drawing ----------
+let drawing = false, pts = [], markers = [], line = L.polyline([], { color: '#2979ff', weight: 5 }).addTo(map);
+const $ = id => document.getElementById(id);
+function snapFor(i) {
+  const p = pts[i], end = i === 0 || i === pts.length - 1;
+  return nearestNode(p, end ? 3 : 1.5);
+}
+function redraw() {
+  line.setLatLngs(pts);
+  markers.forEach(m => map.removeLayer(m)); markers = [];
+  pts.forEach((p, i) => {
+    const m = L.marker(p, { draggable: true, icon: L.divIcon({ className: '', html:
+      `<div style="background:#2979ff;color:#fff;border-radius:9px;width:18px;height:18px;text-align:center;font:11px/18px sans-serif;border:2px solid #fff">${i}</div>`,
+      iconSize: [18, 18], iconAnchor: [9, 9] }) }).addTo(map);
+    m.on('drag', e => { pts[i] = e.target.getLatLng(); line.setLatLngs(pts); });
+    m.on('dragend', () => { report(); });
+    m.on('contextmenu', () => { pts.splice(i, 1); redraw(); });
+    markers.push(m);
+  });
+  report();
+}
+function report() {
+  const body = $('pts').querySelector('tbody'); body.innerHTML = '';
+  const checks = [];
+  let total = 0;
+  pts.forEach((p, i) => {
+    const s = snapFor(i);
+    const seg = i < pts.length - 1 ? dist(p, pts[i + 1]) : null; if (seg) total += seg;
+    const bend = i > 0 && i < pts.length - 1 ? wrap(bearing(p, pts[i + 1]) - bearing(pts[i - 1], p)) : null;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${i}</td><td>${p.lat.toFixed(7)}, ${p.lng.toFixed(7)}</td>
+      <td>${seg ? seg.toFixed(1) + ' m' : ''}</td>
+      <td class="${bend !== null && Math.abs(bend) >= 35 ? 'warn' : ''}">${bend !== null ? (bend > 0 ? '+' : '') + bend.toFixed(0) + '°' : ''}</td>
+      <td>${s ? s.node.id + ' (' + s.d.toFixed(1) + ' m)' : (i === 0 || i === pts.length - 1 ? '<span class="bad">none</span>' : '')}</td>`;
+    body.appendChild(tr);
+  });
+  if (pts.length >= 2) {
+    const s0 = snapFor(0), s1 = snapFor(pts.length - 1);
+    checks.push(s0 && s1 ? '<div class="ok">✔ Both ends connect to existing nodes.</div>'
+      : '<div class="bad">✖ Each end must be within 3 m of an existing node (white/red dots). I can also add a new node on a road if you put an end on one.</div>');
+    let crossings = 0;
+    for (let i = 0; i < pts.length - 1; i++) {
+      for (const f of existingLines) {
+        const c = f.geometry.coordinates.map(q => L.latLng(q[1], q[0]));
+        for (let k = 0; k < c.length - 1; k++) if (segInter(pts[i], pts[i + 1], c[k], c[k + 1])) {
+          if (!(snapFor(i) || snapFor(i + 1))) crossings++;
+        }
+      }
+    }
+    checks.push(crossings ? `<div class="warn">⚠ Crosses an existing path ${crossings}× between points. Put a point on the crossing so they share a node.</div>`
+      : '<div class="ok">✔ No crossings without a shared point.</div>');
+    const sharp = pts.slice(1, -1).filter((p, j) => Math.abs(wrap(bearing(p, pts[j + 2]) - bearing(pts[j], p))) >= 35).length;
+    checks.push(sharp ? `<div class="warn">⚠ ${sharp} bend(s) of 35° or more. The app announces these as turns.</div>`
+      : '<div class="ok">✔ All bends under 35°, so they read as one smooth curve.</div>');
+    if ([0, pts.length - 1].some(i => { const s = snapFor(i); return s && ['14332475798','14332475799','14332475797','14332671926','14332671927'].includes(s.node.id); }))
+      checks.push('<div class="bad">✖ An end is on the south side. The south side stays unchanged; end at 14368505141 instead.</div>');
+    const endOk = (() => { const s = snapFor(pts.length - 1), s0 = snapFor(0); return (s && s.node.id === '14368505141') || (s0 && s0.node.id === '14368505141'); })();
+    checks.push(endOk ? '<div class="ok">✔ Connects to the main-door footway (14368505141).</div>' : '<div class="warn">⚠ Neither end is on 14368505141 (main-door footway start).</div>');
+    checks.push(`<div>Length: <b>${total.toFixed(1)} m</b>. The west proposal is 27.2 m and the loop route 31.9 m. OSRM uses whichever is shorter.</div>`);
+  }
+  $('checks').innerHTML = checks.join('');
+  const gj = { type: 'Feature', properties: { highway: 'footway', source: 'drawn on Esri World Imagery',
+      nodes: pts.map((p, i) => { const s = snapFor(i); return s ? s.node.id : null; }) },
+    geometry: { type: 'LineString', coordinates: pts.map(p => [+p.lng.toFixed(8), +p.lat.toFixed(8)]) } };
+  $('out').value = pts.length ? JSON.stringify(gj) : '';
+  $('copy').disabled = $('download').disabled = pts.length < 2;
+  $('undo').disabled = !pts.length;
+}
+map.on('click', e => { if (!drawing) return; pts.push(e.latlng); redraw(); });
+$('start').onclick = () => { drawing = true; map.getContainer().style.cursor = 'crosshair'; $('start').disabled = true; $('finish').disabled = false; };
+$('finish').onclick = () => { drawing = false; map.getContainer().style.cursor = ''; $('start').disabled = false; $('finish').disabled = true; };
+$('undo').onclick = () => { pts.pop(); redraw(); };
+$('clear').onclick = () => { pts = []; redraw(); };
+$('copy').onclick = async () => { $('out').select(); try { await navigator.clipboard.writeText($('out').value); } catch (e) { document.execCommand('copy'); } $('copy').textContent = 'Copied ✔'; setTimeout(() => $('copy').textContent = 'Copy GeoJSON', 1500); };
+$('download').onclick = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([$('out').value], { type: 'application/geo+json' })); a.download = 'engineering_footway.geojson'; a.click(); };
+</script>
+</body>
+</html>
