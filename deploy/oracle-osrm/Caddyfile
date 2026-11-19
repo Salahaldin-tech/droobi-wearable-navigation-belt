@@ -1,0 +1,16 @@
+# Public HTTPS front for the campus OSRM server.
+# Caddy obtains and renews the Let's Encrypt certificate for {$DOMAIN}
+# automatically. Only the read-only walking-route endpoints are forwarded;
+# OSRM itself listens on 127.0.0.1:5000 and is not reachable from outside.
+{$DOMAIN} {
+	@osrm {
+		method GET
+		path /route/v1/foot/* /nearest/v1/foot/*
+	}
+	handle @osrm {
+		reverse_proxy 127.0.0.1:5000
+	}
+	handle {
+		respond "Not found" 404
+	}
+}
