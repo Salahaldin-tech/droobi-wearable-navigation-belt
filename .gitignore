@@ -49,3 +49,6 @@ app.*.map.json
 
 # Campus OSRM build output (regenerate with scripts/build_campus_osrm.ps1)
 docs/campus-mapping/osm/*.osrm*
+
+# Local build settings (server URL, IFM API key). Never commit.
+dart_defines.local.json
