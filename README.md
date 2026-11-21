@@ -332,24 +332,69 @@ Built for people who can't rely on a screen, so every choice follows from that:
 
 ---
 
-## 🚀 Quick Start
+## 🚀 How to Run Droobi
 
-**You'll need:** Flutter SDK, Android Studio + Android SDK, Git, and a physical Android device (recommended for GPS, compass, and BLE).
+**You'll need:** Flutter SDK, Android Studio + Android SDK, Git, and a physical Android device (GPS, compass, microphone and BLE don't work properly in an emulator).
+
+### 1. Get the code
 
 ```bash
-# 1. Check your setup
 flutter doctor
-
-# 2. Clone
 git clone https://github.com/Salahaldin-tech/droobi-wearable-navigation-belt.git
 cd droobi-wearable-navigation-belt
-
-# 3. Install dependencies
 flutter pub get
-
-# 4. Run (device connected or emulator started)
-flutter run
 ```
+
+### 2. Create the local configuration file
+
+Campus routing and voice input read their settings at build time. Create
+`dart_defines.local.json` in the project root:
+
+```json
+{
+  "CAMPUS_OSRM_URL": "https://droobi-campus.duckdns.org",
+  "IFM_API_KEY": ""
+}
+```
+
+| Key | Value |
+|---|---|
+| `CAMPUS_OSRM_URL` | Campus walking-route server. `https://droobi-campus.duckdns.org` is the always-on Oracle Cloud server ([deploy/oracle-osrm](deploy/oracle-osrm/README.md)). Without it, campus navigation reports that the server is not configured. |
+| `IFM_API_KEY` | Key for IFM Jais-ASR speech-to-text ([docs/IFM_JAIS_ASR_EXPERIMENT.md](docs/IFM_JAIS_ASR_EXPERIMENT.md)). Leave it empty to run without voice input. |
+
+The file is listed in `.gitignore`. **Never commit it or share the key**:
+values passed this way are compiled into the app, so only use test builds
+you keep to yourself.
+
+### 3. Prepare the phone (once)
+
+1. Settings → About phone → Software information → tap **Build number** 7 times.
+2. Developer options → turn on **USB debugging**.
+3. Connect the USB cable and accept **Allow USB debugging** (tick *Always allow from this computer*).
+4. `flutter devices` should list the phone.
+
+### 4. Run
+
+**Android Studio:** open the project, set the `main.dart` run configuration's
+*Additional run args* to `--dart-define-from-file=dart_defines.local.json`,
+pick the phone and press **Run**.
+
+**Terminal:**
+
+```bash
+flutter run --dart-define-from-file=dart_defines.local.json
+```
+
+**Installable APK** (for testing without the cable):
+
+```bash
+flutter build apk --release --dart-define-from-file=dart_defines.local.json
+```
+
+On first launch, allow **Location** and **Microphone**. The phone needs internet
+access (mobile data or Wi-Fi) to reach the campus route server; the development
+PC does not need to stay on. After changing `dart_defines.local.json`, run or
+build again: the values are fixed into each build.
 
 ### 🔥 Firebase setup
 
