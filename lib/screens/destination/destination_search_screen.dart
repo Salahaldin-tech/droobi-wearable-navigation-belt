@@ -7,9 +7,11 @@ import '../../screens/navigation/live_navigation_screen.dart';
 import '../../screens/university/university_locations_screen.dart';
 import '../../state/destination_search_notifier.dart';
 import '../../state/favorites_notifier.dart';
+import '../../widgets/page_header.dart';
 import '../../widgets/page_help_button.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../l10n/l10n.dart';
 import '../../widgets/app_card.dart';
 
 class _AppTheme {
@@ -31,10 +33,11 @@ class _AppTheme {
 }
 
 class _Category {
-  const _Category(this.label, this.icon, this.color, this.query,
+  const _Category(this.label, this.labelAr, this.icon, this.color, this.query,
       {this.isCampus = false});
 
   final String label;
+  final String labelAr;
   final IconData icon;
   final Color color;
   final String query;
@@ -42,20 +45,38 @@ class _Category {
 }
 
 const _categories = [
-  _Category('University', Icons.school, AppColors.brown, '', isCampus: true),
-  _Category('Restaurants', Icons.restaurant, AppColors.brown, 'restaurant'),
-  _Category('Cafés', Icons.local_cafe, AppColors.brown, 'cafe'),
-  _Category('Pharmacy', Icons.local_pharmacy, AppColors.brown, 'pharmacy'),
-  _Category('Hospital', Icons.local_hospital, AppColors.brown, 'hospital'),
-  _Category('Supermarket', Icons.shopping_cart, AppColors.brown, 'supermarket'),
-  _Category('Bank', Icons.account_balance, AppColors.brown, 'bank'),
-  _Category('Mosque', Icons.mosque, AppColors.brown, 'mosque'),
+  _Category('University', 'الجامعة', Icons.school, AppColors.brown, '',
+      isCampus: true),
+  _Category('Restaurants', 'مطاعم', Icons.restaurant, AppColors.brown,
+      'restaurant'),
+  _Category('Cafés', 'المقاهي', Icons.local_cafe, AppColors.brown, 'cafe'),
+  _Category('Pharmacy', 'صيدلية', Icons.local_pharmacy, AppColors.brown,
+      'pharmacy'),
+  _Category('Hospital', 'مستشفى', Icons.local_hospital, AppColors.brown,
+      'hospital'),
+  _Category('Supermarket', 'سوبرماركت', Icons.shopping_cart, AppColors.brown,
+      'supermarket'),
+  _Category('Bank', 'بنك', Icons.account_balance, AppColors.brown, 'bank'),
+  _Category('Mosque', 'مسجد', Icons.mosque, AppColors.brown, 'mosque'),
 ];
 
 const _trendingSearches = [
   'Cafeteria', 'Library', 'Gate 3', 'Pharmacy',
   'Hospital', 'Supermarket', 'Bank', 'Restaurants',
 ];
+
+/// Arabic display labels for the trending chips. Tapping a chip still
+/// submits the original query, so search behaviour is unchanged.
+const _trendingSearchesAr = <String, String>{
+  'Cafeteria': 'الكافتيريا',
+  'Library': 'المكتبة',
+  'Gate 3': 'البوابة 3',
+  'Pharmacy': 'صيدلية',
+  'Hospital': 'مستشفى',
+  'Supermarket': 'سوبرماركت',
+  'Bank': 'بنك',
+  'Restaurants': 'مطاعم',
+};
 
 class _SearchHistory {
   static final List<String> items = [];
@@ -272,7 +293,12 @@ class _DestinationSearchScreenState
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          content: Text('Added "${label.trim()}" to Favorites'),
+          content: Text(
+            context.tr(
+              'Added "${label.trim()}" to Favorites',
+              'تمت إضافة «${label.trim()}» إلى المفضلة',
+            ),
+          ),
         ),
       );
     }
@@ -301,28 +327,11 @@ class _DestinationSearchScreenState
       appBar: AppBar(
         backgroundColor: _AppTheme.background,
         elevation: 0,
+        titleSpacing: pageTitleSpacing(context),
         centerTitle: false,
-        title: Row(
-          mainAxisSize: MainAxisSize.max,
-          children: [
-            Expanded(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Search Destination',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontFamily: 'LyonArabic',
-                    fontSize: 27,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(width: 4),
-            PageHelpButton(
+        title: AppBarPageTitle(
+          title: context.tr('Search Destination', 'البحث عن وجهة'),
+          help: const PageHelpButton(
               title: 'Search Destination',
               titleAr: 'البحث عن وجهة',
               description:
@@ -336,14 +345,13 @@ class _DestinationSearchScreenState
                 'Tap the clear (×) icon in the field to restore the discovery sections.',
               ],
               tipsAr: [
-                'اكتب اسم المكان واضغط Search أو أرسل البحث من لوحة المفاتيح.',
+                'اكتب اسم المكان واضغط «بحث» أو أرسل البحث من لوحة المفاتيح.',
                 'اضغط صف النتيجة لبدء الملاحة المباشرة، أو اضغط النجمة لحفظها في المفضلة.',
-                'عمليات بحث مثل Gate 3 أو Cafeteria يمكن أن تفتح صفحة الجامعة. أما عمليات البحث الأخرى المشابهة لأماكن الجامعة فتُظهر اختصارًا للبحث داخل الحرم عند الحاجة.',
+                'عمليات بحث مثل «البوابة 3» أو «الكافتيريا» يمكن أن تفتح صفحة الجامعة. أما عمليات البحث الأخرى المشابهة لأماكن الجامعة فتُظهر اختصارًا للبحث داخل الحرم عند الحاجة.',
                 'اضغط رمز المسح (×) في الحقل لإظهار أقسام الاستكشاف مجددًا.',
               ],
               color: _AppTheme.accent,
             ),
-          ],
         ),
         iconTheme: const IconThemeData(color: _AppTheme.textPrimary),
       ),
@@ -373,7 +381,7 @@ class _DestinationSearchScreenState
                     Padding(
                       padding: const EdgeInsets.only(top: 8),
                       child: Text(
-                        state.errorMessage!,
+                        context.localizeMessage(state.errorMessage!),
                         style: const TextStyle(
                           color: _AppTheme.error,
                           fontSize: 13,
@@ -384,11 +392,11 @@ class _DestinationSearchScreenState
                       state.errorMessage == null &&
                       state.results.isEmpty &&
                       state.query.isNotEmpty)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 16),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 16),
                       child: Text(
-                        'No results found.',
-                        style: TextStyle(color: _AppTheme.textSecondary),
+                        context.tr('No results found.', 'لم يتم العثور على نتائج.'),
+                        style: const TextStyle(color: _AppTheme.textSecondary),
                       ),
                     ),
                   if (_campusSuggestion != null) ...[
@@ -418,19 +426,22 @@ class _DestinationSearchScreenState
         Expanded(
           child: Semantics(
             textField: true,
-            label: 'Search destination',
+            label: context.tr('Search destination', 'ابحث عن وجهة'),
             child: TextField(
               controller: _controller,
               textInputAction: TextInputAction.search,
               onSubmitted: (_) => _runSearch(),
               style: const TextStyle(color: _AppTheme.textPrimary),
               decoration: InputDecoration(
-                labelText: 'Where do you want to go?',
+                labelText: context.tr(
+                  'Where do you want to go?',
+                  'إلى أين تريد الذهاب؟',
+                ),
                 labelStyle: const TextStyle(color: _AppTheme.hint),
                 suffixIcon: _controller.text.isEmpty
                     ? const Icon(Icons.search, color: _AppTheme.hint)
                     : IconButton(
-                        tooltip: 'Clear search',
+                        tooltip: context.tr('Clear search', 'مسح البحث'),
                         onPressed: _clearSearch,
                         icon: const Icon(Icons.close),
                       ),
@@ -470,9 +481,9 @@ class _DestinationSearchScreenState
                 borderRadius: BorderRadius.circular(14),
               ),
             ),
-            child: const Text(
-              'Search',
-              style: TextStyle(fontWeight: FontWeight.w600),
+            child: Text(
+              context.tr('Search', 'بحث'),
+              style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
         ),
@@ -495,7 +506,10 @@ class _DestinationSearchScreenState
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Looking for “$query” on campus?',
+                  context.tr(
+                    'Looking for “$query” on campus?',
+                    'هل تبحث عن «$query» داخل الحرم الجامعي؟',
+                  ),
                   style: const TextStyle(
                     color: _AppTheme.textPrimary,
                     fontSize: 14,
@@ -503,9 +517,9 @@ class _DestinationSearchScreenState
                 ),
               ),
               const SizedBox(width: 8),
-              const Text(
-                'Search on campus',
-                style: TextStyle(
+              Text(
+                context.tr('Search on campus', 'ابحث في الحرم'),
+                style: const TextStyle(
                   color: _AppTheme.accent,
                   fontWeight: FontWeight.w600,
                   fontSize: 13,
@@ -560,7 +574,7 @@ class _DestinationSearchScreenState
                 ),
               ),
         trailing: IconButton(
-          tooltip: 'Add to Favorites',
+          tooltip: context.tr('Add to Favorites', 'إضافة إلى المفضلة'),
           icon: const Icon(Icons.star_border),
           color: _AppTheme.accent,
           onPressed: () => _addToFavorites(destination),
@@ -575,13 +589,15 @@ class _DestinationSearchScreenState
       if (_SearchHistory.items.isNotEmpty) ...[
         Row(
           children: [
-            const Expanded(child: _SectionTitle('Your history')),
+            Expanded(
+              child: _SectionTitle(context.tr('Your history', 'سجل البحث')),
+            ),
             TextButton(
               onPressed: () => setState(_SearchHistory.clear),
               style: TextButton.styleFrom(
                 foregroundColor: _AppTheme.textSecondary,
               ),
-              child: const Text('Clear'),
+              child: Text(context.tr('Clear', 'مسح')),
             ),
           ],
         ),
@@ -600,7 +616,7 @@ class _DestinationSearchScreenState
         ),
         const SizedBox(height: 24),
       ],
-      const _SectionTitle('Search by category'),
+      _SectionTitle(context.tr('Search by category', 'البحث حسب التصنيف')),
       const SizedBox(height: 8),
       SingleChildScrollView(
         scrollDirection: Axis.horizontal,
@@ -620,7 +636,7 @@ class _DestinationSearchScreenState
         ),
       ),
       const SizedBox(height: 20),
-      const _SectionTitle('Trending searches'),
+      _SectionTitle(context.tr('Trending searches', 'عمليات البحث الشائعة')),
       const SizedBox(height: 8),
       Wrap(
         spacing: 8,
@@ -628,7 +644,7 @@ class _DestinationSearchScreenState
         children: [
           for (final query in _trendingSearches)
             _QueryChip(
-              label: query,
+              label: context.tr(query, _trendingSearchesAr[query] ?? query),
               onTap: () => _submit(query),
             ),
         ],
@@ -750,7 +766,7 @@ class _CategoryTile extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    category.label,
+                    context.tr(category.label, category.labelAr),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
@@ -790,9 +806,9 @@ class _FavoriteLabelDialogState extends State<_FavoriteLabelDialog> {
   Widget build(BuildContext context) => AlertDialog(
         backgroundColor: _AppTheme.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text(
-          'Add to Favorites',
-          style: TextStyle(
+        title: Text(
+          context.tr('Add to Favorites', 'إضافة إلى المفضلة'),
+          style: const TextStyle(
             color: _AppTheme.textPrimary,
             fontWeight: FontWeight.w700,
           ),
@@ -802,7 +818,7 @@ class _FavoriteLabelDialogState extends State<_FavoriteLabelDialog> {
           autofocus: true,
           textCapitalization: TextCapitalization.sentences,
           decoration: InputDecoration(
-            labelText: 'Label',
+            labelText: context.tr('Label', 'الاسم'),
             filled: true,
             fillColor: _AppTheme.fieldFill,
             border: OutlineInputBorder(
@@ -813,12 +829,12 @@ class _FavoriteLabelDialogState extends State<_FavoriteLabelDialog> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(context.tr('Cancel', 'إلغاء')),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(_labelController.text),
             style: FilledButton.styleFrom(backgroundColor: _AppTheme.accent),
-            child: const Text('Save'),
+            child: Text(context.tr('Save', 'حفظ')),
           ),
         ],
       );

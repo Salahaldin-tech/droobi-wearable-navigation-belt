@@ -10,10 +10,12 @@ import '../../state/voice_language_notifier.dart';
 import '../../widgets/connection_status_indicator.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/droobi_bottom_nav.dart';
+import '../../widgets/page_header.dart';
 import '../../widgets/page_help_button.dart';
 import '../test/dev_test_menu.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../l10n/l10n.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -40,6 +42,8 @@ class SettingsScreen extends ConsumerWidget {
       voiceLanguageProvider,
     );
 
+    final appLanguage = ref.watch(appLanguageProvider);
+
     final searchState = ref.watch(
       destinationSearchProvider,
     );
@@ -61,51 +65,125 @@ class SettingsScreen extends ConsumerWidget {
           children: [
             Expanded(
               child: ListView(
+                // No top padding: the shared header starts at the top of the
+                // safe area, at the same height as every other page title.
                 padding: const EdgeInsets.fromLTRB(
                   24,
-                  24,
+                  0,
                   24,
                   16,
                 ),
                 children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Settings',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 30),
-                      ),
-                      SizedBox(width: 4),
-                      PageHelpButton(
+                  PageHeader(
+                    horizontalPadding: 0,
+                    title: context.tr('Settings', 'الإعدادات'),
+                    help: const PageHelpButton(
                         title: 'Settings',
                         titleAr: 'الإعدادات',
                         description:
-                'Settings is a vertically scrolling page. Its sections appear one below another in this order: Device, Voice Language, Search City, and Account.',
+                'Settings is a vertically scrolling page. Its sections appear one below another in this order: App Language, Device, Voice Language, Search City, and Account.',
                         descriptionAr:
-                'صفحة الإعدادات قابلة للتمرير عموديًا. تظهر أقسامها واحدًا تحت الآخر بهذا الترتيب: Device ثم Voice Language ثم Search City ثم Account.',
+                'صفحة الإعدادات قابلة للتمرير عموديًا. تظهر أقسامها واحدًا تحت الآخر بهذا الترتيب: لغة التطبيق، ثم الجهاز، ثم لغة الصوت، ثم مدينة البحث، ثم الحساب.',
                         tips: [
-                  'Near the top, find the Device section and read the connection status. Tap Connect / Reconnect Belt in the full-width button beneath the status; when connected, the button changes to Disconnect Belt.',
+                  'At the top, use the App Language section to choose العربية or English. The whole app switches immediately and keeps your choice after it is closed or the phone restarts.',
+                  'Below it, find the Device section and read the connection status. Tap Connect / Reconnect Belt in the full-width button beneath the status; when connected, the button changes to Disconnect Belt.',
                   'Scroll down to Voice Language. On the right side of this section, tap EN or AR; the selected language option is highlighted.',
                   'Scroll farther down to Search City. Tap the dropdown control on the right, choose a city from the menu, and the selected city is shown in the control.',
                   'Scroll to the Account section near the bottom and tap Log Out to end the session. If location or Bluetooth permission is denied, open the phone’s system Settings, enable the permission, and return to Droobi.',
                 ],
               tipsAr: [
-                  'قرب أعلى الشاشة، ابحث عن قسم Device واقرأ حالة الاتصال. اضغط زر Connect / Reconnect Belt العريض أسفل الحالة؛ وعند الاتصال يتغير اسمه إلى Disconnect Belt.',
-                  'مرّر إلى أسفل حتى قسم Voice Language. في الجهة اليمنى من القسم، اضغط EN أو AR؛ ويظهر خيار اللغة المحدد بشكل مميز.',
-                  'واصل التمرير إلى قسم Search City. اضغط القائمة المنسدلة على اليمين، واختر مدينة من القائمة؛ وستظهر المدينة المحددة داخل عنصر الاختيار.',
-                  'مرّر إلى قسم Account قرب الأسفل واضغط Log Out لإنهاء الجلسة. إذا رُفض إذن الموقع أو البلوتوث، افتح إعدادات الهاتف، وفعّل الإذن، ثم ارجع إلى دروبي.',
+                  'في الأعلى، استخدم قسم لغة التطبيق لاختيار العربية أو English. يتغير التطبيق بالكامل فورًا، ويحتفظ باختيارك بعد إغلاقه أو إعادة تشغيل الهاتف.',
+                  'أسفله، ابحث عن قسم الجهاز واقرأ حالة الاتصال. اضغط زر «توصيل / إعادة توصيل الحزام» العريض أسفل الحالة؛ وعند الاتصال يتغير اسمه إلى «فصل الحزام».',
+                  'مرّر إلى أسفل حتى قسم لغة الصوت. في الجهة اليسرى من القسم، اضغط «عربي» أو «إنجليزي»؛ ويظهر خيار اللغة المحدد بشكل مميز.',
+                  'واصل التمرير إلى قسم مدينة البحث. اضغط القائمة المنسدلة في الجهة اليسرى، واختر مدينة من القائمة؛ وستظهر المدينة المحددة داخل عنصر الاختيار.',
+                  'مرّر إلى قسم الحساب قرب الأسفل واضغط «تسجيل الخروج» لإنهاء الجلسة. إذا رُفض إذن الموقع أو البلوتوث، افتح إعدادات الهاتف، وفعّل الإذن، ثم ارجع إلى دروبي.',
                 ],
                         color: _blue,
                       ),
-                    ],
                   ),
 
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 16),
+
+                  // App language (interface text + layout direction)
+                  _sectionLabel(
+                    context,
+                    context.tr('APP LANGUAGE', 'لغة التطبيق'),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  AppCard(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.translate,
+                          size: 22,
+                          color: _muted,
+                        ),
+
+                        const SizedBox(width: 12),
+
+                        Expanded(
+                          child: Text(
+                            context.tr('Language', 'اللغة'),
+                            style: const TextStyle(
+                              fontSize: 15,
+                              color: _text,
+                            ),
+                          ),
+                        ),
+
+                        Container(
+                          height: 40,
+                          padding: const EdgeInsets.all(3),
+                          decoration: BoxDecoration(
+                            color: AppColors.cream,
+                            borderRadius:
+                                BorderRadius.circular(10),
+                            border: Border.all(
+                              color: AppColors.brown
+                                  .withValues(alpha: 0.25),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Each option is written in its own language.
+                              _languageButton(
+                                label: 'العربية',
+                                semanticsLabel: 'العربية',
+                                selected:
+                                    appLanguage == AppLanguage.arabic,
+                                onPressed: () {
+                                  ref
+                                      .read(appLanguageProvider.notifier)
+                                      .setLanguage(AppLanguage.arabic);
+                                },
+                              ),
+
+                              _languageButton(
+                                label: 'English',
+                                semanticsLabel: 'English',
+                                selected:
+                                    appLanguage == AppLanguage.english,
+                                onPressed: () {
+                                  ref
+                                      .read(appLanguageProvider.notifier)
+                                      .setLanguage(AppLanguage.english);
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
 
                   const SizedBox(height: 28),
 
                   // Device
-                  _sectionLabel(context, 'DEVICE'),
+                  _sectionLabel(context, context.tr('DEVICE', 'الجهاز')),
 
                   const SizedBox(height: 10),
 
@@ -116,7 +194,7 @@ class SettingsScreen extends ConsumerWidget {
                         const SizedBox(height: 14),
 
                         Align(
-                          alignment: Alignment.centerLeft,
+                          alignment: AlignmentDirectional.centerStart,
                           child: ConnectionStatusIndicator(
                             state: state,
                           ),
@@ -143,8 +221,13 @@ class SettingsScreen extends ConsumerWidget {
                             ),
                             label: Text(
                               isConnected
-                                  ? 'Disconnect Belt'
-                                  : 'Connect / Reconnect Belt',
+                                  ? context.tr('Disconnect Belt', 'فصل الحزام')
+                                  : context.tr(
+                                      'Connect / Reconnect Belt',
+                                      'توصيل / إعادة توصيل الحزام',
+                                    ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                             style: OutlinedButton.styleFrom(
                               foregroundColor:
@@ -169,7 +252,10 @@ class SettingsScreen extends ConsumerWidget {
                   const SizedBox(height: 28),
 
                   // Voice language
-                  _sectionLabel(context, 'VOICE LANGUAGE'),
+                  _sectionLabel(
+                    context,
+                    context.tr('VOICE LANGUAGE', 'لغة الصوت'),
+                  ),
 
                   const SizedBox(height: 10),
 
@@ -185,10 +271,10 @@ class SettingsScreen extends ConsumerWidget {
 
                         const SizedBox(width: 12),
 
-                        const Expanded(
+                        Expanded(
                           child: Text(
-                            'Voice Language',
-                            style: TextStyle(
+                            context.tr('Voice Language', 'لغة الأوامر الصوتية'),
+                            style: const TextStyle(
                               fontSize: 15,
                               color: _text,
                             ),
@@ -210,7 +296,11 @@ class SettingsScreen extends ConsumerWidget {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               _languageButton(
-                                label: 'EN',
+                                label: context.tr('EN', 'إنجليزي'),
+                                semanticsLabel: context.tr(
+                                  'English voice',
+                                  'الصوت بالإنجليزية',
+                                ),
                                 selected:
                                     voiceLanguage ==
                                         VoiceLanguage.english,
@@ -227,7 +317,11 @@ class SettingsScreen extends ConsumerWidget {
                               ),
 
                               _languageButton(
-                                label: 'AR',
+                                label: context.tr('AR', 'عربي'),
+                                semanticsLabel: context.tr(
+                                  'Arabic voice',
+                                  'الصوت بالعربية',
+                                ),
                                 selected:
                                     voiceLanguage ==
                                         VoiceLanguage.arabic,
@@ -252,7 +346,10 @@ class SettingsScreen extends ConsumerWidget {
                   const SizedBox(height: 28),
 
                   // Search city
-                  _sectionLabel(context, 'SEARCH CITY'),
+                  _sectionLabel(
+                    context,
+                    context.tr('SEARCH CITY', 'مدينة البحث'),
+                  ),
 
                   const SizedBox(height: 10),
 
@@ -268,10 +365,10 @@ class SettingsScreen extends ConsumerWidget {
 
                         const SizedBox(width: 12),
 
-                        const Expanded(
+                        Expanded(
                           child: Text(
-                            'Search City',
-                            style: TextStyle(
+                            context.tr('Search City', 'مدينة البحث'),
+                            style: const TextStyle(
                               fontSize: 15,
                               color: _text,
                             ),
@@ -306,7 +403,7 @@ class SettingsScreen extends ConsumerWidget {
                                   return DropdownMenuItem<String>(
                                     value: city,
                                     child: Text(
-                                      city,
+                                      context.cityName(city),
                                       style: const TextStyle(
                                         fontSize: 14,
                                         color: _text,
@@ -335,7 +432,7 @@ class SettingsScreen extends ConsumerWidget {
                   const SizedBox(height: 28),
 
                   // Account
-                  _sectionLabel(context, 'ACCOUNT'),
+                  _sectionLabel(context, context.tr('ACCOUNT', 'الحساب')),
 
                   const SizedBox(height: 10),
 
@@ -359,21 +456,21 @@ class SettingsScreen extends ConsumerWidget {
                             (route) => route.isFirst,
                           );
                         },
-                        child: const Padding(
-                          padding: EdgeInsets.all(16),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
                           child: Row(
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.logout,
                                 size: 21,
                                 color: _red,
                               ),
 
-                              SizedBox(width: 12),
+                              const SizedBox(width: 12),
 
                               Text(
-                                'Sign Out',
-                                style: TextStyle(
+                                context.tr('Sign Out', 'تسجيل الخروج'),
+                                style: const TextStyle(
                                   fontSize: 15,
                                   color: _red,
                                 ),
@@ -389,7 +486,7 @@ class SettingsScreen extends ConsumerWidget {
                     const SizedBox(height: 28),
 
                     // Developer tools
-                    _sectionLabel(context, 'DEVELOPER'),
+                    _sectionLabel(context, context.tr('DEVELOPER', 'المطوّر')),
 
                     const SizedBox(height: 10),
 
@@ -410,29 +507,32 @@ class SettingsScreen extends ConsumerWidget {
                               ),
                             );
                           },
-                          child: const Padding(
-                            padding: EdgeInsets.all(16),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
                             child: Row(
                               children: [
-                                Icon(
+                                const Icon(
                                   Icons.build_outlined,
                                   size: 21,
                                   color: _muted,
                                 ),
 
-                                SizedBox(width: 12),
+                                const SizedBox(width: 12),
 
                                 Expanded(
                                   child: Text(
-                                    'Dev Test Menu',
-                                    style: TextStyle(
+                                    context.tr(
+                                      'Dev Test Menu',
+                                      'قائمة اختبارات المطوّر',
+                                    ),
+                                    style: const TextStyle(
                                       fontSize: 15,
                                       color: _text,
                                     ),
                                   ),
                                 ),
 
-                                Icon(
+                                const Icon(
                                   Icons.chevron_right,
                                   size: 20,
                                   color:
@@ -449,25 +549,25 @@ class SettingsScreen extends ConsumerWidget {
                   const SizedBox(height: 16),
 
                   // App info
-                  const Padding(
-                    padding: EdgeInsets.symmetric(
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
                       vertical: 18,
                     ),
                     child: Column(
                       children: [
                         Text(
-                          'Droobi v1.0.0',
-                          style: TextStyle(
+                          context.tr('Droobi v1.0.0', 'دروبي – الإصدار 1.0.0'),
+                          style: const TextStyle(
                             fontSize: 14,
                             color: AppColors.brown,
                           ),
                         ),
 
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
 
                         Text(
-                          'دروبي',
-                          style: TextStyle(
+                          context.tr('دروبي', 'Droobi'),
+                          style: const TextStyle(
                             fontSize: 14,
                             color: AppColors.brown,
                           ),
@@ -491,26 +591,29 @@ class SettingsScreen extends ConsumerWidget {
   Widget _sectionLabel(BuildContext context, String text) {
     return Text(
       text,
-      style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 20, letterSpacing: 0.4),
+      style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 20, letterSpacing: context.letterSpacing(0.4)),
     );
   }
 
   Widget _languageButton({
     required String label,
+    required String semanticsLabel,
     required bool selected,
     required VoidCallback onPressed,
   }) {
     return Semantics(
       button: true,
       selected: selected,
-      label: label == 'EN' ? 'English' : 'العربية',
+      label: semanticsLabel,
+      excludeSemantics: true,
       child: GestureDetector(
         onTap: onPressed,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 160),
           curve: Curves.easeOut,
-          width: 48,
+          constraints: const BoxConstraints(minWidth: 48),
           height: 32,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: selected ? _blue : AppColors.cream,

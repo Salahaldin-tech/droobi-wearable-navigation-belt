@@ -9,6 +9,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
 
   flutter_blue_plus: ^1.32.12
   flutter_riverpod: ^2.5.1
@@ -58,6 +60,7 @@ flutter:
 
   assets:
     - assets/fonts/
+    - assets/home_bg.png
     - assets/images/app_logo.png
     - assets/images/Favorites_bg.png
     - assets/images/uni_bg.png

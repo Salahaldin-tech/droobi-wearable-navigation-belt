@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/enums/voice_command_state.dart';
 
 import '../core/theme/app_colors.dart';
+import '../l10n/l10n.dart';
 
 /// The Home Screen's primary, centered microphone action.
 ///
@@ -106,32 +107,41 @@ class _VoiceCommandButtonState extends State<VoiceCommandButton>
     final (semanticLabel, semanticHint, icon, color) =
         switch (widget.state.phase) {
       VoiceCommandPhase.idle => (
-          'Voice Command',
-          'Press and hold to speak your destination',
+          context.tr('Voice Command', 'الأمر الصوتي'),
+          context.tr(
+            'Press and hold to speak your destination',
+            'اضغط مطولًا وانطق اسم وجهتك',
+          ),
           Icons.mic,
           AppColors.brown,
         ),
       VoiceCommandPhase.listening => (
-          'Listening',
-          'Release to finish speaking',
+          context.tr('Listening', 'جارٍ الاستماع'),
+          context.tr('Release to finish speaking', 'ارفع إصبعك لإنهاء التحدث'),
           Icons.mic,
           AppColors.brown,
         ),
       VoiceCommandPhase.processing => (
-          'Processing your request',
+          context.tr('Processing your request', 'جارٍ معالجة طلبك'),
           null,
           Icons.mic,
           AppColors.brown,
         ),
       VoiceCommandPhase.recognized => (
-          'Heard: ${widget.state.recognizedText ?? ""}',
-          'Waiting to search destination',
+          context.tr(
+            'Heard: ${widget.state.recognizedText ?? ""}',
+            'سمعت: ${widget.state.recognizedText ?? ""}',
+          ),
+          context.tr(
+            'Waiting to search destination',
+            'بانتظار البحث عن الوجهة',
+          ),
           Icons.mic,
           AppColors.brown,
         ),
       VoiceCommandPhase.error => (
-          "Sorry, I didn't catch that",
-          'Press and hold to try again',
+          context.tr("Sorry, I didn't catch that", 'عذرًا، لم أتمكن من فهم ذلك'),
+          context.tr('Press and hold to try again', 'اضغط مطولًا للمحاولة مرة أخرى'),
           Icons.mic_off,
           AppColors.brown,
         ),

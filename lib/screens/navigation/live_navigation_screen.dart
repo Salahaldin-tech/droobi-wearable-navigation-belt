@@ -9,11 +9,13 @@ import '../../core/enums/belt_connection_state.dart';
 import '../../models/lat_lon.dart';
 import '../../models/navigation_direction.dart';
 import '../../services/navigation/navigation_service.dart';
+import '../../widgets/page_header.dart';
 import '../../widgets/page_help_button.dart';
 import '../../state/belt_connection_notifier.dart';
 import '../../state/navigation_notifier.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../l10n/l10n.dart';
 
 class LiveNavigationScreen extends ConsumerStatefulWidget {
   const LiveNavigationScreen({
@@ -177,75 +179,63 @@ class _LiveNavigationScreenState
   ) {
     switch (direction) {
       case NavigationDirection.forward:
-        return 'FORWARD';
+        return context.tr('FORWARD', 'إلى الأمام');
 
       case NavigationDirection.forwardRight:
-        return 'FORWARD RIGHT';
+        return context.tr('FORWARD RIGHT', 'إلى الأمام يمينًا');
 
       case NavigationDirection.right:
-        return 'RIGHT';
+        return context.tr('RIGHT', 'يمينًا');
 
       case NavigationDirection.backRight:
-        return 'BACK RIGHT';
+        return context.tr('BACK RIGHT', 'إلى الخلف يمينًا');
 
       case NavigationDirection.back:
-        return 'BACK';
+        return context.tr('BACK', 'إلى الخلف');
 
       case NavigationDirection.backLeft:
-        return 'BACK LEFT';
+        return context.tr('BACK LEFT', 'إلى الخلف يسارًا');
 
       case NavigationDirection.left:
-        return 'LEFT';
+        return context.tr('LEFT', 'يسارًا');
 
       case NavigationDirection.forwardLeft:
-        return 'FORWARD LEFT';
+        return context.tr('FORWARD LEFT', 'إلى الأمام يسارًا');
 
       case null:
-        return 'CALCULATING';
+        return context.tr('CALCULATING', 'جارٍ الحساب');
     }
   }
 
   String _stateText(NavigationState state) {
     switch (state) {
       case NavigationState.idle:
-        return 'Ready';
+        return context.tr('Ready', 'جاهز');
 
       case NavigationState.starting:
-        return 'Preparing route...';
+        return context.tr('Preparing route...', 'جارٍ تجهيز المسار...');
 
       case NavigationState.navigating:
-        return 'Navigation active';
+        return context.tr('Navigation active', 'الملاحة نشطة');
 
       case NavigationState.gpsUnavailable:
-        return 'GPS unavailable';
+        return context.tr('GPS unavailable', 'إشارة GPS غير متاحة');
 
       case NavigationState.routeUnavailable:
-        return 'Route unavailable';
+        return context.tr('Route unavailable', 'المسار غير متاح');
 
       case NavigationState.recovering:
-        return 'Recovering...';
+        return context.tr('Recovering...', 'جارٍ استعادة المسار...');
 
       case NavigationState.arrived:
-        return 'You have arrived';
+        return context.tr('You have arrived', 'لقد وصلت');
 
       case NavigationState.stopped:
-        return 'Navigation stopped';
+        return context.tr('Navigation stopped', 'توقفت الملاحة');
     }
   }
 
-  String _formatDistance(double? distance) {
-    if (distance == null) {
-      return '--';
-    }
-
-    if (distance < 1000) {
-      return '${distance.round()} m';
-    }
-
-    final kilometers = distance / 1000;
-
-    return '${kilometers.toStringAsFixed(1)} km';
-  }
+  String _formatDistance(double? distance) => context.formatDistance(distance);
 
   @override
   Widget build(BuildContext context) {
@@ -283,17 +273,12 @@ class _LiveNavigationScreenState
           elevation: 0,
           backgroundColor: AppColors.cream,
           foregroundColor: AppColors.brown,
-          title: const Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Live Navigation',
-                style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              SizedBox(width: 4),
-              PageHelpButton(
+          // Shared page title; it wraps instead of overflowing on narrow
+          // screens or with large accessibility text sizes.
+          titleSpacing: pageTitleSpacing(context),
+          title: AppBarPageTitle(
+            title: context.tr('Live Navigation', 'الملاحة المباشرة'),
+            help: const PageHelpButton(
                 title: 'Live Navigation',
                 titleAr: 'الملاحة المباشرة',
                 description:
@@ -308,13 +293,12 @@ class _LiveNavigationScreenState
               tipsAr: [
                   'في أعلى الشاشة، اقرأ بطاقة الحالة لمعرفة ما إذا كانت الملاحة تبدأ أو نشطة أو مكتملة. يظهر سهم الاتجاه الكبير ونص الإرشاد في المنتصف، وقد تظهر معلومات المسافة أو الاتجاه حول النص.',
                   'اتبع السهم الكبير ونص الاتجاه في منتصف الشاشة، واستخدم اهتزازات الحزام إذا كان متصلًا. إذا ظهرت رسالة حالة أو خطأ بدلًا من الإرشادات، عالج المشكلة المذكورة قبل الاعتماد على الملاحة.',
-                  'في أسفل الشاشة، اضغط STOP NAVIGATION لإيقاف الملاحة قبل الوصول. عند ظهور حالة الوصول يتغير الزر السفلي إلى DONE؛ اضغط DONE لإنهاء الملاحة ومغادرة الشاشة.',
+                  'في أسفل الشاشة، اضغط «إيقاف الملاحة» لإيقافها قبل الوصول. عند ظهور حالة الوصول يتغير الزر السفلي إلى «تم»؛ اضغط «تم» لإنهاء الملاحة ومغادرة الشاشة.',
                 ],
                 color: AppColors.brown,
               ),
-            ],
           ),
-          centerTitle: true,
+          centerTitle: false,
         ),
         body: SafeArea(
           child: Padding(
@@ -326,19 +310,55 @@ class _LiveNavigationScreenState
             ),
             child: Column(
               children: [
-                _buildStatusCard(),
-                const SizedBox(height: 10),
-                _buildBeltConnectionCard(
-                  ref.watch(beltConnectionStateProvider).asData?.value ??
-                      ref.read(beltConnectionServiceProvider).currentState,
-                ),
-                const SizedBox(height: 12),
+                // Layout fix for the RenderFlex overflow on campus ("Uni")
+                // navigation: the status cards and the guidance used to sit
+                // in a fixed Column whose guidance had a fixed 220px circle.
+                // On shorter screens (and with the extra campus status
+                // lines) that Column overflowed. The guidance now sizes
+                // itself to the space actually left below the cards, and the
+                // area scrolls instead of clipping if a very small screen or
+                // large text still needs more room. The stop button stays
+                // pinned at the bottom.
                 Expanded(
-                  child: _buildNavigationContent(
-                    direction: direction,
-                    isArrived: isArrived,
-                    isNavigating: isNavigating,
-                    isStarting: isStarting,
+                  child: CustomScrollView(
+                    slivers: [
+                      SliverToBoxAdapter(child: _buildStatusCard()),
+                      const SliverToBoxAdapter(child: SizedBox(height: 10)),
+                      SliverToBoxAdapter(
+                        child: _buildBeltConnectionCard(
+                          ref.watch(beltConnectionStateProvider).asData?.value ??
+                              ref.read(beltConnectionServiceProvider).currentState,
+                        ),
+                      ),
+                      const SliverToBoxAdapter(child: SizedBox(height: 12)),
+                      SliverLayoutBuilder(
+                        builder: (context, constraints) {
+                          // Height left for the guidance when scrolled to
+                          // the top (stable while the user scrolls).
+                          final availableHeight = (constraints
+                                      .viewportMainAxisExtent -
+                                  constraints.precedingScrollExtent)
+                              .clamp(0.0, double.infinity);
+
+                          return SliverToBoxAdapter(
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                minHeight: availableHeight,
+                              ),
+                              child: Center(
+                                child: _buildNavigationContent(
+                                  direction: direction,
+                                  isArrived: isArrived,
+                                  isNavigating: isNavigating,
+                                  isStarting: isStarting,
+                                  availableHeight: availableHeight,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 18),
@@ -361,35 +381,48 @@ class _LiveNavigationScreenState
 
     switch (state) {
       case BeltConnectionState.connected:
-        title = 'Belt connected';
-        description = 'Belt vibration guidance is available.';
+        title = context.tr('Belt connected', 'الحزام متصل');
+        description = context.tr(
+          'Belt vibration guidance is available.',
+          'الإرشاد بالاهتزاز عبر الحزام متاح.',
+        );
         color = AppColors.brown.shade700;
         icon = Icons.bluetooth_connected;
         break;
       case BeltConnectionState.scanning:
-        title = 'Searching for belt';
-        description = 'Keep the ESP32 powered on and nearby.';
+        title = context.tr('Searching for belt', 'جارٍ البحث عن الحزام');
+        description = context.tr(
+          'Keep the ESP32 powered on and nearby.',
+          'أبقِ وحدة ESP32 قيد التشغيل وقريبة منك.',
+        );
         color = AppColors.brown.shade700;
         icon = Icons.bluetooth_searching;
         break;
       case BeltConnectionState.connecting:
-        title = 'Connecting to belt';
-        description = 'Establishing the Bluetooth connection.';
+        title = context.tr('Connecting to belt', 'جارٍ الاتصال بالحزام');
+        description = context.tr(
+          'Establishing the Bluetooth connection.',
+          'جارٍ إنشاء اتصال البلوتوث.',
+        );
         color = AppColors.brown.shade700;
         icon = Icons.bluetooth_searching;
         break;
       case BeltConnectionState.reconnecting:
-        title = 'Bluetooth connection lost';
-        description =
-            'Trying to reconnect. Belt vibration is unavailable until it reconnects.';
+        title = context.tr('Bluetooth connection lost', 'انقطع اتصال البلوتوث');
+        description = context.tr(
+          'Trying to reconnect. Belt vibration is unavailable until it reconnects.',
+          'جارٍ إعادة الاتصال. اهتزاز الحزام غير متاح حتى يعود الاتصال.',
+        );
         color = AppColors.brown.shade800;
         icon = Icons.bluetooth_searching;
         break;
       case BeltConnectionState.disconnected:
       case BeltConnectionState.scanFailed:
-        title = 'Belt not connected';
-        description =
-            'On-screen navigation may continue, but belt vibration is unavailable.';
+        title = context.tr('Belt not connected', 'الحزام غير متصل');
+        description = context.tr(
+          'On-screen navigation may continue, but belt vibration is unavailable.',
+          'يمكن متابعة الملاحة على الشاشة، لكن اهتزاز الحزام غير متاح.',
+        );
         color = AppColors.brown.shade700;
         icon = Icons.bluetooth_disabled;
         break;
@@ -484,7 +517,10 @@ class _LiveNavigationScreenState
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Route distance: $distance',
+                  context.tr(
+                    'Route distance: $distance',
+                    'البعد عن المسار: $distance',
+                  ),
                   style: TextStyle(
                     fontSize: 14,
                     color: AppColors.brown.shade700,
@@ -494,6 +530,7 @@ class _LiveNavigationScreenState
                   const SizedBox(height: 5),
                   Text(
                     'TEST ROUTING: $routingMethod',
+                    textDirection: TextDirection.ltr,
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
@@ -506,6 +543,7 @@ class _LiveNavigationScreenState
                   const SizedBox(height: 3),
                   Text(
                     _engineDebugLine(),
+                    textDirection: TextDirection.ltr,
                     style: TextStyle(
                       fontSize: 11,
                       color: AppColors.brown.shade700,
@@ -517,7 +555,7 @@ class _LiveNavigationScreenState
           ),
           if (_snapshot.accuracyMeters != null)
             Text(
-              'GPS\n±${_snapshot.accuracyMeters!.round()} m',
+              'GPS\n±${_snapshot.accuracyMeters!.round()} ${context.metersUnit}',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 11,
@@ -554,6 +592,7 @@ class _LiveNavigationScreenState
     required bool isArrived,
     required bool isNavigating,
     required bool isStarting,
+    required double availableHeight,
   }) {
     if (_errorMessage != null &&
         _snapshot.state != NavigationState.navigating) {
@@ -572,31 +611,49 @@ class _LiveNavigationScreenState
     return _buildDirectionState(
       direction: direction,
       isNavigating: isNavigating,
+      availableHeight: availableHeight,
     );
   }
 
   Widget _buildDirectionState({
     required NavigationDirection? direction,
     required bool isNavigating,
+    required double availableHeight,
   }) {
     final icon = _directionIcon(direction);
     final text = _directionText(direction);
 
+    // Size the direction circle to the space available instead of a fixed
+    // 220px: keep room for the text lines (which grow with the system text
+    // size) and the gaps, then clamp between a legible minimum and the
+    // original maximum. Narrow screens are limited by width as well.
+    final textScale = MediaQuery.textScalerOf(context).scale(14) / 14;
+    final compact = availableHeight < 420;
+    final gap = compact ? 12.0 : 24.0;
+    final reservedForText = 150 * textScale + 2 * gap + 20;
+    final maxByWidth = MediaQuery.sizeOf(context).width * 0.6;
+    final circleSize = (availableHeight - reservedForText)
+        .clamp(96.0, 220.0)
+        .clamp(96.0, maxByWidth < 96 ? 96.0 : maxByWidth)
+        .toDouble();
+
     return Column(
+      mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
           isNavigating
-              ? 'NEXT DIRECTION'
-              : 'WAITING FOR NAVIGATION',
+              ? context.tr('NEXT DIRECTION', 'الاتجاه التالي')
+              : context.tr('WAITING FOR NAVIGATION', 'بانتظار بدء الملاحة'),
+          textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w700,
-            letterSpacing: 1.4,
+            letterSpacing: context.letterSpacing(1.4),
             color: AppColors.brown.shade600,
           ),
         ),
-        const SizedBox(height: 24),
+        SizedBox(height: gap),
         AnimatedSwitcher(
           duration: const Duration(
             milliseconds: 300,
@@ -615,8 +672,8 @@ class _LiveNavigationScreenState
           },
           child: Container(
             key: ValueKey(direction),
-            width: 220,
-            height: 220,
+            width: circleSize,
+            height: circleSize,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: AppColors.brown.shade50,
@@ -625,16 +682,21 @@ class _LiveNavigationScreenState
                 width: 3,
               ),
             ),
+            // The arrow shows a physical direction (left/right of the
+            // walker), so it must never be mirrored by the RTL layout.
             child: Center(
-              child: Icon(
-                icon,
-                size: 140,
-                color: AppColors.brown.shade600,
+              child: Directionality(
+                textDirection: TextDirection.ltr,
+                child: Icon(
+                  icon,
+                  size: circleSize * 140 / 220,
+                  color: AppColors.brown.shade600,
+                ),
               ),
             ),
           ),
         ),
-        const SizedBox(height: 24),
+        SizedBox(height: gap),
         AnimatedSwitcher(
           duration: const Duration(
             milliseconds: 250,
@@ -649,8 +711,8 @@ class _LiveNavigationScreenState
         const SizedBox(height: 12),
         if (_snapshot.relativeAngle != null)
           Text(
-            'Direction angle: '
-            '${_snapshot.relativeAngle!.toStringAsFixed(0)}°',
+            context.tr('Direction angle: ', 'زاوية الاتجاه: ') +
+                '${_snapshot.relativeAngle!.toStringAsFixed(0)}°',
             style: TextStyle(
               fontSize: 14,
               color: AppColors.brown.shade600,
@@ -659,8 +721,8 @@ class _LiveNavigationScreenState
         const SizedBox(height: 8),
         if (_snapshot.heading != null)
           Text(
-            'Heading: '
-            '${_snapshot.heading!.toStringAsFixed(0)}°',
+            context.tr('Heading: ', 'الاتجاه الحالي: ') +
+                '${_snapshot.heading!.toStringAsFixed(0)}°',
             style: TextStyle(
               fontSize: 13,
               color: AppColors.brown.shade500,
@@ -679,6 +741,7 @@ class _LiveNavigationScreenState
   Widget _buildArrivedState() {
     return Center(
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
@@ -688,7 +751,8 @@ class _LiveNavigationScreenState
           ),
           const SizedBox(height: 24),
           Text(
-            'You have arrived',
+            context.tr('You have arrived', 'لقد وصلت'),
+            textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 28),
           ),
         ],
@@ -701,6 +765,7 @@ class _LiveNavigationScreenState
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
@@ -709,18 +774,41 @@ class _LiveNavigationScreenState
               color: AppColors.brown,
             ),
             const SizedBox(height: 20),
-            Text(
-              _errorMessage ?? 'Navigation error',
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            ..._errorTexts(_errorMessage ?? 'Navigation error'),
           ],
         ),
       ),
     );
+  }
+
+  /// Error text in the active language. Known service messages are
+  /// translated; an unknown technical message in Arabic mode gets a clear
+  /// Arabic summary with the original detail shown underneath.
+  List<Widget> _errorTexts(String message) {
+    const mainStyle = TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.w600,
+    );
+    final translated = context.localizeMessage(message);
+    if (!context.isArabic || translated != message) {
+      return [
+        Text(translated, textAlign: TextAlign.center, style: mainStyle),
+      ];
+    }
+    return [
+      const Text(
+        'تعذّرت متابعة الملاحة.',
+        textAlign: TextAlign.center,
+        style: mainStyle,
+      ),
+      const SizedBox(height: 8),
+      Text(
+        message,
+        textAlign: TextAlign.center,
+        textDirection: TextDirection.ltr,
+        style: TextStyle(fontSize: 13, color: AppColors.brown.shade700),
+      ),
+    ];
   }
 
   Widget _buildBottomControls({
@@ -731,7 +819,7 @@ class _LiveNavigationScreenState
         width: double.infinity,
         child: ElevatedButton(
           onPressed: _stopNavigation,
-          child: const Text('DONE'),
+          child: Text(context.tr('DONE', 'تم')),
         ),
       );
     }
@@ -744,7 +832,7 @@ class _LiveNavigationScreenState
           backgroundColor: AppColors.brown.shade50,
           foregroundColor: AppColors.brown.shade700,
         ),
-        child: const Text('STOP NAVIGATION'),
+        child: Text(context.tr('STOP NAVIGATION', 'إيقاف الملاحة')),
       ),
     );
   }

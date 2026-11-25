@@ -10,11 +10,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/enums/belt_connection_state.dart';
 import '../../core/theme/app_colors.dart';
+import '../../l10n/l10n.dart';
 import '../../core/enums/voice_command_state.dart';
 import '../../state/auth_state_notifier.dart';
 import '../../state/belt_connection_notifier.dart';
 import '../../state/voice_command_notifier.dart';
 import '../../widgets/connection_status_indicator.dart';
+import '../../widgets/page_header.dart';
 import '../../widgets/page_help_button.dart';
 import '../../widgets/droobi_bottom_nav.dart';
 import '../../widgets/voice_command_button.dart';
@@ -131,39 +133,54 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             color: _blue,
             size: 34,
           ),
-          title: const Text(
-            'Welcome to Droobi!',
+          title: Text(
+            dialogContext.tr('Welcome to Droobi!', 'مرحبًا بك في دروبي!'),
             textAlign: TextAlign.center,
           ),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 _WelcomeFeature(
                   icon: Icons.mic_none_rounded,
-                  title: 'Voice Search',
-                  description:
-                      'Use the microphone to search for a destination, such as a university college, gate, or facility.',
+                  title: dialogContext.tr('Voice Search', 'البحث الصوتي'),
+                  description: dialogContext.tr(
+                    'Use the microphone to search for a destination, such as a university college, gate, or facility.',
+                    'استخدم الميكروفون للبحث عن وجهة، مثل كلية أو بوابة أو مرفق في الجامعة.',
+                  ),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 _WelcomeFeature(
                   icon: Icons.vibration_rounded,
-                  title: 'Smart Navigation Belt',
-                  description:
-                      'When the belt is connected and navigation is running, vibration signals can help guide you.',
+                  title: dialogContext.tr(
+                    'Smart Navigation Belt',
+                    'حزام الملاحة الذكي',
+                  ),
+                  description: dialogContext.tr(
+                    'When the belt is connected and navigation is running, vibration signals can help guide you.',
+                    'عندما يكون الحزام متصلًا والملاحة قيد التشغيل، ترشدك إشارات الاهتزاز إلى الاتجاه الصحيح.',
+                  ),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 _WelcomeFeature(
                   icon: Icons.help_outline_rounded,
-                  title: 'Help on Every Page',
-                  description:
-                      'Look for the (?) help button at the top of a page to hear how that page and its options work.',
+                  title: dialogContext.tr(
+                    'Help on Every Page',
+                    'مساعدة في كل صفحة',
+                  ),
+                  description: dialogContext.tr(
+                    'Look for the (?) help button at the top of a page to hear how that page and its options work.',
+                    'ابحث عن زر المساعدة (؟) أعلى كل صفحة لتتعرّف على طريقة عمل الصفحة وخياراتها.',
+                  ),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Text(
-                  'To use navigation, Droobi will next ask for location and Bluetooth access. Your phone may also ask you to turn these services on.',
-                  style: TextStyle(fontSize: 13, height: 1.4),
+                  dialogContext.tr(
+                    'To use navigation, Droobi will next ask for location and Bluetooth access. Your phone may also ask you to turn these services on.',
+                    'لاستخدام الملاحة، سيطلب دروبي بعد ذلك إذن الوصول إلى الموقع والبلوتوث، وقد يطلب منك هاتفك أيضًا تشغيل هذه الخدمات.',
+                  ),
+                  style: const TextStyle(fontSize: 13, height: 1.4),
                 ),
               ],
             ),
@@ -183,7 +200,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   foregroundColor: AppColors.cream,
                   minimumSize: const Size.fromHeight(48),
                 ),
-                child: const Text("Let's Get Started"),
+                child: Text(dialogContext.tr("Let's Get Started", 'لنبدأ')),
               ),
             ),
           ],
@@ -305,8 +322,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             decoration: BoxDecoration(
               color: AppColors.cream.withValues(alpha: 0.68),
               borderRadius: BorderRadius.circular(radius),
+              // Clear brand border, matching the app's other search fields.
               border: Border.all(
-                color: AppColors.cream.withValues(alpha: 0.75),
+                color: AppColors.brown,
+                width: 1.5,
               ),
             ),
             child: child,
@@ -359,7 +378,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       backgroundColor: AppColors.cream,
       body: Stack(
         children: [
-          // Home uses the brand cream background with no decorative image.
+          // Decorative cream-and-brown background. It is excluded from
+          // semantics and sits behind every control, so it never takes input.
+          Positioned.fill(
+            child: Image.asset(
+              'assets/home_bg.png',
+              fit: BoxFit.cover,
+              alignment: Alignment.center,
+              excludeFromSemantics: true,
+              errorBuilder: (context, error, stackTrace) =>
+                  const SizedBox.shrink(),
+            ),
+          ),
 
           // ================================================================
           // HOME UI
@@ -375,38 +405,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 _fadeSlide(
                   _headerAnimation,
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      24,
-                      20,
-                      24,
-                      16,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        // --------------------------------------------------
-                        // APP NAME
-                        // --------------------------------------------------
-
-                        const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'Droobi',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w500,
-                                color: _text,
-                              ),
-                            ),
-                            SizedBox(width: 4),
-                            PageHelpButton(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    // App name in the shared page-title style (LyonArabic),
+                    // help next to it, menu button at the opposite edge.
+                    child: PageHeader(
+                      title: context.tr('Droobi', 'دروبي'),
+                      help: const PageHelpButton(
                               title: 'Home',
                               titleAr: 'الرئيسية',
                               description:
                 'The Home screen is arranged vertically: the app name and menu are at the top, the destination search field is below them, the belt status card sits beneath the search field, the microphone is around the center, and the app navigation bar is at the bottom.',
                               descriptionAr:
-                'ترتيب الصفحة الرئيسية عمودي: اسم التطبيق والقائمة في الأعلى، وأسفلهما حقل البحث عن وجهة، ثم بطاقة حالة الحزام، والميكروفون قرب منتصف الشاشة، وشريط التنقل في أسفلها.',
+                'ترتيب الصفحة الرئيسية عمودي: اسم التطبيق وزر المساعدة في أعلى اليمين وزر القائمة في أعلى اليسار، وأسفلهما حقل البحث عن وجهة، ثم بطاقة حالة الحزام، والميكروفون قرب منتصف الشاشة، وشريط التنقل في أسفلها.',
                               tips: [
                   'At the top-right, tap the ☰ menu button to open the side menu. The menu items appear in a vertical list; tap Favorites, University, Settings, or About Us to open that page.',
                   'Below the app name near the top, tap the wide Search destination field. The Search Destination page opens, with a search field at the top and matching results arranged as vertical rows below it.',
@@ -414,23 +424,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   'Below the destination search field, read the belt status card. To connect the belt, open the top-right menu, choose Settings, and use the Connect / Reconnect Belt button in the Device section.',
                 ],
               tipsAr: [
-                  'في أعلى يمين الشاشة، اضغط زر القائمة ☰ لفتح القائمة الجانبية. تظهر خياراتها في قائمة عمودية؛ اضغط Favorites أو University أو Settings أو About Us لفتح الصفحة المطلوبة.',
-                  'أسفل اسم التطبيق قرب أعلى الشاشة، اضغط حقل Search destination العريض. ستفتح صفحة البحث عن وجهة، وفي أعلاها حقل البحث وتظهر النتائج المطابقة تحته على شكل صفوف عمودية.',
+                  'في أعلى يسار الشاشة، اضغط زر القائمة لفتح القائمة الجانبية من جهة اليمين. تظهر خياراتها في قائمة عمودية؛ اضغط المفضلة أو الجامعة أو الإعدادات أو من نحن لفتح الصفحة المطلوبة.',
+                  'أسفل اسم التطبيق قرب أعلى الشاشة، اضغط حقل «ابحث عن وجهة» العريض. ستفتح صفحة البحث عن وجهة، وفي أعلاها حقل البحث وتظهر النتائج المطابقة تحته على شكل صفوف عمودية.',
                   'قرب منتصف الصفحة الرئيسية، اضغط مطولًا على زر الميكروفون واذكر الوجهة ثم ارفع إصبعك. عند التعرّف على الكلام، يظهر النص أسفل الميكروفون، ثم يفتح التطبيق شاشة البحث عن الوجهة.',
-                  'أسفل حقل البحث عن الوجهة، اقرأ بطاقة حالة الحزام. لتوصيل الحزام، افتح القائمة أعلى اليمين، واختر Settings، ثم اضغط Connect / Reconnect Belt في قسم Device.',
+                  'أسفل حقل البحث عن الوجهة، اقرأ بطاقة حالة الحزام. لتوصيل الحزام، افتح القائمة من أعلى اليسار، واختر الإعدادات، ثم اضغط «توصيل / إعادة توصيل الحزام» في قسم الجهاز.',
                 ],
                               color: _blue,
                             ),
-                          ],
-                        ),
-
-                        // --------------------------------------------------
-                        // MENU BUTTON
-                        // --------------------------------------------------
-
-                        Semantics(
+                      trailing: Semantics(
                           button: true,
-                          label: 'Open menu',
+                          label: context.tr('Open menu', 'فتح القائمة'),
                           child: Material(
                             color: AppColors.cream,
                             borderRadius: BorderRadius.circular(10),
@@ -452,7 +455,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                             ),
                           ),
                         ),
-                      ],
                     ),
                   ),
                 ),
@@ -469,13 +471,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     ),
                     child: Semantics(
                       button: true,
-                      label: 'Search destination',
-                      hint: 'Open destination search',
+                      label: context.tr('Search destination', 'ابحث عن وجهة'),
+                      hint: context.tr(
+                        'Open destination search',
+                        'فتح صفحة البحث عن وجهة',
+                      ),
                       child: _glassCard(
+                        // Rounded to the border's inner edge (12 - 1.5) so the
+                        // fill no longer paints over the border's corners.
                         child: Material(
                           color: AppColors.cream,
+                          borderRadius: BorderRadius.circular(10.5),
+                          clipBehavior: Clip.antiAlias,
                           child: InkWell(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(10.5),
                             onTap: () {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
@@ -489,19 +498,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 16,
                               ),
-                              child: const Row(
+                              child: Row(
                                 children: [
-                                  Icon(
+                                  const Icon(
                                     Icons.search,
                                     size: 22,
                                     color: AppColors.brown,
                                   ),
-                                  SizedBox(width: 12),
-                                  Text(
-                                    'Search destination...',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: AppColors.brown,
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      context.tr(
+                                        'Search destination...',
+                                        'ابحث عن وجهة...',
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: AppColors.brown,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -535,7 +551,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                             children: [
                               Expanded(
                                 child: Align(
-                                  alignment: Alignment.centerLeft,
+                                  alignment: AlignmentDirectional.centerStart,
                                   child: ConnectionStatusIndicator(
                                     state: beltState,
                                   ),
@@ -594,7 +610,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                             horizontal: 24,
                           ),
                           child: Text(
-                            'Heard: "${voiceState.recognizedText}"',
+                            context.tr(
+                              'Heard: "${voiceState.recognizedText}"',
+                              'سمعت: «${voiceState.recognizedText}»',
+                            ),
                             textAlign: TextAlign.center,
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
@@ -610,7 +629,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                             horizontal: 24,
                           ),
                           child: Text(
-                            voiceState.errorMessage ?? '',
+                            context.localizeMessage(
+                              voiceState.errorMessage ?? '',
+                            ),
                             textAlign: TextAlign.center,
                             style: const TextStyle(
                               color: AppColors.brown,
@@ -644,10 +665,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   void _showMenu(BuildContext context) {
     final userName = _currentUserName();
 
+    // The side menu opens from the leading edge: left in English,
+    // right in Arabic.
+    final isRtl = Directionality.of(context) == TextDirection.rtl;
+    final closeMenuLabel = context.tr('Close menu', 'إغلاق القائمة');
+
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
-      barrierLabel: 'Close menu',
+      barrierLabel: closeMenuLabel,
       barrierColor: AppColors.brown.withValues(
         alpha: 0.50,
       ),
@@ -658,12 +684,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         secondaryAnimation,
         child,
       ) {
-        // Slide in from the left instead of the default fade.
+        // Slide in from the leading edge instead of the default fade.
         return SlideTransition(
           position:
               animation.drive(CurveTween(curve: Curves.easeOutCubic)).drive(
                     Tween<Offset>(
-                      begin: const Offset(-1, 0),
+                      begin: Offset(isRtl ? 1 : -1, 0),
                       end: Offset.zero,
                     ),
                   ),
@@ -678,13 +704,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         final topInset = MediaQuery.of(context).padding.top;
 
         return Align(
-          alignment: Alignment.centerLeft,
+          alignment: AlignmentDirectional.centerStart,
           child: Material(
             color: AppColors.cream,
             elevation: 12,
             clipBehavior: Clip.antiAlias,
-            borderRadius: const BorderRadius.horizontal(
-              right: Radius.circular(24),
+            borderRadius: const BorderRadiusDirectional.horizontal(
+              end: Radius.circular(24),
             ),
             child: SizedBox(
               width: 300,
@@ -697,7 +723,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
                   Container(
                     width: double.infinity,
-                    padding: EdgeInsets.fromLTRB(
+                    padding: EdgeInsetsDirectional.fromSTEB(
                       24,
                       topInset + 20,
                       12,
@@ -751,7 +777,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                               ),
                             ),
                             IconButton(
-                              tooltip: 'Close menu',
+                              tooltip: closeMenuLabel,
                               onPressed: () {
                                 Navigator.of(
                                   context,
@@ -766,9 +792,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         ),
                         const SizedBox(height: 18),
                         if (userName.isNotEmpty) ...[
-                          const Text(
-                            'Welcome,',
-                            style: TextStyle(
+                          Text(
+                            context.tr('Welcome,', 'أهلًا،'),
+                            style: const TextStyle(
                               fontSize: 14,
                               color: _muted,
                             ),
@@ -785,9 +811,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                             ),
                           ),
                         ] else
-                          const Text(
-                            'Welcome to Droobi',
-                            style: TextStyle(
+                          Text(
+                            context.tr('Welcome to Droobi', 'مرحبًا بك في دروبي'),
+                            style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w600,
                               color: _text,
@@ -816,7 +842,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
                         _MenuItem(
                           icon: Icons.home,
-                          label: 'Home',
+                          label: context.tr('Home', 'الرئيسية'),
                           active: true,
                           onTap: () {
                             Navigator.of(
@@ -831,7 +857,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
                         _MenuItem(
                           icon: Icons.star,
-                          label: 'Favorites',
+                          label: context.tr('Favorites', 'المفضلة'),
                           onTap: () {
                             Navigator.of(
                               context,
@@ -853,7 +879,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
                         _MenuItem(
                           icon: Icons.school,
-                          label: 'University',
+                          label: context.tr('University', 'الجامعة'),
                           onTap: () {
                             Navigator.of(
                               context,
@@ -876,7 +902,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
                         _MenuItem(
                           icon: Icons.settings,
-                          label: 'Settings',
+                          label: context.tr('Settings', 'الإعدادات'),
                           onTap: () {
                             Navigator.of(
                               context,
@@ -896,13 +922,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   ),
 
                   Padding(
-                    padding: const EdgeInsets.only(
-                      left: 15,
+                    padding: const EdgeInsetsDirectional.only(
+                      start: 15,
                       bottom: 30,
                     ),
                     child: _MenuItem(
                       icon: Icons.info_outline,
-                      label: 'About Us',
+                      label: context.tr('About Us', 'من نحن'),
                       onTap: () {
                             Navigator.of(
                               context,
@@ -1117,12 +1143,14 @@ class _MenuItem extends StatelessWidget {
                     color: blue,
                   ),
                   const SizedBox(width: 14),
-                  Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: active ? FontWeight.w600 : FontWeight.w500,
-                      color: active ? blue : AppColors.brown,
+                  Expanded(
+                    child: Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: active ? FontWeight.w600 : FontWeight.w500,
+                        color: active ? blue : AppColors.brown,
+                      ),
                     ),
                   ),
                 ],

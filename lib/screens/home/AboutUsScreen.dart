@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../widgets/page_header.dart';
 import '../../widgets/page_help_button.dart';
 
 class AboutUsScreen extends StatelessWidget {
@@ -28,12 +29,11 @@ class AboutUsScreen extends StatelessWidget {
         data: base.copyWith(colorScheme: cs),
         child: Scaffold(
           appBar: AppBar(
-            title: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(s.title),
-                const SizedBox(width: 4),
-                const PageHelpButton(
+            titleSpacing: pageTitleSpacing(context),
+            centerTitle: false,
+            title: AppBarPageTitle(
+              title: s.title,
+              help: const PageHelpButton(
                   title: 'About Us',
                   titleAr: 'من نحن',
                   description:
@@ -47,11 +47,10 @@ class AboutUsScreen extends StatelessWidget {
                 ],
               tipsAr: [
                   'مرّر بإصبعك إلى الأعلى على الصفحة للانتقال إلى أسفل المحتوى. يظهر الشعار واسم Droobi قرب الأعلى، ويظهر الوصف أسفلهما.',
-                  'واصل التمرير لرؤية بطاقات الميزات المتراصة عموديًا، بطاقة واحدة في كل صف، ثم قسم Team وبطاقات أعضاء الفريق.',
-                  'إذا ظهر زر View on GitHub قرب روابط المشروع في الجزء السفلي، اضغطه لفتح المستودع في المتصفح. استخدم الرجوع للعودة إلى دروبي.',
+                  'واصل التمرير لرؤية بطاقات الميزات المتراصة عموديًا، بطاقة واحدة في كل صف، ثم قسم فريق العمل وبطاقات أعضائه.',
+                  'في أسفل الصفحة، اضغط زر «عرض على GitHub» لفتح مستودع المشروع في المتصفح. استخدم زر الرجوع للعودة إلى دروبي.',
                 ],
                 ),
-              ],
             ),
           ),
           body: ListView(
@@ -64,7 +63,7 @@ class AboutUsScreen extends StatelessWidget {
                     Image.asset( 'assets/images/app_logo.png', height: 96),
 
                     const SizedBox(height: 16),
-                    Text('Droobi',
+                    Text(ar ? 'دروبي' : 'Droobi',
                         style: tt.headlineMedium
                             ?.copyWith(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 4),

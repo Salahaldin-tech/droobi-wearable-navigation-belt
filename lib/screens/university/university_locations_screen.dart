@@ -6,9 +6,11 @@ import '../../screens/navigation/live_navigation_screen.dart';
 import '../../widgets/droobi_bottom_nav.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/app_search_bar.dart';
+import '../../widgets/page_header.dart';
 import '../../widgets/page_help_button.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../l10n/l10n.dart';
 
 class UniversityLocationsScreen extends ConsumerStatefulWidget {
   const UniversityLocationsScreen({super.key, this.initialQuery});
@@ -367,6 +369,22 @@ class _UniversityLocationsScreenState
     ),
   ];
 
+  String _categoryLabel(BuildContext context, String category) {
+    switch (category) {
+      case 'Gates':
+        return context.tr('Gates', 'البوابات');
+      case 'Facilities':
+        return context.tr('Facilities', 'المرافق');
+      case 'Colleges':
+      default:
+        return context.tr('Colleges', 'الكليات');
+    }
+  }
+
+  /// Location name in the active language (navigation still uses [name]).
+  String _itemLabel(BuildContext context, _UniversityItem item) =>
+      context.isArabic ? item.nameAr : item.name;
+
   List<_UniversityItem> _itemsForCategory(String category) {
     switch (category) {
       case 'Gates':
@@ -499,15 +517,16 @@ class _UniversityLocationsScreenState
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+          // Header at the top of the safe area, like every other page.
+          padding: EdgeInsets.zero,
           child: _animatedItem(context, order++, _buildHeader()),
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+          padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
           child: _animatedItem(context, order++, _buildSearchField()),
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+          padding: const EdgeInsets.fromLTRB(24, 14, 24, 0),
           child: _animatedItem(context, order++, _buildFilterPills()),
         ),
         const SizedBox(height: 14),
@@ -529,31 +548,13 @@ class _UniversityLocationsScreenState
   // ===========================================================================
 
   Widget _buildHeader() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'CAMPUS GUIDE',
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: _secondaryText,
-            letterSpacing: 0.6,
-          ),
-        ),
-        SizedBox(height: 4),
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                'Arab American University',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontFamily: 'LyonArabic', fontSize: 27, fontWeight: FontWeight.w900),
-              ),
-            ),
-            PageHelpButton(
+    // Shared page header. The former "Campus guide" eyebrow text was removed.
+    return PageHeader(
+      title: context.tr(
+        'Arab American University',
+        'الجامعة العربية الأمريكية',
+      ),
+      help: const PageHelpButton(
               title: 'University',
               titleAr: 'الجامعة',
               description:
@@ -566,15 +567,12 @@ class _UniversityLocationsScreenState
                   'Below the filters, browse the campus cards arranged in two columns. Tap a card to select that location; if the location is available, the app opens its next location/navigation action. Unavailable locations show an unavailable message.',
                 ],
               tipsAr: [
-                  'قرب أعلى الشاشة، اضغط حقل “Search buildings, gates, facilities” واكتب اسمًا. تبقى المواقع المطابقة في الشبكة أسفل الحقل؛ وإذا لم توجد نتائج تظهر رسالة “No matches”.',
-                  'أسفل حقل البحث مباشرة، مرّر أزرار التصنيفات أفقيًا يمينًا أو يسارًا، ثم اضغط Colleges أو Gates أو Facilities. يتحول التصنيف المحدد إلى الأزرق وتتحدث الشبكة.',
+                  'قرب أعلى الشاشة، اضغط حقل «ابحث عن المباني والبوابات والمرافق» واكتب اسمًا. تبقى المواقع المطابقة في الشبكة أسفل الحقل؛ وإذا لم توجد نتائج تظهر رسالة «لا توجد نتائج».',
+                  'أسفل حقل البحث مباشرة، مرّر أزرار التصنيفات أفقيًا، ثم اضغط الكليات أو البوابات أو المرافق. يظهر التصنيف المحدد بلون داكن وتتحدث الشبكة.',
                   'أسفل التصنيفات، تصفح بطاقات مواقع الجامعة المرتبة في عمودين. اضغط بطاقة لاختيار الموقع؛ إذا كان متاحًا يفتح التطبيق إجراء الموقع أو الملاحة التالي، وإذا لم يكن متاحًا تظهر رسالة توضح ذلك.',
                 ],
               color: _primaryBlue,
             ),
-          ],
-        ),
-      ],
     );
   }
 
@@ -585,10 +583,13 @@ class _UniversityLocationsScreenState
   Widget _buildSearchField() {
     return Semantics(
       textField: true,
-      label: 'Search campus locations',
+      label: context.tr('Search campus locations', 'ابحث في مواقع الحرم الجامعي'),
       child: AppSearchBar(
         controller: _searchController,
-        hintText: 'Search buildings, gates, facilities',
+        hintText: context.tr(
+          'Search buildings, gates, facilities',
+          'ابحث عن المباني والبوابات والمرافق',
+        ),
         showSearchIcon: true,
       ),
     );
@@ -612,7 +613,8 @@ class _UniversityLocationsScreenState
           return Semantics(
             button: true,
             selected: isSelected,
-            label: category,
+            label: _categoryLabel(context, category),
+            excludeSemantics: true,
             child: GestureDetector(
               onTap: () {
                 setState(() => _selectedCategory = category);
@@ -629,7 +631,7 @@ class _UniversityLocationsScreenState
                   ),
                 ),
                 child: Text(
-                  category,
+                  _categoryLabel(context, category),
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -657,14 +659,17 @@ class _UniversityLocationsScreenState
     if (items.isEmpty) {
       return Center(
         child: Text(
-          'No matches in $_selectedCategory.',
+          context.tr(
+            'No matches in $_selectedCategory.',
+            'لا توجد نتائج في ${_categoryLabel(context, _selectedCategory)}.',
+          ),
           style: const TextStyle(fontSize: 13, color: _secondaryText),
         ),
       );
     }
 
     return GridView.builder(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+      padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
       itemCount: items.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
@@ -731,10 +736,16 @@ class _UniversityLocationsScreenState
       child: Semantics(
       button: true,
       enabled: isAvailable,
-      label: item.name,
+      label: _itemLabel(context, item),
       hint: isAvailable
-          ? 'Double tap to select this location.'
-          : 'This location is not available yet.',
+          ? context.tr(
+              'Double tap to select this location.',
+              'انقر مرتين لاختيار هذا الموقع.',
+            )
+          : context.tr(
+              'This location is not available yet.',
+              'هذا الموقع غير متاح بعد.',
+            ),
       child: Material(
         color: _cardColor,
         borderRadius: BorderRadius.circular(16),
@@ -766,7 +777,7 @@ class _UniversityLocationsScreenState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      item.name,
+                      _itemLabel(context, item),
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -837,7 +848,10 @@ class _UniversityLocationsScreenState
       ..showSnackBar(
         SnackBar(
           content: Text(
-            '${item.name} is not available yet.',
+            context.tr(
+              '${item.name} is not available yet.',
+              '${item.nameAr} غير متاح بعد.',
+            ),
           ),
         ),
       );

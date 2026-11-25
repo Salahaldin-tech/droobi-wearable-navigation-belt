@@ -5,10 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../services/firebase/auth_service.dart';
 import '../../state/auth_state_notifier.dart';
+import '../../widgets/page_header.dart';
 import '../../widgets/page_help_button.dart';
 import 'sign_in_screen.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../l10n/l10n.dart';
 
 // ---------------------------------------------------------------------------
 // THEME
@@ -182,15 +184,18 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'Join Droobi',
+                        context.tr('Join Droobi', 'انضم إلى دروبي'),
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 24),
                       ),
                       const SizedBox(height: 4),
-                      const Text(
-                        'Create an account to get started',
+                      Text(
+                        context.tr(
+                          'Create an account to get started',
+                          'أنشئ حسابًا للبدء',
+                        ),
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 14, color: _AuthTheme.textSecondary),
+                        style: const TextStyle(fontSize: 14, color: _AuthTheme.textSecondary),
                       ),
                     ],
                   ),
@@ -274,7 +279,7 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
+      padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -283,30 +288,33 @@ class _Header extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-              Text(
-                'Droobi',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 30),
+              // Same title style and row height as every page header.
+              SizedBox(
+                height: kToolbarHeight,
+                child: Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: PageTitle(context.tr('Droobi', 'دروبي')),
+                ),
               ),
-              SizedBox(height: 4),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Sign Up',
-                    style: TextStyle(
+                    context.tr('Sign Up', 'إنشاء حساب'),
+                    style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
                       color: _AuthTheme.textSecondary,
                     ),
                   ),
-                  SizedBox(width: 4),
-                  PageHelpButton(
+                  const SizedBox(width: 4),
+                  const PageHelpButton(
                     title: 'Create Account',
                     titleAr: 'إنشاء حساب',
                     description:
                 'The Droobi/Sign Up heading is at the top-left, and a Login pill is at the top-right. The registration form appears below, with Full Name, Email, Password, and Confirm Password stacked vertically; the Sign Up button is below the fields.',
                     descriptionAr:
-                'يظهر عنوان Droobi/Sign Up أعلى اليسار، ويوجد زر Login أعلى اليمين. يظهر نموذج التسجيل أسفلهما، وحقول Full Name وEmail وPassword وConfirm Password مرتبة عموديًا، ثم زر Sign Up أسفل الحقول.',
+                'يظهر عنوان دروبي و«إنشاء حساب» أعلى اليمين، ويوجد زر «تسجيل الدخول» أعلى اليسار. يظهر نموذج التسجيل أسفلهما، وحقول الاسم الكامل والبريد الإلكتروني وكلمة المرور وتأكيد كلمة المرور مرتبة عموديًا، ثم زر «إنشاء الحساب» أسفل الحقول.',
                     tips: [
                   'In the form below the header, tap Full Name and type your name, then tap Email directly below it and enter an email address you can access.',
                   'Continue down the form to Password and Confirm Password. Tap the eye icon on the right side of either password field to show or hide what you typed.',
@@ -314,10 +322,10 @@ class _Header extends StatelessWidget {
                   'If you already have an account, tap the Login pill at the top-right to return to the sign-in screen.',
                 ],
               tipsAr: [
-                  'في النموذج أسفل العنوان، اضغط Full Name واكتب اسمك، ثم اضغط Email الموجود تحته مباشرة وأدخل بريدًا يمكنك الوصول إليه.',
-                  'تابع إلى أسفل النموذج حتى Password وConfirm Password. اضغط رمز العين على يمين أي من حقلي كلمة المرور لإظهار النص أو إخفائه.',
-                  'اضغط زر Sign Up أسفل حقول النموذج. إذا ظهر خطأ بجانب النموذج أو تحته، صحح البيانات وأعد المحاولة. بعد نجاح التسجيل، يعيدك دروبي إلى Login.',
-                  'إذا كان لديك حساب بالفعل، اضغط زر Login أعلى يمين الشاشة للعودة إلى تسجيل الدخول.',
+                  'في النموذج أسفل العنوان، اضغط حقل الاسم الكامل واكتب اسمك، ثم اضغط حقل البريد الإلكتروني الموجود تحته مباشرة وأدخل بريدًا يمكنك الوصول إليه.',
+                  'تابع إلى أسفل النموذج حتى حقلي كلمة المرور وتأكيد كلمة المرور. اضغط رمز العين في الجهة اليسرى من أي منهما لإظهار النص أو إخفائه.',
+                  'اضغط زر «إنشاء الحساب» أسفل حقول النموذج. إذا ظهر خطأ تحت النموذج، صحح البيانات وأعد المحاولة. بعد نجاح التسجيل، يعيدك دروبي إلى صفحة تسجيل الدخول.',
+                  'إذا كان لديك حساب بالفعل، اضغط زر «تسجيل الدخول» أعلى يسار الشاشة للعودة إلى صفحة تسجيل الدخول.',
                 ],
                   ),
                 ],
@@ -325,7 +333,11 @@ class _Header extends StatelessWidget {
               ],
             ),
           ),
-          _LoginPill(onTap: onLoginTap),
+          // Vertically centred on the title row.
+          SizedBox(
+            height: kToolbarHeight,
+            child: Center(child: _LoginPill(onTap: onLoginTap)),
+          ),
         ],
       ),
     );
@@ -350,11 +362,11 @@ class _LoginPill extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(24),
         onTap: onTap,
-        child: const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           child: Text(
-            'Login',
-            style: TextStyle(
+            context.tr('Login', 'تسجيل الدخول'),
+            style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
               color: _AuthTheme.textPrimary,
@@ -407,8 +419,9 @@ class _SignUpPanel extends StatelessWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
         boxShadow: _AuthTheme.panelShadow,
       ),
-      padding: const EdgeInsets.fromLTRB(24, 12, 24, 12),
-      child: Column(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(24, 12, 24, 12),
+        child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -427,9 +440,9 @@ class _SignUpPanel extends StatelessWidget {
 
             Semantics(
               header: true,
-              child: const Text(
-                'Create your account',
-                style: TextStyle(
+              child: Text(
+                context.tr('Create your account', 'أنشئ حسابك'),
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                   color: _AuthTheme.textPrimary,
@@ -437,18 +450,18 @@ class _SignUpPanel extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 2),
-            const Text(
-              'إنشاء حساب',
-              style: TextStyle(fontSize: 13, color: _AuthTheme.textSecondary),
+            Text(
+              context.tr('إنشاء حساب', 'Create an account'),
+              style: const TextStyle(fontSize: 13, color: _AuthTheme.textSecondary),
             ),
             const SizedBox(height: 12),
 
             Semantics(
               textField: true,
-              label: 'Full name',
+              label: context.tr('Full name', 'الاسم الكامل'),
               child: _RoundedField(
                 controller: nameController,
-                hintText: 'Full Name',
+                hintText: context.tr('Full Name', 'الاسم الكامل'),
                 textInputAction: TextInputAction.next,
                 enabled: !isSubmitting,
               ),
@@ -456,10 +469,10 @@ class _SignUpPanel extends StatelessWidget {
             const SizedBox(height: 10),
             Semantics(
               textField: true,
-              label: 'Email address',
+              label: context.tr('Email address', 'البريد الإلكتروني'),
               child: _RoundedField(
                 controller: emailController,
-                hintText: 'Email',
+                hintText: context.tr('Email', 'البريد الإلكتروني'),
                 keyboardType: TextInputType.emailAddress,
                 textInputAction: TextInputAction.next,
                 enabled: !isSubmitting,
@@ -468,10 +481,10 @@ class _SignUpPanel extends StatelessWidget {
             const SizedBox(height: 10),
             Semantics(
               textField: true,
-              label: 'Password',
+              label: context.tr('Password', 'كلمة المرور'),
               child: _RoundedField(
                 controller: passwordController,
-                hintText: 'Password',
+                hintText: context.tr('Password', 'كلمة المرور'),
                 obscureText: obscurePassword,
                 textInputAction: TextInputAction.next,
                 enabled: !isSubmitting,
@@ -488,10 +501,10 @@ class _SignUpPanel extends StatelessWidget {
             const SizedBox(height: 14),
             Semantics(
               textField: true,
-              label: 'Confirm password',
+              label: context.tr('Confirm password', 'تأكيد كلمة المرور'),
               child: _RoundedField(
                 controller: confirmPasswordController,
-                hintText: 'Confirm Password',
+                hintText: context.tr('Confirm Password', 'تأكيد كلمة المرور'),
                 obscureText: obscureConfirmPassword,
                 textInputAction: TextInputAction.done,
                 enabled: !isSubmitting,
@@ -512,7 +525,7 @@ class _SignUpPanel extends StatelessWidget {
               Semantics(
                 liveRegion: true,
                 child: Text(
-                  errorMessage!,
+                  context.localizeMessage(errorMessage!),
                   style: const TextStyle(color: _AuthTheme.error, fontSize: 13),
                 ),
               ),
@@ -533,18 +546,18 @@ class _SignUpPanel extends StatelessWidget {
                   ),
                 ),
                 child: isSubmitting
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          semanticsLabel: 'Creating account',
-                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.cream),
+                          semanticsLabel: context.tr('Creating account', 'جارٍ إنشاء الحساب'),
+                          valueColor: const AlwaysStoppedAnimation<Color>(AppColors.cream),
                         ),
                       )
-                    : const Text(
-                        'Sign Up',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    : Text(
+                        context.tr('Sign Up', 'إنشاء الحساب'),
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                       ),
               ),
             ),
@@ -554,9 +567,9 @@ class _SignUpPanel extends StatelessWidget {
               alignment: WrapAlignment.center,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                const Text(
-                  'Already have an account?',
-                  style: TextStyle(fontSize: 14, color: _AuthTheme.textSecondary),
+                Text(
+                  context.tr('Already have an account?', 'لديك حساب بالفعل؟'),
+                  style: const TextStyle(fontSize: 14, color: _AuthTheme.textSecondary),
                 ),
                 TextButton(
                   onPressed: onLoginTap,
@@ -565,14 +578,15 @@ class _SignUpPanel extends StatelessWidget {
                     minimumSize: const Size(48, 48),
                     padding: const EdgeInsets.symmetric(horizontal: 6),
                   ),
-                  child: const Text(
-                    'Login',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                  child: Text(
+                    context.tr('Login', 'سجّل الدخول'),
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
                   ),
                 ),
               ],
             ),
           ],
+        ),
       ),
     );
   }

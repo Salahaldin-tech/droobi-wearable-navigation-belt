@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/enums/belt_connection_state.dart';
 
 import '../core/theme/app_colors.dart';
+import '../l10n/l10n.dart';
 
 /// Displays belt connection status via text + icon + color together,
 /// never color alone (Stage 2/4 accessibility requirement). Marked as
@@ -16,32 +17,32 @@ class ConnectionStatusIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     final (label, color, icon) = switch (state) {
       BeltConnectionState.disconnected => (
-          'Belt disconnected',
+          context.tr('Belt disconnected', 'الحزام غير متصل'),
           AppColors.brown.shade700,
           Icons.bluetooth_disabled,
         ),
       BeltConnectionState.scanning => (
-          'Searching for belt...',
+          context.tr('Searching for belt...', 'جارٍ البحث عن الحزام...'),
           AppColors.brown,
           Icons.bluetooth_searching,
         ),
       BeltConnectionState.connecting => (
-          'Connecting to belt...',
+          context.tr('Connecting to belt...', 'جارٍ الاتصال بالحزام...'),
           AppColors.brown,
           Icons.bluetooth_searching,
         ),
       BeltConnectionState.connected => (
-          'Belt connected',
+          context.tr('Belt connected', 'الحزام متصل'),
           AppColors.brown.shade700,
           Icons.bluetooth_connected,
         ),
       BeltConnectionState.reconnecting => (
-          'Reconnecting to belt...',
+          context.tr('Reconnecting to belt...', 'جارٍ إعادة الاتصال بالحزام...'),
           AppColors.brown.shade800,
           Icons.bluetooth_searching,
         ),
       BeltConnectionState.scanFailed => (
-          'Belt not found',
+          context.tr('Belt not found', 'لم يُعثر على الحزام'),
           AppColors.brown.shade700,
           Icons.bluetooth_disabled,
         ),
